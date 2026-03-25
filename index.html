@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #3b82f6; --bg: #f8fafc; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; margin: 0; }
         
-        /* تأثير هزة السلة */
+        /* انيميشن هزة السلة */
         @keyframes basketShake {
             0% { transform: scale(1); }
             25% { transform: scale(1.2) rotate(-10deg); }
@@ -25,13 +25,13 @@
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 30px;
             border-radius: 50px; z-index: 9999; display: none; font-weight: bold;
-            animation: slideDown 0.3s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
 
-        .res-header { padding: 50px 20px; background: var(--main); color: white; border-radius: 0 0 40px 40px; text-align: center; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .item-card { border: none; border-radius: 25px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: #fff; height: 100%; transition: 0.3s; }
-        .add-btn { background: var(--main); border: none; border-radius: 15px; font-weight: bold; padding: 10px; color: white; }
+        .res-header { padding: 50px 20px; background: var(--main); color: white; border-radius: 0 0 40px 40px; text-align: center; margin-bottom: 30px; }
+        .item-card { border: none; border-radius: 25px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: #fff; height: 100%; }
+        .add-btn { background: var(--main); border: none; border-radius: 15px; font-weight: bold; padding: 10px; color: white; width: 100%; }
+        
         .cart-btn {
             position: fixed; bottom: 30px; left: 30px;
             width: 75px; height: 75px; background: var(--main);
@@ -47,12 +47,13 @@
     <div id="toastNotice">✅ تمت الإضافة للسلة</div>
 
     <div id="headerArea" class="res-header">
-        <h1 id="resName" class="fw-900 mb-1">...</h1>
-        <p id="resStatus" class="opacity-75 mb-0">جاري تحميل المنيو</p>
+        <h1 id="resName" class="fw-900 mb-1">جاري التحميل...</h1>
+        <p id="resStatus" class="opacity-75 mb-0">يرجى الانتظار</p>
     </div>
 
     <div class="container">
-        <div id="itemsGrid" class="row g-3"></div>
+        <div id="itemsGrid" class="row g-3">
+            </div>
     </div>
 
     <button class="cart-btn" id="mainBasket">
@@ -64,7 +65,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-    // 1. إعدادات الفايربيز (تأكد أنها نفس الموجودة في لوحة التحكم)
+    // إعدادات Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
         authDomain: "argon-system.firebaseapp.com",
@@ -77,30 +78,30 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. جلب ID المطعم من الرابط
+    // جلب الـ ID من الرابط (أو افتراض 1)
     const urlParams = new URLSearchParams(window.location.search);
     const RES_ID = urlParams.get("id") || "1"; 
 
     let cartCount = 0;
 
-    // 3. جلب البيانات من Firebase (Real-time)
+    // جلب بيانات المطعم
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            const settings = data.settings || {};
+            const settings = data.settings || { name: "مطعم أرغون" };
             const products = data.products || {};
 
-            // تحديث الثيم والاسم
-            document.getElementById('resName').innerText = settings.name || "مطعم غير معرف";
-            document.getElementById('resStatus').innerText = "أهلاً بكم في منيو " + (settings.name || "");
+            document.getElementById('resName').innerText = settings.name;
+            document.getElementById('resStatus').innerText = "أهلاً بك في " + settings.name;
+            
             const themeColor = settings.themeColor || "#3b82f6";
             document.documentElement.style.setProperty('--main', themeColor);
             document.getElementById('headerArea').style.background = themeColor;
 
-            // عرض الأصناف
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = "";
-            for (let key in products) {
+            
+            Object.keys(products).forEach(key => {
                 const item = products[key];
                 grid.innerHTML += `
                     <div class="col-6">
@@ -109,13 +110,14 @@
                             <div class="card-body p-2 text-center">
                                 <h6 class="fw-bold mb-1">${item.name}</h6>
                                 <p class="text-primary fw-bold mb-2">${item.price} د.أ</p>
-                                <button class="btn add-btn w-100" onclick="addToCart()">إضافة +</button>
+                                <button class="btn add-btn" onclick="addToCart()">إضافة +</button>
                             </div>
                         </div>
                     </div>`;
-            }
+            });
         } else {
             document.getElementById('resName').innerText = "المطعم غير موجود";
+            document.getElementById('resStatus').innerText = "تأكد من رقم الـ ID في الرابط";
         }
     });
 
@@ -123,16 +125,16 @@
         cartCount++;
         document.getElementById('cartCount').innerText = cartCount;
 
-        // الاهتزاز الفيزيائي
-        if (navigator.vibrate) navigator.vibrate(60);
+        // الاهتزاز الفيزيائي للجهاز
+        if (navigator.vibrate) navigator.vibrate(50);
 
-        // هزة السلة
+        // هزة السلة البصرية
         const basket = document.getElementById('mainBasket');
         basket.classList.remove('shake');
         void basket.offsetWidth; 
         basket.classList.add('shake');
 
-        // إشعار التوست
+        // إشعار "تمت الإضافة"
         const toast = document.getElementById('toastNotice');
         toast.style.display = 'block';
         setTimeout(() => { toast.style.display = 'none'; }, 1500);
