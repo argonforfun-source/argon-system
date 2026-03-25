@@ -2,88 +2,336 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>أرغون | منشئ الأنظمة السريع</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGON OS | نظام الإدارة المركزية</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 50px; }
-        .admin-card { background: #1e293b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #3b82f6; }
-        input { background: #0f172a !important; color: white !important; border: 1px solid #334155 !important; margin-bottom: 20px; }
-        .res-link { background: #334155; padding: 15px; border-radius: 10px; margin-top: 20px; word-break: break-all; border-left: 5px solid #10b981; }
+        :root {
+            --primary: #3b82f6;
+            --accent: #10b981;
+            --bg: #020617;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --sidebar: #0f172a;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: #f8fafc;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* شاشة الدخول الفخمة */
+        #superLoginPage {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, #1e293b 0%, #020617 100%);
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 50px;
+            border-radius: 35px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        /* الهيكل الرئيسي */
+        #superWrapper {
+            display: none;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: var(--sidebar);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 50px;
+            overflow-y: auto;
+            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+        }
+
+        /* العناصر التفاعلية */
+        .nav-link {
+            color: #94a3b8;
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .nav-link i { margin-left: 15px; font-size: 1.2rem; }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        .restaurant-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+
+        .restaurant-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .form-control {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid #334155 !important;
+            color: #fff !important;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .section { display: none; animation: fadeIn 0.5s ease; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 5px;
+            transition: 0.2s;
+        }
+
+        .res-link-box {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            color: #3b82f6;
+            border: 1px dashed #334155;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="admin-card">
-                <h2 class="text-center mb-4 text-info">🚀 منشئ مطعم جديد</h2>
-                
-                <label>اسم المطعم</label>
-                <input type="text" id="newResName" class="form-control" placeholder="مثلاً: مطعم الشيف">
-                
-                <label>رقم الواتساب (مع رمز الدولة)</label>
-                <input type="text" id="newResPhone" class="form-control" placeholder="962790000000">
+    <div id="superLoginPage">
+        <div class="login-box">
+            <div class="mb-4">
+                <i class="fas fa-shield-halved fa-3x text-primary mb-3"></i>
+                <h2 class="fw-900">ARGON <span class="text-primary">OS</span></h2>
+                <p class="text-muted small">نظام الإدارة المركزية - الوصول المقيّد</p>
+            </div>
+            <input type="text" id="adminUser" class="form-control" placeholder="اسم المستخدم">
+            <input type="password" id="adminPass" class="form-control" placeholder="كلمة المرور">
+            <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-lg" onclick="accessSuperAdmin()">
+                تشفير الدخول <i class="fas fa-key ms-2"></i>
+            </button>
+        </div>
+    </div>
 
-                <button class="btn btn-info w-100 fw-bold py-3" onclick="createRestaurant()">تفعيل النظام للمطعم الآن</button>
+    <div id="superWrapper">
+        <div class="sidebar">
+            <div class="text-center mb-5">
+                <h3 class="fw-900"><i class="fas fa-cube text-primary ms-2"></i>ARGON</h3>
+                <span class="badge bg-primary">MASTER ADMIN</span>
+            </div>
+            
+            <div class="nav-link active" onclick="showSection('active-sec', this)">
+                <i class="fas fa-store"></i> الشبكة النشطة
+            </div>
+            <div class="nav-link" onclick="showSection('add-sec', this)">
+                <i class="fas fa-plus-circle"></i> إضافة شريك جديد
+            </div>
+            <div class="nav-link" onclick="showSection('stats-sec', this)">
+                <i class="fas fa-chart-line"></i> الإحصائيات العامة
+            </div>
 
-                <div id="resultArea" style="display: none;">
-                    <div class="res-link">
-                        <small class="text-info">رابط لوحة تحكم المطعم:</small><br>
-                        <code id="dashLink" class="text-white"></code>
+            <div class="nav-link text-danger mt-auto" onclick="location.reload()">
+                <i class="fas fa-power-off"></i> إنهاء الجلسة
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="active-sec" class="section active">
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <h2>نظرة عامة على النظام</h2>
+                    <div id="resCount" class="h5 text-primary">0 مطعم نشط</div>
+                </div>
+                <div id="activeList"></div>
+            </div>
+
+            <div id="add-sec" class="section">
+                <h2 class="mb-5">توسيع الشبكة</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="restaurant-card">
+                            <h5 class="mb-4 text-primary">بيانات الشريك الجديد</h5>
+                            <input type="text" id="newId" class="form-control" placeholder="المعرف (مثال: R-KING)">
+                            <input type="text" id="newName" class="form-control" placeholder="اسم المنشأة">
+                            <input type="text" id="newPhone" class="form-control" placeholder="رقم الواتساب (9627...)">
+                            <input type="password" id="newPass" class="form-control" value="123456">
+                            <button class="btn btn-primary w-100 py-3 fw-bold" onclick="createNewRestaurant()">
+                                تفعيل وتوليد الروابط <i class="fas fa-bolt ms-2"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="res-link">
-                        <small class="text-success">رابط منيو الزبائن:</small><br>
-                        <code id="menuLink" class="text-white"></code>
+                    <div class="col-md-6">
+                        <div id="generatedLinks" class="restaurant-card" style="display: none; border-right-color: var(--accent);">
+                            <h5 class="text-accent mb-4">الروابط الذكية جاهزة</h5>
+                            <div class="mb-3">
+                                <label class="small text-muted">لوحة تحكم المطعم:</label>
+                                <div class="res-link-box" id="linkDash"></div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="small text-muted">رابط منيو الزبائن:</label>
+                                <div class="res-link-box" id="linkMenu"></div>
+                            </div>
+                            <p class="small text-warning">الروابط جاهزة للمشاركة الآن.</p>
+                        </div>
                     </div>
-                    <p class="text-warning mt-3 small">* انسخ الروابط وأرسلها لصاحب المطعم فوراً.</p>
+                </div>
+            </div>
+
+            <div id="stats-sec" class="section">
+                <h2 class="mb-4">تقارير الأداء</h2>
+                <div class="alert alert-info bg-dark border-primary text-white p-5 rounded-4">
+                    قريباً: سيتم دمج تحليل البيانات لمتابعة إجمالي مبيعات جميع المطاعم من مكان واحد.
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-<script>
-    // نفس إعدادات Firebase الخاصة بك
-    const firebaseConfig = {
-        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-        authDomain: "argon-system.firebaseapp.com",
-        projectId: "argon-system",
-        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+            authDomain: "argon-system.firebaseapp.com",
+            projectId: "argon-system",
+            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    function createRestaurant() {
-        const name = document.getElementById('newResName').value;
-        const phone = document.getElementById('newResPhone').value;
-        
-        if(!name || !phone) return alert("عبي البيانات أول يا زعيم!");
+        function accessSuperAdmin() {
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            if (u === "admin" && p === "123456") {
+                document.getElementById('superLoginPage').style.display = "none";
+                document.getElementById('superWrapper').style.display = "flex";
+                loadData();
+            } else {
+                alert("رمز الوصول غير صحيح");
+            }
+        }
 
-        // إنشاء ID عشوائي فريد
-        const newID = "RES" + Math.floor(1000 + Math.random() * 9000);
+        function loadData() {
+            db.ref('restaurants').on('value', (snap) => {
+                const list = document.getElementById('activeList');
+                list.innerHTML = "";
+                let count = 0;
+                
+                // الحصول على المسار الأساسي للموقع أوتوماتيكياً
+                const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
 
-        // بناء هيكل المطعم في قاعدة البيانات فوراً
-        db.ref('restaurants/' + newID + '/settings').set({
-            name: name,
-            phone: phone,
-            status: "active",
-            createdAt: new Date().toISOString()
-        }).then(() => {
-            // تجهيز الروابط (افترضنا أن ملفاتك مرفوعة على استضافة)
-            const baseUrl = window.location.origin; // سيأخذ رابط موقعك الحالي
-            
-            document.getElementById('dashLink').innerText = `${baseUrl}/dashboard.html?id=${newID}`;
-            document.getElementById('menuLink').innerText = `${baseUrl}/index.html?id=${newID}`;
-            document.getElementById('resultArea').style.display = 'block';
-            
-            alert("تم إنشاء النظام بنجاح للمطعم: " + name);
-        });
-    }
-</script>
+                snap.forEach((child) => {
+                    count++;
+                    const id = child.key;
+                    const val = child.val().settings || {};
+                    list.innerHTML += `
+                        <div class="restaurant-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="status-badge mb-2 d-inline-block">نشط</span>
+                                    <h4 class="mb-1">${val.name || 'بدون اسم'}</h4>
+                                    <p class="text-muted small mb-0"><i class="fas fa-fingerprint me-1"></i> ID: ${id} | <i class="fas fa-phone me-1"></i> ${val.phone || 'لا يوجد'}</p>
+                                </div>
+                                <div>
+                                    <a href="${baseUrl}dashboard.html?id=${id}" target="_blank" class="btn btn-action btn-outline-primary"><i class="fas fa-external-link-alt"></i></a>
+                                    <button class="btn btn-action btn-outline-danger" onclick="deleteRestaurant('${id}')"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('resCount').innerText = count + " مطعم نشط";
+            });
+        }
+
+        function createNewRestaurant() {
+            const id = document.getElementById('newId').value.trim();
+            const name = document.getElementById('newName').value.trim();
+            const phone = document.getElementById('newPhone').value.trim();
+            const password = document.getElementById('newPass').value;
+
+            if (!id || !name || !phone) return alert("الرجاء إكمال كافة البيانات");
+
+            db.ref('restaurants/' + id + '/settings').set({ 
+                name, 
+                phone, 
+                password, 
+                status: "active",
+                createdAt: new Date().toISOString() 
+            }).then(() => {
+                const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+                document.getElementById('linkDash').innerText = `${baseUrl}dashboard.html?id=${id}`;
+                document.getElementById('linkMenu').innerText = `${baseUrl}index.html?id=${id}`;
+                document.getElementById('generatedLinks').style.display = 'block';
+                alert("تم تفعيل المطعم بنجاح");
+            });
+        }
+
+        function deleteRestaurant(id) {
+            if(confirm('هل أنت متأكد من حذف هذا المطعم نهائياً؟')) {
+                db.ref('restaurants/' + id).remove();
+            }
+        }
+
+        function showSection(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
 </body>
 </html>
