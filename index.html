@@ -9,37 +9,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #3b82f6; --bg: #f8fafc; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; margin: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; margin: 0; overflow-x: hidden; }
         
-        /* انيميشن هزة السلة */
+        /* تأثيرات الحركة */
         @keyframes basketShake {
             0% { transform: scale(1); }
-            25% { transform: scale(1.2) rotate(-10deg); }
-            50% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1); }
+            20% { transform: scale(1.3) rotate(-15deg); }
+            40% { transform: scale(1.3) rotate(15deg); }
+            60% { transform: scale(1.3) rotate(-15deg); }
+            100% { transform: scale(1) rotate(0); }
         }
-        .shake { animation: basketShake 0.4s ease-in-out; }
+        .shake { animation: basketShake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
 
-        /* إشعار التوست */
         #toastNotice {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 30px;
-            border-radius: 50px; z-index: 9999; display: none; font-weight: bold;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.9); color: white; padding: 12px 30px;
+            border-radius: 50px; z-index: 10000; display: none; font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .res-header { padding: 50px 20px; background: var(--main); color: white; border-radius: 0 0 40px 40px; text-align: center; margin-bottom: 30px; }
-        .item-card { border: none; border-radius: 25px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: #fff; height: 100%; }
-        .add-btn { background: var(--main); border: none; border-radius: 15px; font-weight: bold; padding: 10px; color: white; width: 100%; }
+        /* التصميم */
+        .res-header { padding: 60px 20px; background: var(--main); color: white; border-radius: 0 0 50px 50px; text-align: center; margin-bottom: 30px; transition: 0.5s; }
+        .item-card { border: none; border-radius: 25px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: #fff; height: 100%; transition: 0.3s; }
+        .item-card:active { transform: scale(0.95); }
+        .add-btn { background: var(--main); border: none; border-radius: 15px; font-weight: bold; padding: 10px; color: white; width: 100%; transition: 0.2s; }
+        .add-btn:active { background: #1d4ed8; }
         
         .cart-btn {
             position: fixed; bottom: 30px; left: 30px;
-            width: 75px; height: 75px; background: var(--main);
+            width: 80px; height: 80px; background: var(--main);
             color: white; border-radius: 50%; display: flex;
-            justify-content: center; align-items: center; font-size: 1.8rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 4px solid white; z-index: 1000;
+            justify-content: center; align-items: center; font-size: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25); border: 5px solid white; z-index: 1000;
         }
-        .cart-count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: bold; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -47,8 +50,8 @@
     <div id="toastNotice">✅ تمت الإضافة للسلة</div>
 
     <div id="headerArea" class="res-header">
-        <h1 id="resName" class="fw-900 mb-1">جاري التحميل...</h1>
-        <p id="resStatus" class="opacity-75 mb-0">يرجى الانتظار</p>
+        <h1 id="resName" class="fw-900 mb-1">تحميل...</h1>
+        <p id="resStatus" class="opacity-75 mb-0">يرجى الانتظار قليلاً</p>
     </div>
 
     <div class="container">
@@ -65,7 +68,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-    // إعدادات Firebase
+    // إعدادات Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
         authDomain: "argon-system.firebaseapp.com",
@@ -78,15 +81,18 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // جلب الـ ID من الرابط (أو افتراض 1)
+    // استخراج ID المطعم (إذا لم يوجد نستخدم 1)
     const urlParams = new URLSearchParams(window.location.search);
-    const RES_ID = urlParams.get("id") || "1"; 
+    let RES_ID = urlParams.get("id");
+    if (!RES_ID) RES_ID = "1"; 
 
     let cartCount = 0;
 
-    // جلب بيانات المطعم
+    // جلب البيانات مع فحص الأخطاء
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val();
+        const grid = document.getElementById('itemsGrid');
+        
         if (data) {
             const settings = data.settings || { name: "مطعم أرغون" };
             const products = data.products || {};
@@ -98,46 +104,55 @@
             document.documentElement.style.setProperty('--main', themeColor);
             document.getElementById('headerArea').style.background = themeColor;
 
-            const grid = document.getElementById('itemsGrid');
             grid.innerHTML = "";
+            const productKeys = Object.keys(products);
             
-            Object.keys(products).forEach(key => {
-                const item = products[key];
-                grid.innerHTML += `
-                    <div class="col-6">
-                        <div class="card item-card">
-                            <img src="${item.img || 'https://via.placeholder.com/150'}" class="card-img-top" style="height:140px; object-fit:cover">
-                            <div class="card-body p-2 text-center">
-                                <h6 class="fw-bold mb-1">${item.name}</h6>
-                                <p class="text-primary fw-bold mb-2">${item.price} د.أ</p>
-                                <button class="btn add-btn" onclick="addToCart()">إضافة +</button>
+            if (productKeys.length === 0) {
+                grid.innerHTML = "<div class='text-center p-5'><h5>لا توجد وجبات مضافة بعد</h5></div>";
+            } else {
+                productKeys.forEach(key => {
+                    const item = products[key];
+                    grid.innerHTML += `
+                        <div class="col-6">
+                            <div class="card item-card">
+                                <img src="${item.img || 'https://via.placeholder.com/150'}" class="card-img-top" style="height:140px; object-fit:cover">
+                                <div class="card-body p-2 text-center">
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">${item.name}</h6>
+                                    <p class="text-primary fw-bold mb-2">${item.price} د.أ</p>
+                                    <button class="btn add-btn" onclick="addToCart()">إضافة +</button>
+                                </div>
                             </div>
-                        </div>
-                    </div>`;
-            });
+                        </div>`;
+                });
+            }
         } else {
             document.getElementById('resName').innerText = "المطعم غير موجود";
-            document.getElementById('resStatus').innerText = "تأكد من رقم الـ ID في الرابط";
+            document.getElementById('resStatus').innerText = "يرجى التأكد من لوحة التحكم";
+            grid.innerHTML = "<div class='text-center p-5'><h5>لم يتم العثور على بيانات لهذا المعرف: " + RES_ID + "</h5></div>";
         }
+    }, (error) => {
+        console.error("Firebase Error:", error);
     });
 
     function addToCart() {
         cartCount++;
         document.getElementById('cartCount').innerText = cartCount;
 
-        // الاهتزاز الفيزيائي للجهاز
-        if (navigator.vibrate) navigator.vibrate(50);
+        // 1. الاهتزاز (Haptic Feedback) - يعمل على الأجهزة الحقيقية
+        if (navigator.vibrate) {
+            navigator.vibrate([40, 30, 40]); // نمط اهتزاز احترافي
+        }
 
-        // هزة السلة البصرية
+        // 2. هزة السلة
         const basket = document.getElementById('mainBasket');
         basket.classList.remove('shake');
-        void basket.offsetWidth; 
+        void basket.offsetWidth; // Force reflow
         basket.classList.add('shake');
 
-        // إشعار "تمت الإضافة"
+        // 3. الإشعار المنبثق
         const toast = document.getElementById('toastNotice');
         toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 1500);
+        setTimeout(() => { toast.style.display = 'none'; }, 1200);
     }
 </script>
 </body>
