@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلبات - مطعمي</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+
+        body { background: #f0f2f5; min-height: 100vh; }
+
+        .navbar {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .navbar-brand { font-weight: 700; color: white !important; font-size: 1.4rem; }
+        .nav-link { color: rgba(255,255,255,0.85) !important; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { color: white !important; }
+
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 25px 0;
+            margin-bottom: 30px;
+        }
+
+        /* ── STATS ── */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            border-right: 5px solid transparent;
+            transition: transform .2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card.new    { border-right-color: #e74c3c; }
+        .stat-card.prep   { border-right-color: #f39c12; }
+        .stat-card.ready  { border-right-color: #27ae60; }
+        .stat-card.done   { border-right-color: #3498db; }
+        .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .stat-icon.red    { background: #fdecea; color: #e74c3c; }
+        .stat-icon.orange { background: #fef6e7; color: #f39c12; }
+        .stat-icon.green  { background: #eafaf1; color: #27ae60; }
+        .stat-icon.blue   { background: #eaf4fb; color: #3498db; }
+        .stat-num  { font-size: 2rem; font-weight: 700; color: #2c3e50; line-height: 1; }
+        .stat-label{ font-size: .9rem; color: #7f8c8d; margin-top: 4px; }
+
+        /* ── ORDERS TABLE ── */
+        .orders-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .orders-card .card-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 18px 24px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table thead { background: #f8f9fa; }
+        .table thead th { font-weight: 700; color: #2c3e50; border: none; padding: 14px 16px; }
+        .table tbody td { padding: 14px 16px; vertical-align: middle; border-color: #f0f2f5; }
+        .table tbody tr:hover { background: #f8f9fa; }
+
+        /* ── STATUS BADGES ── */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: .82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-Placed      { background: #fdecea; color: #e74c3c; }
+        .status-Preparing   { background: #fef6e7; color: #f39c12; }
+        .status-Ready       { background: #eafaf1; color: #27ae60; }
+        .status-Delivered   { background: #eaf4fb; color: #3498db; }
+        .status-Cancelled   { background: #f0f0f0; color: #7f8c8d; }
+
+        /* ── ACTION BUTTONS ── */
+        .action-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            margin: 2px;
+        }
+        .btn-prepare  { background: #fef6e7; color: #f39c12; }
+        .btn-prepare:hover  { background: #f39c12; color: white; }
+        .btn-ready    { background: #eafaf1; color: #27ae60; }
+        .btn-ready:hover    { background: #27ae60; color: white; }
+        .btn-deliver  { background: #eaf4fb; color: #3498db; }
+        .btn-deliver:hover  { background: #3498db; color: white; }
+        .btn-cancel   { background: #f0f0f0; color: #7f8c8d; }
+        .btn-cancel:hover   { background: #7f8c8d; color: white; }
+        .btn-details  { background: #f0f0f0; color: #2c3e50; }
+        .btn-details:hover  { background: #2c3e50; color: white; }
+
+        /* ── FILTER TABS ── */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 7px 18px;
+            border-radius: 50px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: #7f8c8d;
+            transition: all .2s;
+        }
+        .filter-tab:hover, .filter-tab.active {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+
+        /* ── NEW ORDER PULSE ── */
+        .new-order-row { animation: pulse-row 1s ease 3; }
+        @keyframes pulse-row {
+            0%, 100% { background: white; }
+            50% { background: #fff3cd; }
+        }
+
+        /* ── ORDER DETAILS MODAL ── */
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header  { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; border-radius: 16px 16px 0 0; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .item-row:last-child { border: none; }
+
+        /* ── NOTIFICATION TOAST ── */
+        #notif-toast {
+            position: fixed;
+            top: 80px;
+            left: 24px;
+            background: #2c3e50;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.3);
+            transform: translateX(-150%);
+            transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+            min-width: 280px;
+        }
+        #notif-toast.show { transform: translateX(0); }
+        #notif-toast .notif-icon { font-size: 1.8rem; }
+        #notif-toast .notif-title { font-weight: 700; font-size: 1rem; }
+        #notif-toast .notif-body  { font-size: .85rem; color: rgba(255,255,255,.75); }
+
+        .refresh-btn {
+            background: rgba(255,255,255,.15);
+            border: 1.5px solid rgba(255,255,255,.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .refresh-btn:hover { background: rgba(255,255,255,.25); }
+        .spin { animation: spin .6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-orders { text-align: center; padding: 60px 20px; color: #aaa; }
+        .empty-orders i { font-size: 3rem; margin-bottom: 16px; display: block; }
+
+        .total-chip {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: .88rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="/index.html">
+            <i class="fas fa-utensils ms-2"></i> مطعمي
+        </a>
+        <div class="navbar-nav me-auto">
+            <a class="nav-link" href="/index.html"><i class="fas fa-home ms-1"></i> الرئيسية</a>
+            <a class="nav-link active" href="/orders.html"><i class="fas fa-receipt ms-1"></i> الطلبات</a>
+            <a class="nav-link" href="/reservation.html"><i class="fas fa-calendar ms-1"></i> الحجوزات</a>
+        </div>
+        <span style="color:rgba(255,255,255,.7); font-size:.85rem" id="last-update"></span>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div class="container">
+        <h2 class="mb-1"><i class="fas fa-receipt ms-2"></i> إدارة الطلبات</h2>
+        <p class="mb-0" style="opacity:.8">متابعة وإدارة جميع طلبات المطعم</p>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="container">
+    <div class="row">
+        <div class="col-6 col-md-3">
+            <div class="stat-card new">
+                <div class="stat-icon red"><i class="fas fa-bell"></i></div>
+                <div>
+                    <div class="stat-num" id="count-placed">0</div>
+                    <div class="stat-label">طلبات جديدة</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card prep">
+                <div class="stat-icon orange"><i class="fas fa-fire"></i></div>
+                <div>
+                    <div class="stat-num" id="count-preparing">0</div>
+                    <div class="stat-label">قيد التحضير</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card ready">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <div class="stat-num" id="count-ready">0</div>
+                    <div class="stat-label">جاهزة للتسليم</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card done">
+                <div class="stat-icon blue"><i class="fas fa-star"></i></div>
+                <div>
+                    <div class="stat-num" id="count-delivered">0</div>
+                    <div class="stat-label">مكتملة اليوم</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDERS TABLE -->
+    <div class="orders-card mb-5">
+        <div class="card-header">
+            <span><i class="fas fa-list ms-2"></i> قائمة الطلبات</span>
+            <button class="refresh-btn" onclick="loadOrders(true)">
+                <i class="fas fa-sync-alt" id="refresh-icon"></i> تحديث
+            </button>
+        </div>
+
+        <!-- FILTER TABS -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('all', this)">الكل</button>
+            <button class="filter-tab" onclick="setFilter('Placed', this)">🔴 جديد</button>
+            <button class="filter-tab" onclick="setFilter('Preparing', this)">🟡 قيد التحضير</button>
+            <button class="filter-tab" onclick="setFilter('Ready', this)">🟢 جاهز</button>
+            <button class="filter-tab" onclick="setFilter('Delivered', this)">🔵 مكتمل</button>
+            <button class="filter-tab" onclick="setFilter('Cancelled', this)">⚫ ملغي</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>العميل</th>
+                        <th>الأصناف</th>
+                        <th>الإجمالي</th>
+                        <th>الوقت</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                    <tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> جارٍ التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ORDER DETAILS MODAL -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-receipt ms-2"></i> تفاصيل الطلب</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="order-details-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATION TOAST -->
+<div id="notif-toast">
+    <div class="notif-icon">🔔</div>
+    <div>
+        <div class="notif-title">طلب جديد!</div>
+        <div class="notif-body" id="notif-body">وصل طلب جديد</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'http://localhost:5122/api';
+
+// Helper: adds ngrok bypass header to every request
+function apiFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  return fetch(url, options);
+}
+
+let allOrders = [];
+let currentFilter = 'all';
+let prevOrderCount = 0;
+let notifTimer;
+
+// ─── LOAD ORDERS ────────────────────────────────────
+async function loadOrders(showSpin = false) {
+    if (showSpin) {
+        document.getElementById('refresh-icon').classList.add('spin');
+    }
+    try {
+        // جلب الطلبات مع بيانات العميل والأصناف
+        const [ordersRes, customersRes, itemsRes, menuRes] = await Promise.all([
+            apiFetch(`${API}/Orders`),
+            apiFetch(`${API}/Customers`),
+            apiFetch(`${API}/OrderItems`),
+            apiFetch(`${API}/MenuItems`),
+        ]);
+
+        allOrders   = await ordersRes.json();
+        const customers = await customersRes.json();
+        const orderItems = await itemsRes.json();
+        const menuItems  = await menuRes.json();
+
+        // دمج البيانات
+        const customerMap = Object.fromEntries(customers.map(c => [c.customerId, c]));
+        const menuMap     = Object.fromEntries(menuItems.map(m => [m.menuItemId, m]));
+
+        allOrders = allOrders.map(o => ({
+            ...o,
+            customerUsername: customerMap[o.customerId]?.fullName || 'غير معروف',
+            customerPassword: customerMap[o.customerId]?.phoneNumber || '',
+            items: orderItems
+                .filter(i => i.OrderId === o.OrderId)
+                .map(i => ({ ...i, menuItemUsername: menuMap[i.menuItemId]?.name || 'صنف' }))
+        }));
+
+        // إشعار بطلب جديد
+        const newCount = allOrders.filter(o => o.status === 'Placed').length;
+        if (prevOrderCount > 0 && newCount > prevOrderCount) {
+            showNotification(newCount);
+        }
+        prevOrderCount = newCount;
+
+        updateStats();
+        renderOrders();
+        document.getElementById('last-update').textContent =
+            'آخر تحديث: ' + new Date().toLocaleTimeString('ar');
+
+    } catch(e) {
+        console.error(e);
+        document.getElementById('orders-tbody').innerHTML =
+            `<tr><td colspan="7" class="text-center text-danger py-4">
+                <i class="fas fa-exclamation-triangle ms-2"></i>
+                تعذّر الاتصال بالسيرفر — تأكد إن مشروع C# شغّال
+            </td></tr>`;
+    }
+    document.getElementById('refresh-icon').classList.remove('spin');
+}
+
+// ─── STATS ──────────────────────────────────────────
+function updateStats() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('count-placed').textContent =
+        allOrders.filter(o => o.status === 'Placed').length;
+    document.getElementById('count-preparing').textContent =
+        allOrders.filter(o => o.status === 'Preparing').length;
+    document.getElementById('count-ready').textContent =
+        allOrders.filter(o => o.status === 'Ready').length;
+    document.getElementById('count-delivered').textContent =
+        allOrders.filter(o => o.status === 'Delivered' && o.OrderDate?.startsWith(today)).length;
+}
+
+// ─── RENDER ──────────────────────────────────────────
+const STATUS_LABELS = {
+    Placed:    '🔴 جديد',
+    Preparing: '🟡 قيد التحضير',
+    Ready:     '🟢 جاهز',
+    Delivered: '🔵 مكتمل',
+    Cancelled: '⚫ ملغي',
+};
+
+function renderOrders() {
+    const filtered = currentFilter === 'all'
+        ? allOrders
+        : allOrders.filter(o => o.status === currentFilter);
+
+    // ترتيب: الجديد أولاً
+    const statusOrder = { Placed:0, Preparing:1, Ready:2, Delivered:3, Cancelled:4 };
+    filtered.sort((a,b) => (statusOrder[a.status]??9) - (statusOrder[b.status]??9)
+        || new Date(b.OrderDate) - new Date(a.OrderDate));
+
+    const tbody = document.getElementById('orders-tbody');
+    if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7">
+            <div class="empty-orders">
+                <i class="fas fa-clipboard-list"></i>
+                لا توجد طلبات في هذه الفئة
+            </div>
+        </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(o => {
+        const itemCount = o.items?.length || 0;
+        const time = o.OrderDate
+            ? new Date(o.OrderDate).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'})
+            : '--';
+        const isNew = o.status === 'Placed';
+
+        return `
+        <tr class="${isNew ? 'new-order-row' : ''}">
+            <td><strong>#${o.OrderId}</strong></td>
+            <td>
+                <div style="font-weight:700">${o.CustomerName}</div>
+                <div style="font-size:.8rem;color:#aaa">${o.customerPhone}</div>
+            </td>
+            <td>${itemCount} صنف</td>
+            <td><span class="total-chip">${o.TotalAmount?.toFixed(2) || '0.00'} د</span></td>
+            <td style="font-size:.85rem">${time}</td>
+            <td><span class="status-badge status-${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
+            <td>${getActionButtons(o)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function getActionButtons(o) {
+    let btns = `<button class="action-btn btn-details" onclick="showDetails(${o.OrderId})"><i class="fas fa-eye"></i></button>`;
+    if (o.status === 'Placed')
+        btns += `<button class="action-btn btn-prepare" onclick="updateStatus(${o.OrderId}, 'Preparing')">🔥 تحضير</button>`;
+    if (o.status === 'Preparing')
+        btns += `<button class="action-btn btn-ready" onclick="updateStatus(${o.OrderId}, 'Ready')">✅ جاهز</button>`;
+    if (o.status === 'Ready')
+        btns += `<button class="action-btn btn-deliver" onclick="updateStatus(${o.OrderId}, 'Delivered')">🚀 تسليم</button>`;
+    if (['Placed','Preparing'].includes(o.status))
+        btns += `<button class="action-btn btn-cancel" onclick="updateStatus(${o.OrderId}, 'Cancelled')">✕</button>`;
+    return btns;
+}
+
+// ─── UPDATE STATUS ───────────────────────────────────
+async function updateStatus(OrderId, newStatus) {
+    const order = allOrders.find(o => o.OrderId === OrderId);
+    if (!order) return;
+
+    const updated = { ...order, status: newStatus };
+    delete updated.CustomerName;
+    delete updated.customerPhone;
+    delete updated.items;
+
+    try {
+        const res = await apiFetch(`${API}/Orders/${OrderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated),
+        });
+        if (res.ok) {
+            order.status = newStatus;
+            updateStats();
+            renderOrders();
+        }
+    } catch(e) { alert('فشل تحديث الحالة'); }
+}
+
+// ─── DETAILS MODAL ───────────────────────────────────
+function showDetails(OrderId) {
+    const o = allOrders.find(x => x.OrderId === OrderId);
+    if (!o) return;
+
+    const itemsHtml = o.items?.length
+        ? o.items.map(i => `
+            <div class="item-row">
+                <span>${i.menuItemName}</span>
+                <span style="color:#7f8c8d">× ${i.quantity}</span>
+                <span style="font-weight:700">${(i.unitPrice * i.quantity).toFixed(2)} د</span>
+            </div>`).join('')
+        : '<p class="text-muted">لا توجد أصناف</p>';
+
+    document.getElementById('order-details-body').innerHTML = `
+        <div class="mb-3">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span style="color:#7f8c8d">رقم الطلب</span>
+                <strong>#${o.OrderId}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span style="color:#7f8c8d">العميل</span>
+                <strong>${o.CustomerName}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span style="color:#7f8c8d">الهاتف</span>
+                <strong>${o.customerPhone}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+                <span style="color:#7f8c8d">الحالة</span>
+                <span class="status-badge status-${o.status}">${STATUS_LABELS[o.status]}</span>
+            </div>
+        </div>
+        <hr>
+        <h6 style="font-weight:700;margin-bottom:12px">الأصناف</h6>
+        ${itemsHtml}
+        <hr>
+        <div style="display:flex;justify-content:space-between;font-size:1.1rem">
+            <strong>الإجمالي</strong>
+            <strong style="color:#27ae60">${o.TotalAmount?.toFixed(2) || '0.00'} دينار</strong>
+        </div>
+        ${['Placed','Preparing','Ready'].includes(o.status) ? `
+        <div style="margin-top:16px;display:flex;gap:8px">
+            ${o.status==='Placed'    ? `<button class="action-btn btn-prepare w-100" onclick="updateStatus(${o.OrderId},'Preparing');bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide()">🔥 ابدأ التحضير</button>` : ''}
+            ${o.status==='Preparing' ? `<button class="action-btn btn-ready   w-100" onclick="updateStatus(${o.OrderId},'Ready');bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide()">✅ جاهز للتسليم</button>` : ''}
+            ${o.status==='Ready'     ? `<button class="action-btn btn-deliver  w-100" onclick="updateStatus(${o.OrderId},'Delivered');bootstrap.Modal.getInstance(document.getElementById('orderModal')).hide()">🚀 تم التسليم</button>` : ''}
+        </div>` : ''}`;
+
+    new bootstrap.Modal(document.getElementById('orderModal')).show();
+}
+
+// ─── FILTER ──────────────────────────────────────────
+function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderOrders();
+}
+
+// ─── NOTIFICATION ────────────────────────────────────
+function showNotification(count) {
+    document.getElementById('notif-body').textContent =
+        `عدد الطلبات الجديدة: ${count}`;
+    const toast = document.getElementById('notif-toast');
+    toast.classList.add('show');
+    clearTimeout(notifTimer);
+    notifTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+
+    // صوت إشعار بسيط
+    try {
+        const ctx = new AudioContext();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.3, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        o.start(); o.stop(ctx.currentTime + 0.5);
+    } catch(e) {}
+}
+
+// ─── AUTO REFRESH كل 30 ثانية ───────────────────────
+loadOrders();
+setInterval(() => loadOrders(), 30000);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

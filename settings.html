@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إعدادات المطعم</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Tajawal', sans-serif; }
+  body { background: #f0f2f5; }
+  .navbar { background: linear-gradient(135deg, #2c3e50, #3498db); }
+  .navbar-brand { color: white !important; font-weight: 700; font-size: 1.4rem; }
+  .nav-link { color: rgba(255,255,255,.85) !important; }
+
+  .page-header {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white; padding: 25px 0; margin-bottom: 30px;
+  }
+
+  .settings-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    margin-bottom: 24px; overflow: hidden;
+  }
+  .settings-card .card-header {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white; padding: 16px 24px;
+    font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .settings-card .card-body { padding: 24px; }
+
+  .form-label { font-weight: 700; color: #2c3e50; margin-bottom: 6px; }
+  .form-control, .form-select {
+    border-radius: 10px; border: 1.5px solid #e0e0e0;
+    padding: 10px 14px; font-family: 'Tajawal', sans-serif;
+    transition: border-color .2s;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.15);
+  }
+
+  .color-preview {
+    width: 40px; height: 40px; border-radius: 8px;
+    border: 2px solid #e0e0e0; cursor: pointer;
+    display: inline-block; vertical-align: middle;
+  }
+
+  .toggle-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px; background: #f8f9fa; border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .toggle-label { font-weight: 700; color: #2c3e50; }
+  .toggle-desc  { font-size: .85rem; color: #7f8c8d; margin-top: 2px; }
+
+  .form-switch .form-check-input {
+    width: 3rem; height: 1.5rem; cursor: pointer;
+  }
+  .form-switch .form-check-input:checked { background-color: #27ae60; border-color: #27ae60; }
+
+  .day-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 50px;
+    border: 2px solid #e0e0e0; background: white;
+    cursor: pointer; font-family: 'Tajawal', sans-serif;
+    font-size: .9rem; font-weight: 600; color: #7f8c8d;
+    transition: all .2s; margin: 4px;
+  }
+  .day-chip.active { border-color: #3498db; background: #3498db; color: white; }
+
+  .preview-box {
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  }
+  .preview-header {
+    padding: 20px 24px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .preview-name { font-size: 1.3rem; font-weight: 900; color: white; }
+  .preview-status {
+    padding: 6px 14px; border-radius: 50px;
+    background: rgba(255,255,255,.2); color: white;
+    font-size: .85rem; font-weight: 700;
+  }
+  .preview-body { padding: 20px; background: #1a1a2e; }
+  .preview-card {
+    background: #16213e; border-radius: 12px; padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .preview-card-name { color: white; font-weight: 700; }
+  .preview-card-price { font-weight: 900; font-size: 1.1rem; }
+  .preview-btn {
+    padding: 8px 18px; border-radius: 50px; border: none;
+    color: white; font-family: 'Tajawal', sans-serif;
+    font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+
+  #save-btn {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none; border-radius: 12px; color: white;
+    font-family: 'Tajawal', sans-serif; font-size: 1.1rem;
+    font-weight: 800; cursor: pointer; transition: all .25s;
+    width: 100%;
+  }
+  #save-btn:hover { opacity: .9; transform: scale(1.02); }
+  #save-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 50px; font-weight: 700;
+    font-size: .9rem;
+  }
+  .status-open   { background: #eafaf1; color: #27ae60; }
+  .status-closed { background: #fdecea; color: #e74c3c; }
+
+  #toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #2d2d2d; color: white; padding: 12px 28px;
+    border-radius: 50px; font-size: .9rem; font-weight: 700;
+    z-index: 999; transition: transform .3s, opacity .3s;
+    opacity: 0; pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.success { background: #27ae60; }
+  #toast.error   { background: #e74c3c; }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="/index.html">
+      <i class="fas fa-utensils ms-2"></i> مطعمي
+    </a>
+    <div class="navbar-nav me-auto">
+      <a class="nav-link" href="/index.html"><i class="fas fa-home ms-1"></i> الرئيسية</a>
+      <a class="nav-link" href="/orders.html"><i class="fas fa-receipt ms-1"></i> الطلبات</a>
+      <a class="nav-link active" href="/settings.html"><i class="fas fa-cog ms-1"></i> الإعدادات</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h2><i class="fas fa-cog ms-2"></i> إعدادات المطعم</h2>
+    <p class="mb-0" style="opacity:.8">تخصيص اسم المطعم والألوان وأوقات العمل</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row">
+
+    <!-- RIGHT: FORM -->
+    <div class="col-lg-8">
+
+      <!-- الهوية -->
+      <div class="settings-card">
+        <div class="card-header">
+          <i class="fas fa-store"></i> هوية المطعم
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">اسم المطعم *</label>
+              <input type="text" class="form-control" id="restaurantName" placeholder="مطعم الأمير">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">رقم الهاتف</label>
+              <input type="text" class="form-control" id="phone" placeholder="07XXXXXXXX">
+            </div>
+            <div class="col-12">
+              <label class="form-label">العنوان</label>
+              <input type="text" class="form-control" id="address" placeholder="الحي، الشارع، المدينة">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">واتساب</label>
+              <input type="text" class="form-control" id="whatsApp" placeholder="962XXXXXXXXX">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">شعار المطعم (رابط صورة)</label>
+              <input type="text" class="form-control" id="logoUrl" placeholder="https://...">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- الألوان -->
+      <div class="settings-card">
+        <div class="card-header">
+          <i class="fas fa-palette"></i> الألوان
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">اللون الرئيسي</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="color" class="form-control form-control-color" id="primaryColor" value="#E63946" style="width:60px;height:42px;border-radius:10px">
+                <input type="text" class="form-control" id="primaryColorText" value="#E63946" placeholder="#E63946">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">اللون الثانوي</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="color" class="form-control form-control-color" id="secondaryColor" value="#FF6B35" style="width:60px;height:42px;border-radius:10px">
+                <input type="text" class="form-control" id="secondaryColorText" value="#FF6B35" placeholder="#FF6B35">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- أوقات العمل -->
+      <div class="settings-card">
+        <div class="card-header">
+          <i class="fas fa-clock"></i> أوقات العمل
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">وقت الفتح</label>
+              <input type="time" class="form-control" id="openTime" value="10:00">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">وقت الإغلاق</label>
+              <input type="time" class="form-control" id="closeTime" value="23:00">
+            </div>
+          </div>
+
+          <label class="form-label">أيام العمل</label>
+          <div id="days-container">
+            <button type="button" class="day-chip active" data-day="السبت">السبت</button>
+            <button type="button" class="day-chip active" data-day="الأحد">الأحد</button>
+            <button type="button" class="day-chip active" data-day="الاثنين">الاثنين</button>
+            <button type="button" class="day-chip active" data-day="الثلاثاء">الثلاثاء</button>
+            <button type="button" class="day-chip active" data-day="الأربعاء">الأربعاء</button>
+            <button type="button" class="day-chip active" data-day="الخميس">الخميس</button>
+            <button type="button" class="day-chip" data-day="الجمعة">الجمعة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- إعدادات الطلبات -->
+      <div class="settings-card">
+        <div class="card-header">
+          <i class="fas fa-shopping-cart"></i> إعدادات الطلبات
+        </div>
+        <div class="card-body">
+
+          <div class="toggle-card">
+            <div>
+              <div class="toggle-label">قبول الطلبات</div>
+              <div class="toggle-desc">فعّل أو أوقف استقبال الطلبات فوراً</div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="acceptOrders" checked>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">رسالة الإغلاق</label>
+            <input type="text" class="form-control" id="closedMessage" placeholder="المطعم مغلق حالياً، يرجى المحاولة لاحقاً">
+          </div>
+
+          <label class="form-label">طرق الدفع</label>
+          <div class="row g-2">
+            <div class="col-4">
+              <div class="toggle-card">
+                <div class="toggle-label">💵 كاش</div>
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="payCash" checked>
+                </div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="toggle-card">
+                <div class="toggle-label">💳 بطاقة</div>
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="payCard">
+                </div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="toggle-card">
+                <div class="toggle-label">📱 أونلاين</div>
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="payOnline">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="save-btn" onclick="saveSettings()">
+        <i class="fas fa-save ms-2"></i> حفظ الإعدادات
+      </button>
+    </div>
+
+    <!-- LEFT: PREVIEW -->
+    <div class="col-lg-4">
+      <div style="position:sticky;top:20px">
+
+        <!-- حالة المطعم الآن -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-signal"></i> الحالة الآن
+          </div>
+          <div class="card-body text-center">
+            <div id="current-status" class="status-badge status-open mb-2">
+              <i class="fas fa-circle"></i> المطعم مفتوح
+            </div>
+            <div id="status-details" style="color:#7f8c8d;font-size:.9rem"></div>
+          </div>
+        </div>
+
+        <!-- معاينة الواجهة -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-eye"></i> معاينة واجهة الزبون
+          </div>
+          <div class="card-body p-0">
+            <div class="preview-box">
+              <div class="preview-header" id="preview-header" style="background:linear-gradient(135deg,#E63946,#FF6B35)">
+                <div class="preview-name" id="preview-name">🍽️ مطعمي</div>
+                <div class="preview-status">🛒 السلة</div>
+              </div>
+              <div class="preview-body">
+                <div class="preview-card">
+                  <div>
+                    <div class="preview-card-name">برغر كلاسيك</div>
+                    <div class="preview-card-price" id="preview-price" style="color:#FF6B35">18.00 د</div>
+                  </div>
+                  <button class="preview-btn" id="preview-btn" style="background:#E63946">+ أضف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'http://localhost:5122/api';
+
+// Helper: adds ngrok bypass header to every request
+function apiFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  return fetch(url, options);
+}
+
+
+// ─── LOAD ────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const res = await apiFetch(`${API}/RestaurantSettings`);
+    const s = await res.json();
+
+    document.getElementById('restaurantName').value = s.restaurantName || '';
+    document.getElementById('phone').value          = s.phone || '';
+    document.getElementById('address').value        = s.address || '';
+    document.getElementById('whatsApp').value       = s.whatsApp || '';
+    document.getElementById('logoUrl').value        = s.logoUrl || '';
+    document.getElementById('primaryColor').value   = s.primaryColor || '#E63946';
+    document.getElementById('primaryColorText').value = s.primaryColor || '#E63946';
+    document.getElementById('secondaryColor').value = s.secondaryColor || '#FF6B35';
+    document.getElementById('secondaryColorText').value = s.secondaryColor || '#FF6B35';
+    document.getElementById('openTime').value       = s.openTime || '10:00';
+    document.getElementById('closeTime').value      = s.closeTime || '23:00';
+    document.getElementById('acceptOrders').checked = s.acceptOrders;
+    document.getElementById('closedMessage').value  = s.closedMessage || '';
+    document.getElementById('payCash').checked      = s.payCash;
+    document.getElementById('payCard').checked      = s.payCard;
+    document.getElementById('payOnline').checked    = s.payOnline;
+
+    // أيام العمل
+    const days = s.workingDays ? s.workingDays.split(',') : [];
+    document.querySelectorAll('.day-chip').forEach(chip => {
+      chip.classList.toggle('active', days.includes(chip.dataset.day));
+    });
+
+    updatePreview();
+  } catch(e) {
+    showToast('❗ تعذر تحميل الإعدادات', 'error');
+  }
+  checkIsOpen();
+}
+
+// ─── SAVE ────────────────────────────────────────────
+async function saveSettings() {
+  // Get restaurantId from URL
+  const p = new URLSearchParams(window.location.search);
+  const restaurantId = parseInt(p.get('restaurantId') || p.get('RestaurantId') || '0');
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin ms-2"></i> جارٍ الحفظ...';
+
+  const activeDays = [...document.querySelectorAll('.day-chip.active')]
+    .map(c => c.dataset.day).join(',');
+
+  const data = {
+    restaurantUsername: document.getElementById('restaurantName').value,
+    Password:          document.getElementById('phone').value,
+    address:        document.getElementById('address').value,
+    whatsApp:       document.getElementById('whatsApp').value,
+    logoUrl:        document.getElementById('logoUrl').value || null,
+    primaryColor:   document.getElementById('primaryColorText').value,
+    secondaryColor: document.getElementById('secondaryColorText').value,
+    openTime:       document.getElementById('openTime').value,
+    closeTime:      document.getElementById('closeTime').value,
+    workingDays:    activeDays,
+    acceptOrders:   document.getElementById('acceptOrders').checked,
+    closedMessage:  document.getElementById('closedMessage').value,
+    payCash:        document.getElementById('payCash').checked,
+    payCard:        document.getElementById('payCard').checked,
+    payOnline:      document.getElementById('payOnline').checked,
+    updatedAt:      new Date().toISOString(),
+  };
+
+  try {
+    const res = await apiFetch(`${API}/RestaurantSettings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      showToast('✅ تم حفظ الإعدادات بنجاح', 'success');
+      updatePreview();
+      checkIsOpen();
+    } else {
+      showToast('❗ حدث خطأ أثناء الحفظ', 'error');
+    }
+  } catch(e) {
+    showToast('❗ فشل الاتصال بالسيرفر', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save ms-2"></i> حفظ الإعدادات';
+}
+
+// ─── CHECK IS OPEN ────────────────────────────────────
+async function checkIsOpen() {
+  try {
+    const res = await apiFetch(`${API}/RestaurantSettings/isopen`);
+    const data = await res.json();
+    const el = document.getElementById('current-status');
+    const details = document.getElementById('status-details');
+
+    if (data.isOpen) {
+      el.className = 'status-badge status-open mb-2';
+      el.innerHTML = '<i class="fas fa-circle"></i> المطعم مفتوح';
+      details.textContent = `أوقات العمل: ${data.openTime} - ${data.closeTime}`;
+    } else {
+      el.className = 'status-badge status-closed mb-2';
+      el.innerHTML = '<i class="fas fa-circle"></i> المطعم مغلق';
+      details.textContent = data.message || '';
+    }
+  } catch(e) {}
+}
+
+// ─── PREVIEW ─────────────────────────────────────────
+function updatePreview() {
+  const name    = document.getElementById('restaurantName').value || 'مطعمي';
+  const primary = document.getElementById('primaryColorText').value || '#E63946';
+  const second  = document.getElementById('secondaryColorText').value || '#FF6B35';
+
+  document.getElementById('preview-header').style.background =
+    `linear-gradient(135deg, ${primary}, ${second})`;
+  document.getElementById('preview-name').textContent = '🍽️ ' + name;
+  document.getElementById('preview-price').style.color = second;
+  document.getElementById('preview-btn').style.background = primary;
+}
+
+// ─── COLOR SYNC ───────────────────────────────────────
+document.getElementById('primaryColor').addEventListener('input', e => {
+  document.getElementById('primaryColorText').value = e.target.value;
+  updatePreview();
+});
+document.getElementById('primaryColorText').addEventListener('input', e => {
+  if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+    document.getElementById('primaryColor').value = e.target.value;
+    updatePreview();
+  }
+});
+document.getElementById('secondaryColor').addEventListener('input', e => {
+  document.getElementById('secondaryColorText').value = e.target.value;
+  updatePreview();
+});
+document.getElementById('secondaryColorText').addEventListener('input', e => {
+  if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+    document.getElementById('secondaryColor').value = e.target.value;
+    updatePreview();
+  }
+});
+document.getElementById('restaurantName').addEventListener('input', updatePreview);
+
+// ─── DAYS ─────────────────────────────────────────────
+document.querySelectorAll('.day-chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+});
+
+// ─── TOAST ───────────────────────────────────────────
+let toastT;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.className = '', 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────
+loadSettings();
+setInterval(checkIsOpen, 60000);
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

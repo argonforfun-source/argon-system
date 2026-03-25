@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم أرغون الذكية | نظام الفصل</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --side: #0f172a; --accent: #3b82f6; --bg: #f8fafc; 
+            --text: #0f172a; --card: #ffffff; --border: #e2e8f0;
+            --muted: #64748b; --order-bg: #f1f5f9;
+            --input-placeholder: #94a3b8;
+        }
+        body.dark-mode { 
+            --side: #020617; --bg: #0b0f1a; --text: #ffffff; 
+            --card: #1e293b; --border: #334155; --muted: #cbd5e1;
+            --order-bg: #0f172a;
+            --input-placeholder: #cbd5e1;
+        }
+
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
+        .wrapper { display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); position: relative; }
+        .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .argon-logo h4 { letter-spacing: 3px; color: #60a5fa; font-weight: 800; margin: 0; text-shadow: 0 0 15px rgba(96, 165, 250, 0.4); }
+        
+        .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: all 0.3s ease; display: flex; align-items: center; font-weight: 600; margin: 4px 10px; border-radius: 8px; }
+        .menu-item.active, .menu-item:hover { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-right-color: var(--accent); }
+        .menu-item i { width: 35px; font-size: 1.1rem; }
+
+        .copyright-tag { text-align: center; padding: 15px; font-size: 0.75rem; color: #64748b; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+        .copyright-tag b { color: #60a5fa; }
+
+        .main-content { flex: 1; padding: 35px; overflow-y: auto; scroll-behavior: smooth; }
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
+
+        /* Stat Cards - تحسين الرؤية */
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 30px 25px; position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .dark-mode .stat-card h2 { color: #ffffff !important; font-weight: 800; }
+        .dark-mode .stat-card h6 { color: #cbd5e1 !important; }
+        .stat-icon { position: absolute; left: -10px; bottom: -10px; font-size: 5rem; opacity: 0.15; transform: rotate(-15deg); color: var(--accent); }
+        
+        input, select { background: var(--card) !important; color: var(--text) !important; border: 1.5px solid var(--border) !important; border-radius: 12px !important; padding: 12px !important; font-weight: 600; }
+        input::placeholder { color: var(--input-placeholder) !important; }
+
+        .res-row { background: var(--card) !important; border: 1px solid var(--border); padding: 18px; border-radius: 15px; margin-bottom: 12px; }
+        .res-info-name { color: var(--text); font-weight: 800; }
+        .card-title-custom { color: var(--text) !important; font-weight: 700; }
+
+        #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .phone-frame { width: 360px; height: 720px; background: #fff; border: 12px solid #334155; border-radius: 45px; overflow: hidden; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="dark-mode">
+
+<div class="wrapper">
+    <div class="sidebar">
+        <div class="argon-logo"><h4 id="headerLogo">ARGON</h4><small id="resIdDisplay">ID: --</small></div>
+        <div class="p-4 text-center">
+            <h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5>
+            <div id="shopStatusUI"></div>
+        </div>
+        <div class="sidebar-menu flex-grow-1">
+            <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-pie"></i> الجرد العام</div>
+            <div class="menu-item" onclick="showSec('liveOrders', this)" id="btnOrders"><i class="fas fa-rocket"></i> الطلبات الحية</div>
+            <div class="menu-item" onclick="showSec('reservations', this)" id="btnRes"><i class="fas fa-calendar-check"></i> الحجوزات</div>
+            <div class="menu-item" onclick="showSec('menu', this)" id="btnMenu"><i class="fas fa-list-ul"></i> المنيو</div>
+            <div class="menu-item" onclick="showSec('trash', this)" id="btnTrash" style="color: #fb7185;"><i class="fas fa-trash-can"></i> سلة المحذوفات</div>
+            <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-sliders"></i> الإعدادات</div>
+        </div>
+        <div class="p-4 pt-0">
+            <button class="btn btn-outline-info w-100 mb-3 btn-sm rounded-3 fw-bold" onclick="document.body.classList.toggle('dark-mode')">🌓 تبديل المظهر</button>
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" onclick="openPreview()">👀 معاينة المباشر</button>
+        </div>
+        <div class="copyright-tag">Powered by <b>Argon Company</b> © 2026</div>
+    </div>
+
+    <div class="main-content">
+        <div id="dash" class="page-section active">
+            <h3 class="fw-extrabold mb-4">📊 ملخص النشاط - <span id="dashRestName" class="text-accent"></span></h3>
+            <div class="row g-4">
+                <div class="col-md-4"><div class="stat-card">
+                    <i class="fas fa-wallet stat-icon"></i>
+                    <h6 class="mb-1">💰 إجمالي المبيعات</h6>
+                    <h2 id="statSales">0.00</h2>
+                    <small class="text-muted">بالدينار الأردني</small>
+                </div></div>
+                <div class="col-md-4"><div class="stat-card">
+                    <i class="fas fa-check-circle stat-icon text-success"></i>
+                    <h6 class="mb-1">✅ طلبات منجزة</h6>
+                    <h2 id="statDone" class="text-success">0</h2>
+                    <small class="text-muted">تم تسليمها للزبائن</small>
+                </div></div>
+                <div class="col-md-4"><div class="stat-card">
+                    <i class="fas fa-box stat-icon text-warning"></i>
+                    <h6 class="mb-1">🍴 أصناف المنيو</h6>
+                    <h2 id="statItems" class="text-warning">0</h2>
+                    <small class="text-muted">إجمالي الوجبات المضافة</small>
+                </div></div>
+            </div>
+        </div>
+
+        <div id="menu" class="page-section">
+            <h3 class="fw-bold mb-4">🍴 قائمة الطعام</h3>
+            <div class="card p-4 border-0 shadow-sm mb-4 rounded-4">
+                <div class="row g-3">
+                    <div class="col-md-4"><label>اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثلاً: وجبة شاورما"></div>
+                    <div class="col-md-2"><label>السعر</label><input type="number" id="itemPrice" class="form-control" placeholder="0.00"></div>
+                    <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control" placeholder="https://..."></div>
+                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="addItem()">إضافة</button></div>
+                </div>
+            </div>
+            <div id="menuGrid" class="row g-4"></div>
+        </div>
+
+        <div id="liveOrders" class="page-section"><h3 class="fw-bold mb-4">🔔 الطلبات الحية</h3><div id="ordersGrid" class="row g-3"></div></div>
+        
+        <div id="reservations" class="page-section">
+            <h3 class="fw-bold mb-4">📑 إدارة الحجوزات</h3>
+            <div id="resList"></div>
+        </div>
+
+        <div id="trash" class="page-section">
+            <h3 class="fw-bold mb-4 text-danger">🗑️ سلة المحذوفات</h3>
+            <div class="row">
+                <div class="col-md-6"><h5 class="text-info">أصناف محذوفة</h5><div id="trashMenuGrid"></div></div>
+                <div class="col-md-6"><h5 class="text-info">حجوزات ملغاة</h5><div id="trashResGrid"></div></div>
+            </div>
+        </div>
+
+        <div id="settings" class="page-section">
+            <h3 class="fw-bold mb-4">⚙️ الإعدادات</h3>
+            <div class="card p-4 col-md-8 border-0 shadow-sm rounded-4">
+                <div class="mb-3"><label>اسم المطعم في النظام</label><input type="text" id="resNameInp" class="form-control"></div>
+                <div class="row mb-3">
+                    <div class="col-6"><label>ساعة الفتح</label><input type="time" id="openT" class="form-control"></div>
+                    <div class="col-6"><label>ساعة الإغلاق</label><input type="time" id="closeT" class="form-control"></div>
+                </div>
+                <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ الإعدادات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="previewModal">
+    <div class="text-center">
+        <button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق X</button>
+        <div class="phone-frame"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
+    </div>
+</div>
+
+<script>
+    // نظام الفصل الصارم بناءً على معرف المطعم
+    const urlParams = new URLSearchParams(window.location.search);
+    const resId = urlParams.get("RestaurantId") || urlParams.get("id") || "1";
+    const superName = urlParams.get("name") ? decodeURIComponent(urlParams.get("name")) : "مطعم غير معرف";
+
+    // مفاتيح تخزين فريدة لكل ID لمنع تداخل البيانات
+    const DB = {
+        sets: 'resSets_argon_' + resId,
+        menu: 'menu_argon_' + resId,
+        orders: 'orders_argon_' + resId,
+        res: 'reserves_argon_' + resId,
+        trash: 'trash_argon_' + resId
+    };
+
+    window.onload = () => {
+        if (!localStorage.getItem(DB.sets)) {
+            localStorage.setItem(DB.sets, JSON.stringify({name: superName, open: '08:00', close: '23:00'}));
+        }
+        document.getElementById('resIdDisplay').innerText = "ID: " + resId;
+        init();
+        setInterval(init, 3000); // تحديث دوري للبيانات الحية
+    };
+
+    function init() {
+        const sets = JSON.parse(localStorage.getItem(DB.sets));
+        const orders = JSON.parse(localStorage.getItem(DB.orders)) || [];
+        const menu = JSON.parse(localStorage.getItem(DB.menu)) || [];
+        const res = JSON.parse(localStorage.getItem(DB.res)) || [];
+        const trash = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
+
+        document.getElementById('sideName').innerText = sets.name;
+        document.getElementById('dashRestName').innerText = sets.name;
+        document.getElementById('resNameInp').value = sets.name;
+        document.getElementById('openT').value = sets.open;
+        document.getElementById('closeT').value = sets.close;
+
+        const income = orders.reduce((s,o)=> s + parseFloat(o.total||0), 0);
+        document.getElementById('statSales').innerText = income.toFixed(2) + " د.أ";
+        document.getElementById('statDone').innerText = orders.filter(o=>o.status==='منجز').length;
+        document.getElementById('statItems').innerText = menu.length;
+
+        renderMenu(menu);
+        renderOrders(orders);
+        renderRes(res);
+        renderTrash(trash);
+    }
+
+    function renderMenu(menu) {
+        document.getElementById('menuGrid').innerHTML = menu.map((m, i) => `
+            <div class="col-md-3">
+                <div class="card p-3 border-0 shadow-sm h-100">
+                    <img src="${m.img}" style="height:120px; object-fit:cover; border-radius:10px;" class="mb-2">
+                    <div class="card-title-custom text-center mb-1">${m.name}</div>
+                    <div class="text-primary fw-bold text-center mb-3">${m.price} د.أ</div>
+                    <button class="btn btn-sm btn-outline-danger w-100" onclick="delItem(${i})">حذف</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function renderOrders(orders) {
+        document.getElementById('ordersGrid').innerHTML = orders.slice().reverse().map((o, i) => `
+            <div class="col-md-6"><div class="card p-3 mb-2" style="opacity:${o.status==='منجز'?'0.6':'1'}">
+                <div class="d-flex justify-content-between"><b>${o.customer}</b><span class="text-success fw-bold">${o.total} د.أ</span></div>
+                <div class="p-2 my-2 rounded bg-dark text-info fw-bold">${o.items}</div>
+                ${o.status!=='منجز' ? `<button onclick="updStatus(${orders.length-1-i})" class="btn btn-success btn-sm w-100">إنجاز</button>` : '<span class="text-muted">مكتمل ✅</span>'}
+            </div></div>`).join('');
+    }
+
+    function renderRes(list) {
+        document.getElementById('resList').innerHTML = list.map((r, i) => `
+            <div class="res-row d-flex justify-content-between align-items-center">
+                <div class="res-info-name">${r.name} (#${r.guests})</div>
+                <div><span class="text-accent fw-bold">${r.time}</span> <button class="btn btn-sm text-danger ms-3" onclick="delRes(${i})">إلغاء</button></div>
+            </div>`).join('');
+    }
+
+    function renderTrash(trash) {
+        document.getElementById('trashMenuGrid').innerHTML = trash.menu.map((m, i) => `<div class="p-2 mb-2 border-bottom d-flex justify-content-between"><span>${m.name}</span><button class="btn btn-sm btn-success" onclick="restore('menu', ${i})">استعادة</button></div>`).join('');
+        document.getElementById('trashResGrid').innerHTML = trash.res.map((r, i) => `<div class="p-2 mb-2 border-bottom d-flex justify-content-between"><span>${r.name}</span><button class="btn btn-sm btn-success" onclick="restore('res', ${i})">استعادة</button></div>`).join('');
+    }
+
+    function addItem() {
+        let m = JSON.parse(localStorage.getItem(DB.menu)) || [];
+        m.push({ name: document.getElementById('itemName').value, price: document.getElementById('itemPrice').value, img: document.getElementById('itemImg').value });
+        localStorage.setItem(DB.menu, JSON.stringify(m));
+        init();
+        document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemImg').value = '';
+    }
+
+    function delItem(i) {
+        let m = JSON.parse(localStorage.getItem(DB.menu));
+        let t = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
+        t.menu.push(m[i]); m.splice(i,1);
+        localStorage.setItem(DB.menu, JSON.stringify(m));
+        localStorage.setItem(DB.trash, JSON.stringify(t));
+        init();
+    }
+
+    function delRes(i) {
+        let r = JSON.parse(localStorage.getItem(DB.res));
+        let t = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
+        t.res.push(r[i]); r.splice(i,1);
+        localStorage.setItem(DB.res, JSON.stringify(r));
+        localStorage.setItem(DB.trash, JSON.stringify(t));
+        init();
+    }
+
+    function restore(type, i) {
+        let t = JSON.parse(localStorage.getItem(DB.trash));
+        let key = type === 'menu' ? DB.menu : DB.res;
+        let d = JSON.parse(localStorage.getItem(key)) || [];
+        d.push(t[type][i]); t[type].splice(i,1);
+        localStorage.setItem(key, JSON.stringify(d));
+        localStorage.setItem(DB.trash, JSON.stringify(t));
+        init();
+    }
+
+    function saveSets() {
+        const s = { name: document.getElementById('resNameInp').value, open: document.getElementById('openT').value, close: document.getElementById('closeT').value };
+        localStorage.setItem(DB.sets, JSON.stringify(s));
+        alert("تم حفظ إعدادات هذا المطعم بنجاح");
+        init();
+    }
+
+    function updStatus(idx) {
+        let o = JSON.parse(localStorage.getItem(DB.orders));
+        o[idx].status = 'منجز';
+        localStorage.setItem(DB.orders, JSON.stringify(o));
+        init();
+    }
+
+    function showSec(id, btn) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function openPreview() {
+        document.getElementById('prevFrame').src = `index.html?RestaurantId=${resId}`;
+        document.getElementById('previewModal').style.display = 'flex';
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').style.display = 'none';
+        document.getElementById('prevFrame').src = '';
+    }
+</script>
+</body>
+</html>
