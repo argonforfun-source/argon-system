@@ -13,7 +13,6 @@
         .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; transition: 0.2s; height: 100%; }
         .item-card:active { transform: scale(0.95); }
-        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12 :root { --main: #3b82f6; --bg: #f8fafc; }
         .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; }
         
         .cart-btn {
@@ -27,14 +26,15 @@
         @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(15deg)} 50% {transform: rotate(-15deg)} 100% {transform: rotate(0)} }
         .shaking { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
 
-        /* ستايل نافذة طلب البيانات والفاتورة */
         .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; }
+        .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; }
         
-        .bill-summary { background: #f1f5f9; border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; font-size: 0.9rem; }
+        .bill-summary { background: #f1f5f9; border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; font-size: 0.9rem; display: none; }
         .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding: 5px 0; }
         .total-line { font-weight: 900; color: #1e293b; font-size: 1.1rem; border-top: 2px solid #3b82f6; margin-top: 10px; padding-top: 5px; }
+        
+        #confirmStep { display: none; }
     </style>
 </head>
 <body>
@@ -55,16 +55,21 @@
 
 <div id="orderModal" class="order-modal">
     <div class="modal-content">
-        <h4 class="fw-bold mb-3">تفاصيل طلبك 🛒</h4>
+        <h4 class="fw-bold mb-3" id="modalTitle">بيانات المستلم 👤</h4>
         
-        <div class="bill-summary" id="billContent">
-            </div>
+        <div id="infoStep">
+            <input type="text" id="custName" placeholder="اسمك الكريم">
+            <input type="tel" id="custPhone" placeholder="رقم تلفونك">
+            <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="goToConfirmation()">عرض الفاتورة وتأكيد الطلب</button>
+        </div>
 
-        <input type="text" id="custName" placeholder="اسمك الكريم">
-        <input type="tel" id="custPhone" placeholder="رقم تلفونك">
-        
-        <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">إرسال الطلب والدفع</button>
-        <button class="btn btn-light w-100 mt-2 btn-sm" onclick="closeOrderModal()">رجوع للمنيو</button>
+        <div id="confirmStep">
+            <div class="bill-summary" id="billContent" style="display: block;"></div>
+            <button class="btn btn-success w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">تأكيد وإرسال الطلب الآن ✅</button>
+            <button class="btn btn-outline-secondary w-100 mt-2 btn-sm rounded-pill" onclick="backToInfo()">تعديل البيانات</button>
+        </div>
+
+        <button class="btn btn-light w-100 mt-3 btn-sm" onclick="closeOrderModal()">إلغاء</button>
     </div>
 </div>
 
@@ -113,7 +118,6 @@
         cart.push({name, price});
         document.getElementById('cartCount').innerText = cart.length;
         if ("vibrate" in navigator) navigator.vibrate(150);
-        
         const b = document.getElementById('basket');
         b.classList.remove('shaking');
         void b.offsetWidth;
@@ -121,21 +125,8 @@
     }
 
     function openOrderModal() {
-        if(cart.length === 0) return alert("السلة فارغة، اختار وجباتك أولاً!");
-        
-        // توليد الفاتورة داخل المودال
-        const billDiv = document.getElementById('billContent');
-        let billHtml = "";
-        let total = 0;
-
-        cart.forEach(item => {
-            billHtml += `<div class="bill-item"><span>${item.name}</span><span>${parseFloat(item.price).toFixed(2)} د.أ</span></div>`;
-            total += parseFloat(item.price);
-        });
-
-        billHtml += `<div class="bill-item total-line"><span>المجموع الإجمالي:</span><span>${total.toFixed(2)} د.أ</span></div>`;
-        
-        billDiv.innerHTML = billHtml;
+        if(cart.length === 0) return alert("السلة فارغة!");
+        backToInfo(); // التأكد من البدء بخطوة البيانات
         document.getElementById('orderModal').style.display = 'flex';
     }
 
@@ -143,15 +134,45 @@
         document.getElementById('orderModal').style.display = 'none';
     }
 
-    function sendOrderToDashboard() {
+    // الانتقال لخطوة الفاتورة
+    function goToConfirmation() {
         const name = document.getElementById('custName').value;
         const phone = document.getElementById('custPhone').value;
 
         if(!name || !phone) {
-            alert("يا غالي، الاسم والرقم ضروريين عشان نجهز طلبك!");
+            alert("لطفاً، أدخل الاسم ورقم الهاتف للمتابعة.");
             return;
         }
 
+        // بناء الفاتورة
+        const billDiv = document.getElementById('billContent');
+        let billHtml = `<p class="text-center fw-bold border-bottom pb-2">مرحباً ${name}، هاد طلبك:</p>`;
+        let total = 0;
+
+        cart.forEach(item => {
+            billHtml += `<div class="bill-item"><span>${item.name}</span><span>${parseFloat(item.price).toFixed(2)} د.أ</span></div>`;
+            total += parseFloat(item.price);
+        });
+
+        billHtml += `<div class="bill-item total-line"><span>المجموع:</span><span>${total.toFixed(2)} د.أ</span></div>`;
+        
+        billDiv.innerHTML = billHtml;
+
+        // تبديل العرض
+        document.getElementById('modalTitle').innerText = "تأكيد طلبك 🛒";
+        document.getElementById('infoStep').style.display = 'none';
+        document.getElementById('confirmStep').style.display = 'block';
+    }
+
+    function backToInfo() {
+        document.getElementById('modalTitle').innerText = "بيانات المستلم 👤";
+        document.getElementById('infoStep').style.display = 'block';
+        document.getElementById('confirmStep').style.display = 'none';
+    }
+
+    function sendOrderToDashboard() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
         const orderNo = Math.floor(1000 + Math.random() * 9000);
         const itemsSummary = cart.map(i => i.name).join(" + ");
         const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2);
@@ -167,20 +188,11 @@
         };
 
         db.ref('restaurants/' + RES_ID + '/orders').push(order).then(() => {
-            // رسالة النجاح مع تفاصيل كاملة
-            alert(`تم إرسال طلبك بنجاح! 🎉\n\n--- ملخص الطلب ---\nرقم الطلب: #${orderNo}\nالأصناف: ${itemsSummary}\nالمجموع: ${totalPrice} د.أ\n---------------\nصحتين وعافية سلفاً!`);
-            
-            if ("vibrate" in navigator) navigator.vibrate([100, 50, 100]);
-            
-            // تصفير السلة
+            alert(`تم الإرسال بنجاح! 🎉\nرقم الطلب: #${orderNo}\nالمجموع: ${totalPrice} د.أ`);
             cart = [];
             document.getElementById('cartCount').innerText = "0";
-            document.getElementById('custName').value = "";
-            document.getElementById('custPhone').value = "";
             closeOrderModal();
-        }).catch(err => {
-            alert("مشكلة بالاتصال، حاول مرة ثانية.");
-        });
+        }).catch(() => alert("خطأ في الإرسال"));
     }
 </script>
 </body>
