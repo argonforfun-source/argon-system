@@ -3,186 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">طلب أونلاين</title>
+    <title>منيو المطعم الذكي</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #3b82f6; --bg: #0f172a; --card: rgba(255,255,255,0.05); --text: #ffffff; }
-        body { background-color: var(--bg); font-family: 'Cairo', sans-serif; color: var(--text); transition: 0.4s; min-height: 100vh; display: flex; flex-direction: column; }
-        .navbar { background: rgba(0,0,0,0.3); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000; }
-        .menu-item-card { background: var(--card); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; height: 100%; overflow: hidden; }
-        .menu-item-card:hover { transform: translateY(-5px); border-color: var(--main); }
-        .menu-item-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 15px; margin-bottom: 10px; }
-        .btn-add { background: var(--main); color: white; border: none; border-radius: 12px; padding: 8px; font-weight: bold; width: 100%; transition: 0.2s; }
-        .cart-fab { position: fixed; bottom: 30px; left: 30px; background: var(--main); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); cursor: pointer; z-index: 999; }
-        .cart-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 13px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); transition: 0.3s; }
-        .argon-powered { text-align: center; padding: 25px; font-size: 0.85rem; opacity: 0.7; margin-top: auto; }
-        .cart-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        :root { --main: #3b82f6; --bg: #f8fafc; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
+        
+        /* هزة السلة */
+        @keyframes basketShake {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.2) rotate(-10deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            75% { transform: scale(1.2) rotate(-10deg); }
+            100% { transform: scale(1); }
+        }
+        .shake { animation: basketShake 0.4s ease-in-out; }
+
+        /* إشعار تمت الاضافة */
+        #toastNotice {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 25px;
+            border-radius: 50px; z-index: 9999; display: none; font-weight: bold;
+            animation: fadeInOut 2s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            20% { opacity: 1; transform: translate(-50%, 0); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .cart-btn {
+            position: fixed; bottom: 30px; left: 30px;
+            width: 70px; height: 70px; background: var(--main);
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; font-size: 1.5rem;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); border: none; z-index: 1000;
+        }
+        .item-card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .add-btn { background: var(--main); border: none; border-radius: 12px; font-weight: bold; }
+        .cart-count { position: absolute; top: 0; right: 0; background: #ef4444; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<nav class="navbar p-3 mb-4">
-    <div class="container d-flex justify-content-between align-items-center">
-        <h5 id="restaurantName" class="fw-bold m-0 text-truncate" style="max-width: 200px;">جاري التحميل...</h5>
-        <div class="badge bg-primary rounded-pill">منيو شركة أرغون</div>
+    <div id="toastNotice">✅ تمت الإضافة للسلة</div>
+
+    <div class="container py-4">
+        <h2 id="resName" class="text-center fw-900 mb-4">تحميل المنيو...</h2>
+        <div id="itemsGrid" class="row g-3"></div>
     </div>
-</nav>
 
-<div class="container mb-5">
-    <div id="itemsGrid" class="row g-3"></div>
-</div>
-
-<div class="cart-fab" onclick="toggleCart()">
-    <i class="fas fa-shopping-basket"></i>
-    <span class="cart-badge" id="cartCount">0</span>
-</div>
-
-<div class="argon-powered">
-    Powered by <strong style="color: var(--main);">Argon Company</strong> &copy; 2026
-</div>
-
-<div class="modal fade" id="cartModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div id="modalContent" class="modal-content bg-dark text-white p-3">
-            <div class="modal-header border-0">
-                <h5 class="fw-bold">طلباتك الحالية 🛒</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="cartList"></div>
-                <hr class="opacity-10">
-                <div class="d-flex justify-content-between fw-bold fs-5">
-                    <span>الإجمالي:</span>
-                    <span id="totalAmount">0 د.أ</span>
-                </div>
-            </div>
-            <div class="modal-footer border-0">
-                <button class="btn btn-primary w-100 py-3 rounded-4 fw-bold" onclick="startOrder()">إرسال الطلب للمطعم</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <button class="cart-btn" id="mainBasket" onclick="showCart()">
+        <i class="fas fa-shopping-basket"></i>
+        <div class="cart-count" id="cartCount">0</div>
+    </button>
 
 <script>
-    // 1. إعدادات Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-        authDomain: "argon-system.firebaseapp.com",
-        projectId: "argon-system",
-        storageBucket: "argon-system.firebasestorage.app",
-        messagingSenderId: "858120444233",
-        appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
-        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const resId = urlParams.get("id") || "1";
     let cart = [];
 
-    // 2. جلب اسم المطعم لحظياً
-    db.ref('settings/restaurantName').on('value', (snap) => {
-        const name = snap.val() || "مطعم أرغون";
-        document.getElementById('restaurantName').innerText = name;
-        document.getElementById('pageTitle').innerText = name + " - اطلب الآن";
-    });
+    // جلب البيانات (سنستخدم الـ LocalStorage حالياً للتجربة)
+    const DB_MENU = 'res_menu_' + resId;
+    const DB_SETS = 'res_sets_' + resId;
 
-    // 3. جلب الوجبات من Firebase وعرضها
-    db.ref('products').on('value', (snapshot) => {
-        const items = snapshot.val();
-        const container = document.getElementById('itemsGrid');
+    function loadMenu() {
+        const sets = JSON.parse(localStorage.getItem(DB_SETS)) || {name: "مطعمنا"};
+        const menu = JSON.parse(localStorage.getItem(DB_MENU)) || [];
         
-        if(!items) {
-            container.innerHTML = '<div class="text-center mt-5 opacity-50">لا توجد وجبات متوفرة حالياً</div>';
-            return;
-        }
+        document.getElementById('resName').innerText = sets.name;
+        document.body.style.setProperty('--main', sets.themeColor || '#3b82f6');
 
-        let html = '';
-        for (let key in items) {
-            const it = items[key];
-            html += `
-                <div class="col-6 col-md-4">
-                    <div class="menu-item-card p-3 shadow-sm">
-                        <img src="${it.img || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
-                        <h6 class="fw-bold mb-1 text-truncate">${it.name}</h6>
-                        <div class="text-primary fw-bold mb-2">${it.price} د.أ</div>
-                        <button class="btn-add" onclick="addToCart('${it.name}', ${it.price})">إضافة +</button>
+        document.getElementById('itemsGrid').innerHTML = menu.map((item, i) => `
+            <div class="col-6">
+                <div class="card item-card h-100">
+                    <img src="${item.img}" class="card-img-top" style="height:140px; object-fit:cover">
+                    <div class="card-body p-2 text-center">
+                        <h6 class="fw-bold mb-1">${item.name}</h6>
+                        <p class="text-primary fw-bold mb-2">${item.price} د.أ</p>
+                        <button class="btn btn-primary btn-sm w-100 add-btn" onclick="addToCart('${item.name}', ${item.price})">إضافة +</button>
                     </div>
-                </div>`;
-        }
-        container.innerHTML = html;
-    });
+                </div>
+            </div>`).join('');
+    }
 
     function addToCart(name, price) {
         cart.push({name, price});
-        updateCartBadge();
-    }
-
-    function updateCartBadge() {
+        
+        // 1. تحديث العداد
         document.getElementById('cartCount').innerText = cart.length;
-    }
 
-    function toggleCart() {
-        if(cart.length === 0) return alert("سلتك فارغة!");
-        const list = document.getElementById('cartList');
-        list.innerHTML = cart.map((item, i) => `
-            <div class="cart-item">
-                <span class="small fw-bold">${item.name}</span>
-                <div class="d-flex align-items-center">
-                    <span class="me-3 fw-bold">${item.price} د.أ</span>
-                    <i class="fas fa-trash text-danger" style="cursor:pointer" onclick="removeFromCart(${i})"></i>
-                </div>
-            </div>
-        `).join('');
+        // 2. هزة السلة (Animation)
+        const basket = document.getElementById('mainBasket');
+        basket.classList.remove('shake');
+        void basket.offsetWidth; // إعادة تشغيل الانيميشن
+        basket.classList.add('shake');
 
-        const total = cart.reduce((sum, it) => sum + parseFloat(it.price), 0);
-        document.getElementById('totalAmount').innerText = total.toFixed(2) + " د.أ";
-        new bootstrap.Modal(document.getElementById('cartModal')).show();
-    }
-
-    function removeFromCart(index) {
-        cart.splice(index, 1);
-        updateCartBadge();
-        if(cart.length === 0) {
-            bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
-        } else {
-            toggleCart();
+        // 3. هزة التلفون (Haptic Feedback)
+        if (navigator.vibrate) {
+            navigator.vibrate(50); // يهز التلفون لمدة 50 ميللي ثانية
         }
+
+        // 4. إظهار الإشعار (Toast)
+        const toast = document.getElementById('toastNotice');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
     }
 
-    function startOrder() {
-        const fullName = prompt("يرجى إدخال اسمك:");
-        if (!fullName) return;
-        const phone = prompt("رقم الهاتف:");
-        if (!phone) return;
-
-        const orderTicket = Math.floor(1000 + Math.random() * 9000);
-        const total = cart.reduce((sum, it) => sum + parseFloat(it.price), 0);
-
-        const orderData = {
-            ticket: orderTicket,
-            customer: fullName,
-            contact: phone,
-            items: cart.map(i => i.name).join(' + '),
-            total: total.toFixed(2),
-            time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
-            status: "جديد"
-        };
-
-        // إرسال الطلب إلى Firebase لكي يظهر في صفحة الطلبات فوراً
-        db.ref('orders').push(orderData).then(() => {
-            alert(`✅ تم إرسال طلبك بنجاح!\n\nرقم طلبك هو: [ ${orderTicket} ]\n\n⚠️ يرجى حفظ هذا الرقم لاستلام الطلب.`);
-            cart = [];
-            updateCartBadge();
-            bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
-        });
+    function showCart() {
+        if(cart.length === 0) { alert("السلة فارغة!"); return; }
+        // هنا تفتح المودال الخاص بالدفع وإرسال الطلب
+        alert("طلباتك: " + cart.map(i => i.name).join(', '));
     }
+
+    window.onload = loadMenu;
 </script>
 </body>
 </html>
