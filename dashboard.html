@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم أرغون | نظام إدارة المطاعم المتعددة</title>
+    <title>لوحة تحكم أرغون الذكية | الإصدار الاحترافي</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -10,235 +10,246 @@
         :root { 
             --side: #0f172a; --accent: #3b82f6; --bg: #f8fafc; 
             --text: #0f172a; --card: #ffffff; --border: #e2e8f0;
+            --muted: #64748b; --order-bg: #f1f5f9;
         }
         body.dark-mode { 
             --side: #020617; --bg: #0b0f1a; --text: #ffffff; 
-            --card: #1e293b; --border: #334155;
+            --card: #1e293b; --border: #334155; --muted: #cbd5e1;
+            --order-bg: #0f172a;
         }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
         .wrapper { display: flex; height: 100vh; }
-        .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; }
-        .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: 0.3s; }
-        .menu-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-right-color: var(--accent); }
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
+        .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .argon-logo h4 { color: #60a5fa; font-weight: 800; margin: 0; }
+        .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: 0.3s; display: flex; align-items: center; margin: 4px 10px; border-radius: 8px; }
+        .menu-item.active, .menu-item:hover { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-right-color: var(--accent); }
+        .menu-item i { width: 35px; }
+        .main-content { flex: 1; padding: 35px; overflow-y: auto; }
         .page-section { display: none; }
-        .page-section.active { display: block; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 25px; position: relative; }
-        .preview-mobile { width: 320px; height: 600px; border: 8px solid #334155; border-radius: 30px; margin: 0 auto; overflow: hidden; background: #fff; }
-        input, select { background: var(--card) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+        .page-section.active { display: block; animation: slideIn 0.4s; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 30px 25px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .order-card { background: var(--card); border: 2px solid var(--border); border-radius: 20px; padding: 20px; transition: 0.3s; position: relative; }
+        .order-id { position: absolute; top: -12px; left: 20px; background: var(--accent); color: white; padding: 2px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .item-row { background: var(--order-bg); padding: 8px 12px; border-radius: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; font-weight: 600; }
+        .trash-btn { cursor: pointer; color: #f43f5e; transition: 0.2s; }
+        .trash-btn:hover { transform: scale(1.2); }
+        #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .phone-frame { width: 360px; height: 720px; background: #fff; border: 12px solid #334155; border-radius: 45px; overflow: hidden; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="dark-mode">
 
 <div class="wrapper">
     <div class="sidebar">
-        <div class="p-4 text-center border-bottom border-secondary">
-            <h4 class="fw-bold text-info">ARGON PLATFORM</h4>
-            <small class="badge bg-primary" id="displayResId">ID: Loading...</small>
+        <div class="argon-logo"><h4>ARGON PRO</h4><small id="resIdDisplay">ID: --</small></div>
+        <div class="p-3 text-center">
+            <h5 id="sideName" class="fw-bold mb-1">المطعم</h5>
+            <div id="shopStatus" class="badge bg-success">متصل الآن</div>
         </div>
-        <div class="flex-grow-1 mt-3">
-            <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-line me-2"></i> الجرد والإحصائيات</div>
-            <div class="menu-item" onclick="showSec('orders', this)"><i class="fas fa-shopping-bag me-2"></i> الطلبات الحية</div>
-            <div class="menu-item" onclick="showSec('menu', this)"><i class="fas fa-utensils me-2"></i> إدارة المنيو</div>
-            <div class="menu-item" onclick="showSec('design', this)"><i class="fas fa-paint-brush me-2"></i> ثيم الزبون</div>
-            <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-cog me-2"></i> أوقات العمل والإعدادات</div>
+        <div class="flex-grow-1">
+            <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-pie"></i> الجرد العام</div>
+            <div class="menu-item" onclick="showSec('liveOrders', this)"><i class="fas fa-receipt"></i> الطلبات الحية</div>
+            <div class="menu-item" onclick="showSec('menu', this)"><i class="fas fa-utensils"></i> إدارة المنيو</div>
+            <div class="menu-item" onclick="showSec('trash', this)" style="color:#fb7185"><i class="fas fa-trash-alt"></i> المحذوفات</div>
+            <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-cog"></i> الإعدادات</div>
         </div>
-        <div class="p-3">
-            <button class="btn btn-outline-light w-100 btn-sm mb-2" onclick="document.body.classList.toggle('dark-mode')">تبديل المظهر</button>
-            <div class="text-center small opacity-50">Argon System © 2026</div>
+        <div class="p-4">
+            <button class="btn btn-outline-info w-100 mb-2 btn-sm" onclick="document.body.classList.toggle('dark-mode')">🌓 المظهر</button>
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="openPreview()">👀 معاينة المنيو</button>
         </div>
     </div>
 
     <div class="main-content">
         <div id="dash" class="page-section active">
-            <h3 class="mb-4 fw-bold">📊 جرد النشاط العام</h3>
+            <h3 class="fw-bold mb-4">📊 ملخص الجرد</h3>
             <div class="row g-4">
-                <div class="col-md-4"><div class="stat-card"><h6>إجمالي المبيعات</h6><h2 id="totalSales">0.00</h2><small>دينار أردني</small></div></div>
-                <div class="col-md-4"><div class="stat-card"><h6>طلبات اليوم</h6><h2 id="todayOrders">0</h2><small>طلب مكتمل</small></div></div>
-                <div class="col-md-4"><div class="stat-card"><h6>عدد الأصناف</h6><h2 id="itemsCount">0</h2><small>وجبة مفعلة</small></div></div>
+                <div class="col-md-4"><div class="stat-card"><h6>💰 المبيعات</h6><h2 id="statSales">0.00</h2><small>د.أ</small></div></div>
+                <div class="col-md-4"><div class="stat-card"><h6>✅ منجزة</h6><h2 id="statDone" class="text-success">0</h2><small>طلب</small></div></div>
+                <div class="col-md-4"><div class="stat-card"><h6>🗑️ المحذوفات</h6><h2 id="statTrash" class="text-danger">0</h2><small>عنصر</small></div></div>
             </div>
         </div>
 
-        <div id="orders" class="page-section">
-            <h3 class="mb-4 fw-bold">🔔 الطلبات الحية</h3>
-            <div id="ordersList" class="row g-3"></div>
+        <div id="liveOrders" class="page-section">
+            <h3 class="fw-bold mb-4">🔔 الطلبات الواردة</h3>
+            <div id="ordersGrid" class="row g-4"></div>
         </div>
 
         <div id="menu" class="page-section">
-            <h3 class="mb-4 fw-bold">🍴 إدارة المنيو</h3>
-            <div class="card p-3 mb-4">
-                <div class="row g-2">
-                    <div class="col-md-4"><input type="text" id="itemName" class="form-control" placeholder="اسم الوجبة"></div>
+            <h3 class="fw-bold mb-4">🍴 إضافة أصناف</h3>
+            <div class="card p-4 border-0 shadow-sm mb-4 rounded-4">
+                <div class="row g-3">
+                    <div class="col-md-3"><input type="text" id="itemName" class="form-control" placeholder="اسم الوجبة"></div>
                     <div class="col-md-2"><input type="number" id="itemPrice" class="form-control" placeholder="السعر"></div>
-                    <div class="col-md-4"><input type="text" id="itemImg" class="form-control" placeholder="رابط الصورة"></div>
-                    <div class="col-md-2"><button class="btn btn-primary w-100" onclick="addItem()">إضافة</button></div>
+                    <div class="col-md-5"><input type="text" id="itemImg" class="form-control" placeholder="رابط الصورة"></div>
+                    <div class="col-md-2"><button class="btn btn-primary w-100 fw-bold" onclick="addItem()">إضافة +</button></div>
                 </div>
             </div>
-            <div id="menuContainer" class="row g-3"></div>
+            <div id="menuGrid" class="row g-4"></div>
         </div>
 
-        <div id="design" class="page-section">
-            <div class="row">
-                <div class="col-md-6">
-                    <h3 class="mb-4 fw-bold">🎨 تخصيص مظهر المنيو</h3>
-                    <div class="card p-4">
-                        <label class="form-label">لون الهوية الأساسي (Accent Color)</label>
-                        <input type="color" id="themeColor" class="form-control form-control-color w-100 mb-3" onchange="updateDesign()">
-                        <label class="form-label">لون الخلفية عند الزبون</label>
-                        <select id="customerBg" class="form-select mb-3" onchange="updateDesign()">
-                            <option value="#f8fafc">أبيض فاتح</option>
-                            <option value="#111827">أسود ليلي</option>
-                            <option value="#1a2e05">أخضر غامق</option>
-                        </select>
-                        <button class="btn btn-success w-100" onclick="saveDesign()">حفظ الثيم للزبائن</button>
-                    </div>
-                </div>
-                <div class="col-md-6 text-center">
-                    <h5>معاينة مباشرة</h5>
-                    <div class="preview-mobile" id="mobilePreview">
-                        <div id="prevHeader" style="height:60px; background:#3b82f6;"></div>
-                        <div class="p-3"><div style="height:100px; background:#eee; border-radius:15px;"></div></div>
-                    </div>
-                </div>
+        <div id="trash" class="page-section">
+            <h3 class="fw-bold mb-4 text-danger">🗑️ سلة المهملات</h3>
+            <div class="card p-4 border-0 shadow-sm rounded-4">
+                <div id="trashList"></div>
             </div>
         </div>
 
         <div id="settings" class="page-section">
-            <h3 class="mb-4 fw-bold">⚙️ الإعدادات وأوقات العمل</h3>
-            <div class="card p-4 col-md-7">
-                <div class="mb-3"><label>اسم المطعم</label><input type="text" id="resName" class="form-control"></div>
-                <div class="row mb-3">
-                    <div class="col-6"><label>وقت الفتح</label><input type="time" id="openTime" class="form-control"></div>
-                    <div class="col-6"><label>وقت الإغلاق</label><input type="time" id="closeTime" class="form-control"></div>
-                </div>
-                <div class="form-check form-switch mb-4">
-                    <input class="form-check-input" type="checkbox" id="isOpenManually">
-                    <label class="form-check-label">إغلاق المطعم فوراً (يدوي)</label>
-                </div>
-                <button class="btn btn-primary py-3 fw-bold" onclick="saveSettings()">حفظ كافة الإعدادات</button>
+            <h3 class="fw-bold mb-4">⚙️ الإعدادات</h3>
+            <div class="card p-4 col-md-6 border-0 shadow-sm rounded-4">
+                <label class="mb-2">اسم المطعم</label><input type="text" id="resNameInp" class="form-control mb-3">
+                <label class="mb-2">رقم هاتف المطعم (للطلبات)</label><input type="text" id="resPhoneInp" class="form-control mb-4" placeholder="07XXXXXXXX">
+                <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ الإعدادات</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<div id="previewModal">
+    <div class="text-center">
+        <button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق X</button>
+        <div class="phone-frame"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
+    </div>
+</div>
 
 <script>
-    // جلب معرف المطعم من الرابط
     const urlParams = new URLSearchParams(window.location.search);
-    const RES_ID = urlParams.get('id') || 'default_restaurant';
-    document.getElementById('displayResId').innerText = "ID: " + RES_ID;
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-        authDomain: "argon-system.firebaseapp.com",
-        projectId: "argon-system",
-        storageBucket: "argon-system.firebasestorage.app",
-        messagingSenderId: "858120444233",
-        appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
-        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
+    const resId = urlParams.get("id") || "1";
+    
+    const DB = {
+        sets: 'res_sets_' + resId,
+        menu: 'res_menu_' + resId,
+        orders: 'res_orders_' + resId,
+        trash: 'res_trash_' + resId
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const resRef = db.ref('restaurants/' + RES_ID);
 
-    // تحميل البيانات
-    resRef.on('value', snap => {
-        const data = snap.val() || {};
-        const settings = data.settings || {};
-        const products = data.products || {};
-        const orders = data.orders || {};
+    function init() {
+        const sets = JSON.parse(localStorage.getItem(DB.sets)) || {name: "مطعم جديد", phone: "07XXXXXXXX"};
+        const menu = JSON.parse(localStorage.getItem(DB.menu)) || [];
+        const orders = JSON.parse(localStorage.getItem(DB.orders)) || [];
+        const trash = JSON.parse(localStorage.getItem(DB.trash)) || [];
 
-        // تحديث الواجهة
-        document.getElementById('resName').value = settings.name || "";
-        document.getElementById('openTime').value = settings.openTime || "08:00";
-        document.getElementById('closeTime').value = settings.closeTime || "23:00";
-        document.getElementById('themeColor').value = settings.themeColor || "#3b82f6";
-        document.getElementById('customerBg').value = settings.customerBg || "#f8fafc";
-        
-        renderMenu(products);
+        document.getElementById('sideName').innerText = sets.name;
+        document.getElementById('resIdDisplay').innerText = "ID: " + resId;
+        document.getElementById('resNameInp').value = sets.name;
+        document.getElementById('resPhoneInp').value = sets.phone;
+
+        renderMenu(menu);
         renderOrders(orders);
-        updateDashboard(orders, products);
-        updateDesign();
-    });
+        renderTrash(trash);
+        updateStats(orders, menu, trash);
+    }
 
-    function renderMenu(products) {
-        const container = document.getElementById('menuContainer');
-        container.innerHTML = '';
-        for (let id in products) {
-            container.innerHTML += `
-                <div class="col-md-3">
-                    <div class="card p-2 text-center h-100">
-                        <img src="${products[id].img}" class="rounded mb-2" style="height:100px;object-fit:cover">
-                        <h6 class="fw-bold">${products[id].name}</h6>
-                        <p class="text-primary">${products[id].price} د.أ</p>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${id}')">حذف</button>
-                    </div>
-                </div>`;
-        }
+    function renderMenu(menu) {
+        document.getElementById('menuGrid').innerHTML = menu.map((m, i) => `
+            <div class="col-md-3">
+                <div class="card p-3 border-0 shadow-sm h-100 text-center">
+                    <img src="${m.img}" style="height:120px; object-fit:cover; border-radius:15px" class="mb-2">
+                    <h6 class="fw-bold">${m.name}</h6>
+                    <div class="text-primary fw-bold mb-2">${m.price} د.أ</div>
+                    <i class="fas fa-trash trash-btn" onclick="moveToTrash('menu', ${i})"></i>
+                </div>
+            </div>`).join('');
     }
 
     function renderOrders(orders) {
-        const list = document.getElementById('ordersList');
-        list.innerHTML = '';
-        for (let id in orders) {
-            const o = orders[id];
-            list.innerHTML = `
-                <div class="col-md-4">
-                    <div class="card p-3 shadow-sm border-0" style="opacity:${o.status==='منجز'?0.5:1}">
-                        <div class="d-flex justify-content-between"><strong>${o.customer}</strong> <span class="badge bg-success">${o.total} د.أ</span></div>
-                        <div class="my-2 small text-muted">${o.items}</div>
-                        ${o.status!=='منجز' ? `<button class="btn btn-sm btn-success w-100" onclick="completeOrder('${id}')">إنجاز</button>` : '✅ مكتمل'}
+        document.getElementById('ordersGrid').innerHTML = orders.slice().reverse().map((o, i) => {
+            const realIndex = orders.length - 1 - i;
+            // عداد الأصناف المكررة
+            let itemsSummary = "";
+            let counts = {};
+            o.itemsList.forEach(item => counts[item] = (counts[item] || 0) + 1);
+            for(let name in counts) { itemsSummary += `<div class="item-row"><span>${name}</span> <span>×${counts[name]}</span></div>`; }
+
+            return `
+            <div class="col-md-6">
+                <div class="order-card" style="opacity:${o.status==='منجز'?'0.6':'1'}">
+                    <div class="order-id">طلب #${o.orderNum}</div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+                        <div>
+                            <h5 class="fw-bold mb-0">${o.customer}</h5>
+                            <small class="text-primary fw-bold"><i class="fas fa-phone-alt me-1"></i> ${o.phone}</small>
+                        </div>
+                        <div class="text-success fw-bold h5">${o.total} د.أ</div>
                     </div>
-                </div>` + list.innerHTML;
-        }
+                    <div class="mb-3">${itemsSummary}</div>
+                    <div class="d-flex gap-2">
+                        ${o.status!=='منجز' ? `<button class="btn btn-success btn-sm w-100 fw-bold" onclick="completeOrder(${realIndex})">إكمال الطلب</button>` : '<span class="badge bg-light text-dark w-100 py-2">✅ تم التسليم</span>'}
+                        <button class="btn btn-outline-danger btn-sm" onclick="moveToTrash('order', ${realIndex})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
     }
 
-    function updateDashboard(orders, products) {
-        let total = 0; let count = 0;
-        for(let id in orders) { total += parseFloat(orders[id].total); count++; }
-        document.getElementById('totalSales').innerText = total.toFixed(2);
-        document.getElementById('todayOrders').innerText = count;
-        document.getElementById('itemsCount').innerText = Object.keys(products).length;
-    }
-
-    function updateDesign() {
-        const color = document.getElementById('themeColor').value;
-        const bg = document.getElementById('customerBg').value;
-        const prev = document.getElementById('mobilePreview');
-        prev.style.background = bg;
-        document.getElementById('prevHeader').style.background = color;
-    }
-
-    function saveDesign() {
-        resRef.child('settings').update({
-            themeColor: document.getElementById('themeColor').value,
-            customerBg: document.getElementById('customerBg').value
-        }).then(() => alert("تم تحديث مظهر المنيو للزبائن"));
-    }
-
-    function saveSettings() {
-        resRef.child('settings').update({
-            name: document.getElementById('resName').value,
-            openTime: document.getElementById('openTime').value,
-            closeTime: document.getElementById('closeTime').value,
-            isOpenManually: document.getElementById('isOpenManually').checked
-        }).then(() => alert("تم حفظ الإعدادات"));
+    function renderTrash(trash) {
+        document.getElementById('trashList').innerHTML = trash.length === 0 ? '<p class="text-center text-muted">السلة فارغة</p>' : 
+        trash.map((t, i) => `
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                <span><b>${t.type === 'menu' ? 'صنف:' : 'طلب:'}</b> ${t.data.name || t.data.customer}</span>
+                <button class="btn btn-sm btn-link text-success text-decoration-none fw-bold" onclick="restore(${i})">استعادة</button>
+            </div>`).join('');
     }
 
     function addItem() {
-        const name = document.getElementById('itemName').value;
-        const price = document.getElementById('itemPrice').value;
-        const img = document.getElementById('itemImg').value;
-        if(name && price) {
-            resRef.child('products').push({ name, price, img });
-            document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = '';
-        }
+        let m = JSON.parse(localStorage.getItem(DB.menu)) || [];
+        m.push({ name: document.getElementById('itemName').value, price: document.getElementById('itemPrice').value, img: document.getElementById('itemImg').value });
+        localStorage.setItem(DB.menu, JSON.stringify(m));
+        init();
+        document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = '';
     }
 
-    function deleteItem(id) { resRef.child('products/' + id).remove(); }
-    function completeOrder(id) { resRef.child('orders/' + id).update({ status: 'منجز' }); }
+    function moveToTrash(type, i) {
+        let trash = JSON.parse(localStorage.getItem(DB.trash)) || [];
+        let sourceKey = type === 'menu' ? DB.menu : DB.orders;
+        let sourceData = JSON.parse(localStorage.getItem(sourceKey));
+        
+        trash.push({ type: type, data: sourceData[i] });
+        sourceData.splice(i, 1);
+        
+        localStorage.setItem(sourceKey, JSON.stringify(sourceData));
+        localStorage.setItem(DB.trash, JSON.stringify(trash));
+        init();
+    }
+
+    function restore(i) {
+        let trash = JSON.parse(localStorage.getItem(DB.trash));
+        let item = trash[i];
+        let targetKey = item.type === 'menu' ? DB.menu : DB.orders;
+        let targetData = JSON.parse(localStorage.getItem(targetKey)) || [];
+        
+        targetData.push(item.data);
+        trash.splice(i, 1);
+        
+        localStorage.setItem(targetKey, JSON.stringify(targetData));
+        localStorage.setItem(DB.trash, JSON.stringify(trash));
+        init();
+    }
+
+    function completeOrder(i) {
+        let o = JSON.parse(localStorage.getItem(DB.orders));
+        o[i].status = 'منجز';
+        localStorage.setItem(DB.orders, JSON.stringify(o));
+        init();
+    }
+
+    function saveSets() {
+        localStorage.setItem(DB.sets, JSON.stringify({
+            name: document.getElementById('resNameInp').value,
+            phone: document.getElementById('resPhoneInp').value
+        }));
+        alert("تم الحفظ!");
+        init();
+    }
+
+    function updateStats(orders, menu, trash) {
+        const total = orders.reduce((s, o) => s + parseFloat(o.total), 0);
+        document.getElementById('statSales').innerText = total.toFixed(2);
+        document.getElementById('statDone').innerText = orders.filter(o => o.status === 'منجز').length;
+        document.getElementById('statTrash').innerText = trash.length;
+    }
 
     function showSec(id, btn) {
         document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -246,6 +257,15 @@
         document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
         btn.classList.add('active');
     }
+
+    function openPreview() {
+        document.getElementById('prevFrame').src = `index.html?id=${resId}`;
+        document.getElementById('previewModal').style.display = 'flex';
+    }
+    
+    function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+
+    window.onload = init;
 </script>
 </body>
 </html>
