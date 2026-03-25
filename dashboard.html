@@ -27,9 +27,7 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
-<body class="dark-mode">
-
-<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+<body class=""> <audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
 <div class="wrapper">
     <div class="sidebar">
@@ -123,7 +121,6 @@
 
     let isFirstLoad = true;
 
-    // طلب إذن الإشعارات
     if (Notification.permission !== "granted") Notification.requestPermission();
 
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
@@ -137,7 +134,6 @@
         document.getElementById('resNameInp').value = sets.name || "";
         document.getElementById('resPhoneInp').value = sets.phone || "";
 
-        // عرض المنيو
         const menuGrid = document.getElementById('menuGrid');
         menuGrid.innerHTML = "";
         let pCount = 0;
@@ -152,7 +148,6 @@
         }
         document.getElementById('statItems').innerText = pCount;
 
-        // معالجة الطلبات الحية
         const ordersGrid = document.getElementById('ordersGrid');
         const oldOrdersCount = ordersGrid.querySelectorAll('.res-row').length;
         ordersGrid.innerHTML = "";
@@ -177,7 +172,6 @@
         document.getElementById('statActive').innerText = currentOrdersCount;
         document.getElementById('statSales').innerText = totalSales.toFixed(2);
 
-        // نظام التنبيه
         if (!isFirstLoad && currentOrdersCount > oldOrdersCount) {
             document.getElementById('orderSound').play();
             if (Notification.permission === "granted") {
@@ -186,7 +180,6 @@
         }
         isFirstLoad = false;
 
-        // عرض الحجوزات
         const resList = document.getElementById('resList');
         resList.innerHTML = "";
         for(let key in resv) {
