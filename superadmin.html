@@ -1,625 +1,405 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة التحكم الرئيسية</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-<style>
-* { font-family: 'Tajawal', sans-serif; }
-body { background: #0f0f13; color: #eee; min-height: 100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestaurantOS | Super Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        body { background: #0f0f13; color: #eee; min-height: 100vh; }
 
-/* LOGIN */
-#login-screen {
-  position: fixed; inset: 0; background: #0f0f13;
-  display: flex; align-items: center; justify-content: center; z-index: 999;
-}
-.login-box {
-  background: #1a1a24; border-radius: 24px; padding: 40px;
-  width: min(420px, 95vw); border: 1.5px solid rgba(255,255,255,.08);
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
-}
-.login-logo { text-align: center; margin-bottom: 32px; }
-.login-logo h1 { font-size: 2rem; font-weight: 900; color: white; }
-.login-logo p  { color: #888; font-size: .95rem; }
-.login-field { margin-bottom: 16px; }
-.login-field label { display: block; font-size: .88rem; font-weight: 700; color: #888; margin-bottom: 7px; }
-.login-field input {
-  width: 100%; padding: 13px 16px; border-radius: 12px;
-  border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13;
-  color: white; font-family: 'Tajawal', sans-serif; font-size: 1rem; outline: none;
-}
-.login-field input:focus { border-color: #6c63ff; }
-#login-btn {
-  width: 100%; padding: 14px; background: linear-gradient(135deg, #6c63ff, #a855f7);
-  border: none; border-radius: 12px; color: white;
-  font-family: 'Tajawal', sans-serif; font-size: 1.1rem; font-weight: 800; cursor: pointer;
-  margin-top: 8px; transition: opacity .2s;
-}
-#login-btn:hover { opacity: .9; }
-.login-error { color: #e74c3c; font-size: .88rem; text-align: center; margin-top: 10px; display: none; }
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: fixed; inset: 0; background: #0f0f13;
+            display: flex; align-items: center; justify-content: center; z-index: 999;
+        }
+        .login-box {
+            background: #1a1a24; border-radius: 24px; padding: 40px;
+            width: min(420px, 95vw); border: 1.5px solid rgba(255,255,255,.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+        .login-logo { text-align: center; margin-bottom: 32px; }
+        .login-logo h1 { font-size: 2rem; font-weight: 900; color: white; }
+        .login-logo p { color: #888; font-size: .95rem; }
+        .login-field { margin-bottom: 16px; }
+        .login-field label { display: block; font-size: .88rem; font-weight: 700; color: #888; margin-bottom: 7px; }
+        .login-field input {
+            width: 100%; padding: 13px 16px; border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13;
+            color: white; outline: none; transition: 0.3s;
+        }
+        .login-field input:focus { border-color: #6c63ff; box-shadow: 0 0 10px rgba(108,99,255,0.2); }
+        #login-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #6c63ff, #a855f7);
+            border: none; border-radius: 12px; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer;
+        }
+        .login-error { color: #e74c3c; font-size: .88rem; text-align: center; margin-top: 10px; display: none; }
 
-/* MAIN */
-#main-app { display: none; }
+        /* MAIN APP LAYOUT */
+        #main-app { display: none; }
+        .topbar {
+            background: #1a1a24; border-bottom: 1px solid rgba(255,255,255,.07);
+            padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .topbar-brand { font-size: 1.2rem; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
+        .badge-admin {
+            background: linear-gradient(135deg, #6c63ff, #a855f7);
+            color: white; padding: 4px 12px; border-radius: 50px; font-size: .75rem; font-weight: 700;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+            color: #aaa; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .logout-btn:hover { background: rgba(231,76,60,.15); color: #e74c3c; border-color: rgba(231,76,60,0.3); }
 
-/* TOPBAR */
-.topbar {
-  background: #1a1a24; border-bottom: 1px solid rgba(255,255,255,.07);
-  padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-}
-.topbar-brand { font-size: 1.2rem; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
-.topbar-brand .badge-admin {
-  background: linear-gradient(135deg, #6c63ff, #a855f7);
-  color: white; padding: 4px 12px; border-radius: 50px; font-size: .75rem; font-weight: 700;
-}
-.logout-btn {
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
-  color: #aaa; padding: 8px 16px; border-radius: 8px; cursor: pointer;
-  font-family: 'Tajawal', sans-serif; font-size: .88rem; transition: all .2s;
-}
-.logout-btn:hover { background: rgba(255,255,255,.12); color: white; }
+        /* CONTENT & CARDS */
+        .content { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-box {
+            background: #1a1a24; border-radius: 16px; padding: 20px;
+            border: 1.5px solid rgba(255,255,255,.06); display: flex; align-items: center; gap: 16px;
+        }
+        .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .si-purple { background: rgba(108,99,255,.2); color: #6c63ff; }
+        .si-green  { background: rgba(39,174,96,.2);  color: #27ae60; }
+        .si-red    { background: rgba(231,76,60,.2);  color: #e74c3c; }
+        .si-orange { background: rgba(243,156,18,.2);  color: #f39c12; }
+        .stat-num { font-size: 1.8rem; font-weight: 900; color: white; line-height: 1; }
+        .stat-label { font-size: .85rem; color: #888; margin-top: 4px; }
 
-/* CONTENT */
-.content { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
+        .section-card {
+            background: #1a1a24; border-radius: 16px;
+            border: 1.5px solid rgba(255,255,255,.06); overflow: hidden; margin-bottom: 24px;
+        }
+        .section-head { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.06); }
+        .section-title { font-weight: 800; font-size: 1rem; color: white; display: flex; align-items: center; gap: 8px; }
 
-/* STATS */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-.stat-box {
-  background: #1a1a24; border-radius: 16px; padding: 20px;
-  border: 1.5px solid rgba(255,255,255,.06); display: flex; align-items: center; gap: 16px;
-}
-.stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
-.si-purple { background: rgba(108,99,255,.2); color: #6c63ff; }
-.si-green  { background: rgba(39,174,96,.2);  color: #27ae60; }
-.si-red    { background: rgba(231,76,60,.2);   color: #e74c3c; }
-.si-orange { background: rgba(243,156,18,.2);  color: #f39c12; }
-.stat-num   { font-size: 1.8rem; font-weight: 900; color: white; line-height: 1; }
-.stat-label { font-size: .85rem; color: #888; margin-top: 4px; }
+        /* TABLES */
+        .dark-table { width: 100%; border-collapse: collapse; }
+        .dark-table th { background: rgba(255,255,255,.04); padding: 12px 16px; font-size: .85rem; color: #888; text-align: right; }
+        .dark-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .9rem; vertical-align: middle; }
+        .dark-table tr:hover td { background: rgba(255,255,255,.02); }
 
-/* SECTION */
-.section-card {
-  background: #1a1a24; border-radius: 16px;
-  border: 1.5px solid rgba(255,255,255,.06); overflow: hidden; margin-bottom: 24px;
-}
-.section-head {
-  padding: 18px 22px; display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
-.section-title { font-weight: 800; font-size: 1rem; color: white; display: flex; align-items: center; gap: 8px; }
+        .badge-active { background: rgba(39,174,96,.15); color: #2ecc71; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; }
+        .badge-inactive { background: rgba(231,76,60,.15); color: #e74c3c; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; }
 
-/* TABLE */
-.dark-table { width: 100%; border-collapse: collapse; }
-.dark-table th { background: rgba(255,255,255,.04); padding: 12px 16px; font-size: .85rem; font-weight: 700; color: #888; text-align: right; border-bottom: 1px solid rgba(255,255,255,.06); }
-.dark-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .9rem; vertical-align: middle; }
-.dark-table tr:last-child td { border: none; }
-.dark-table tr:hover td { background: rgba(255,255,255,.02); }
+        /* BUTTONS */
+        .btn-sm-act { border: none; border-radius: 8px; padding: 6px 12px; font-size: .8rem; font-weight: 700; cursor: pointer; transition: 0.2s; margin: 2px; }
+        .btn-view { background: rgba(108,99,255,.15); color: #6c63ff; }
+        .btn-view:hover { background: #6c63ff; color: white; }
+        .btn-toggle-on { background: rgba(231,76,60,.15); color: #e74c3c; }
+        .btn-toggle-off { background: rgba(39,174,96,.15); color: #27ae60; }
 
-/* BADGES */
-.badge-active   { background: rgba(39,174,96,.2);  color: #27ae60; padding: 4px 12px; border-radius: 50px; font-size: .8rem; font-weight: 700; }
-.badge-inactive { background: rgba(231,76,60,.2);  color: #e74c3c; padding: 4px 12px; border-radius: 50px; font-size: .8rem; font-weight: 700; }
+        /* FORM */
+        .add-form { background: #1a1a24; border-radius: 16px; padding: 28px; border: 1.5px solid #6c63ff44; margin-bottom: 24px; display: none; }
+        .add-form.show { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .field label { display: block; font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 6px; }
+        .field input, .field select {
+            width: 100%; padding: 11px 14px; border-radius: 10px;
+            border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13; color: white; outline: none;
+        }
 
-/* BUTTONS */
-.btn-sm-act {
-  border: none; border-radius: 8px; padding: 7px 14px;
-  font-family: 'Tajawal', sans-serif; font-size: .82rem; font-weight: 700;
-  cursor: pointer; transition: all .2s; margin: 2px;
-}
-.btn-view    { background: rgba(108,99,255,.2); color: #6c63ff; }
-.btn-view:hover { background: #6c63ff; color: white; }
-.btn-toggle-on  { background: rgba(231,76,60,.2);  color: #e74c3c; }
-.btn-toggle-on:hover  { background: #e74c3c; color: white; }
-.btn-toggle-off { background: rgba(39,174,96,.2);  color: #27ae60; }
-.btn-toggle-off:hover { background: #27ae60; color: white; }
-.btn-delete  { background: rgba(231,76,60,.15); color: #e74c3c; }
-.btn-delete:hover { background: #e74c3c; color: white; }
-
-/* ADD RESTAURANT FORM */
-.add-form {
-  background: #1a1a24; border-radius: 16px; padding: 28px;
-  border: 1.5px solid rgba(108,99,255,.3); margin-bottom: 24px; display: none;
-}
-.add-form.show { display: block; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
-.field label { display: block; font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 6px; }
-.field input, .field select {
-  width: 100%; padding: 11px 14px; border-radius: 10px;
-  border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13;
-  color: white; font-family: 'Tajawal', sans-serif; font-size: .95rem; outline: none;
-}
-.field input:focus { border-color: #6c63ff; }
-#add-restaurant-btn {
-  background: linear-gradient(135deg, #6c63ff, #a855f7);
-  border: none; border-radius: 12px; color: white; padding: 13px 32px;
-  font-family: 'Tajawal', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer;
-}
-
-/* TOAST */
-#toast {
-  position: fixed; bottom: 28px; left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: #222; color: white; padding: 12px 24px;
-  border-radius: 50px; font-size: .9rem; font-weight: 700;
-  z-index: 9999; opacity: 0; transition: all .3s; pointer-events: none;
-}
-#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-#toast.s { background: #27ae60; }
-#toast.e { background: #e74c3c; }
-
-.empty-state { text-align: center; padding: 48px; color: #555; }
-.empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; }
-
-.color-preview { width: 32px; height: 32px; border-radius: 8px; display: inline-block; vertical-align: middle; margin-right: 8px; border: 1px solid rgba(255,255,255,.1); }
-</style>
+        /* TOAST */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            padding: 12px 24px; border-radius: 12px; z-index: 10000; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            font-weight: 700; color: white; opacity: 0;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .success { background: #27ae60; box-shadow: 0 10px 30px rgba(39,174,96,0.3); }
+        .error { background: #e74c3c; box-shadow: 0 10px 30px rgba(231,76,60,0.3); }
+    </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">
-      <h1>🍽️ RestaurantOS</h1>
-      <p>لوحة التحكم الرئيسية</p>
+    <div class="login-box">
+        <div class="login-logo">
+            <h1>🍽️ RestaurantOS</h1>
+            <p>لوحة تحكم المدير العام</p>
+        </div>
+        <div class="login-field">
+            <label>اسم المستخدم</label>
+            <input type="text" id="l-user" placeholder="admin" value="admin">
+        </div>
+        <div class="login-field">
+            <label>كلمة المرور</label>
+            <input type="password" id="l-pass" placeholder="••••••••" value="admin123" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button id="login-btn" onclick="doLogin()">دخول للمنصة ←</button>
+        <div class="login-error" id="login-error">بيانات غير صحيحة</div>
     </div>
-    <div class="login-field">
-      <label>اسم المستخدم</label>
-      <input type="text" id="l-user" value="admin">
-    </div>
-    <div class="login-field">
-      <label>كلمة المرور</label>
-      <input type="password" id="l-pass" placeholder="••••••••" value="admin123" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <button id="login-btn" onclick="doLogin()">دخول ←</button>
-    <div class="login-error" id="login-error">❗ اسم المستخدم أو كلمة المرور غلط</div>
-  </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="main-app">
-
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-brand">
-      🍽️ RestaurantOS
-      <span class="badge-admin">Super Admin</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <span style="color:rgba(255,255,255,.6);font-size:.85rem">👤 <span id="sa-username-display">admin</span></span>
-      <button class="logout-btn" onclick="toggleChangePass()" style="background:rgba(255,193,7,.15);border-color:rgba(255,193,7,.3)"><i class="fas fa-key ms-1"></i> تغيير الباسورد</button>
-      <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt ms-1"></i> خروج</button>
-    </div>
-  </div>
-
-
-  <!-- CHANGE PASSWORD PANEL -->
-  <div id="change-pass-panel" style="display:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;margin:0 24px 0;">
-    <h6 style="color:white;font-weight:700;margin-bottom:16px"><i class="fas fa-key ms-2"></i> تغيير كلمة مرور Super Admin</h6>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-      <div>
-        <label style="color:rgba(255,255,255,.5);font-size:.82rem;display:block;margin-bottom:6px">كلمة المرور الحالية</label>
-        <input type="password" id="sa-cur-pass" placeholder="••••••••" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:white;font-family:Tajawal,sans-serif">
-      </div>
-      <div>
-        <label style="color:rgba(255,255,255,.5);font-size:.82rem;display:block;margin-bottom:6px">كلمة المرور الجديدة</label>
-        <input type="password" id="sa-new-pass" placeholder="••••••••" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:white;font-family:Tajawal,sans-serif">
-      </div>
-      <div>
-        <label style="color:rgba(255,255,255,.5);font-size:.82rem;display:block;margin-bottom:6px">تأكيد كلمة المرور</label>
-        <input type="password" id="sa-conf-pass" placeholder="••••••••" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:white;font-family:Tajawal,sans-serif">
-      </div>
-    </div>
-    <button onclick="changeSAPassword()" style="margin-top:14px;padding:10px 24px;background:linear-gradient(135deg,#e74c3c,#c0392b);border:none;border-radius:8px;color:white;font-family:Tajawal,sans-serif;font-weight:700;cursor:pointer">
-      <i class="fas fa-save ms-1"></i> تغيير كلمة المرور
-    </button>
-    <button onclick="toggleChangePass()" style="margin-top:14px;margin-right:8px;padding:10px 20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.6);font-family:Tajawal,sans-serif;font-weight:700;cursor:pointer">
-      إلغاء
-    </button>
-  </div>
-
-  <div class="content">
-
-    <!-- STATS -->
-    <div class="stat-grid">
-      <div class="stat-box">
-        <div class="stat-icon si-purple"><i class="fas fa-store"></i></div>
-        <div><div class="stat-num" id="s-total">0</div><div class="stat-label">إجمالي المطاعم</div></div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon si-green"><i class="fas fa-check-circle"></i></div>
-        <div><div class="stat-num" id="s-active">0</div><div class="stat-label">مطاعم نشطة</div></div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon si-red"><i class="fas fa-pause-circle"></i></div>
-        <div><div class="stat-num" id="s-inactive">0</div><div class="stat-label">مطاعم موقوفة</div></div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon si-orange"><i class="fas fa-receipt"></i></div>
-        <div><div class="stat-num" id="s-orders">0</div><div class="stat-label">إجمالي الطلبات</div></div>
-      </div>
-    </div>
-
-    <!-- ADD RESTAURANT TOGGLE -->
-    <div style="margin-bottom:16px">
-      <button class="btn btn-sm" style="background:linear-gradient(135deg,#6c63ff,#a855f7);color:white;border:none;border-radius:10px;padding:10px 22px;font-family:'Tajawal',sans-serif;font-weight:800;font-size:.95rem" onclick="toggleAddForm()">
-        <i class="fas fa-plus ms-2"></i> إضافة مطعم جديد
-      </button>
-    </div>
-
-    <!-- ADD RESTAURANT FORM -->
-    <div class="add-form" id="add-form">
-      <h5 style="color:white;font-weight:800;margin-bottom:20px"><i class="fas fa-store ms-2" style="color:#6c63ff"></i> بيانات المطعم الجديد</h5>
-      <div class="form-row">
-        <div class="field"><label>اسم المطعم *</label><input type="text" id="a-name" placeholder="مطعم الأمير"></div>
-        <div class="field"><label>رقم الهاتف</label><input type="text" id="a-phone" placeholder="07XXXXXXXX"></div>
-      </div>
-      <div class="form-row">
-        <div class="field"><label>اسم المستخدم *</label><input type="text" id="a-user" placeholder="alameer"></div>
-        <div class="field"><label>كلمة المرور *</label><input type="text" id="a-pass" placeholder="123456"></div>
-        <div class="field"><label>العنوان</label><input type="text" id="a-address" placeholder="العنوان (اختياري)"></div>
-      </div>
-      <div class="form-row three">
-        <div class="field"><label>وقت الفتح</label><input type="time" id="a-open" value="10:00"></div>
-        <div class="field"><label>وقت الإغلاق</label><input type="time" id="a-close" value="23:00"></div>
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label>اللون الرئيسي</label>
-          <div style="display:flex;gap:10px;align-items:center">
-            <input type="color" id="a-color1" value="#E63946" style="width:50px;height:42px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:#0f0f13;cursor:pointer">
-            <input type="text" id="a-color1-text" value="#E63946">
-          </div>
+    <div class="topbar">
+        <div class="topbar-brand">
+            🍽️ RestaurantOS <span class="badge-admin">Super Admin</span>
         </div>
-        <div class="field">
-          <label>اللون الثانوي</label>
-          <div style="display:flex;gap:10px;align-items:center">
-            <input type="color" id="a-color2" value="#FF6B35" style="width:50px;height:42px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:#0f0f13;cursor:pointer">
-            <input type="text" id="a-color2-text" value="#FF6B35">
-          </div>
+        <div class="d-flex align-items-center gap-3">
+            <span style="color:#888; font-size: 0.9rem;">👤 <span id="sa-username-display">admin</span></span>
+            <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt ms-1"></i> خروج</button>
         </div>
-      </div>
-      <button id="add-restaurant-btn" onclick="addRestaurant()">
-        <i class="fas fa-plus ms-2"></i> إضافة المطعم
-      </button>
     </div>
 
-    <!-- RESTAURANTS TABLE -->
-    <div class="section-card">
-      <div class="section-head">
-        <div class="section-title"><i class="fas fa-store" style="color:#6c63ff"></i> المطاعم المسجلة</div>
-        <button class="btn-sm-act btn-view" onclick="loadRestaurants()"><i class="fas fa-sync-alt"></i> تحديث</button>
-      </div>
-      <div class="table-responsive">
-        <table class="dark-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>اسم المطعم</th>
-              <th>اسم المستخدم</th>
-              <th>الهاتف</th>
-              <th>العنوان</th>
-              <th>تاريخ الإضافة</th>
-              <th>الحالة</th>
-              <th>الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="restaurants-tbody">
-            <tr><td colspan="8"><div class="empty-state"><div class="spinner-border text-secondary" role="status"></div></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="content">
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="stat-icon si-purple"><i class="fas fa-store"></i></div>
+                <div><div class="stat-num" id="s-total">0</div><div class="stat-label">إجمالي المطاعم</div></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon si-green"><i class="fas fa-check-circle"></i></div>
+                <div><div class="stat-num" id="s-active">0</div><div class="stat-label">نشطة حالياً</div></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon si-red"><i class="fas fa-pause-circle"></i></div>
+                <div><div class="stat-num" id="s-inactive">0</div><div class="stat-label">متوقفة</div></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon si-orange"><i class="fas fa-receipt"></i></div>
+                <div><div class="stat-num" id="s-orders">0</div><div class="stat-label">الطلبات الكلية</div></div>
+            </div>
+        </div>
 
-    <!-- ALL ORDERS -->
-    <div class="section-card">
-      <div class="section-head">
-        <div class="section-title"><i class="fas fa-receipt" style="color:#f39c12"></i> آخر الطلبات (كل المطاعم)</div>
-      </div>
-      <div class="table-responsive">
-        <table class="dark-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>المطعم</th>
-              <th>العميل</th>
-              <th>الأصناف</th>
-              <th>الإجمالي</th>
-              <th>الوقت</th>
-              <th>الحالة</th>
-            </tr>
-          </thead>
-          <tbody id="orders-tbody">
-            <tr><td colspan="7"><div class="empty-state"><i class="fas fa-receipt"></i>جارٍ التحميل...</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+        <div class="mb-4">
+            <button class="btn" style="background: #6c63ff; color: white; font-weight: 700; border-radius: 10px; padding: 12px 24px;" onclick="toggleAddForm()">
+                <i class="fas fa-plus ms-2"></i> إضافة مطعم جديد للمنظومة
+            </button>
+        </div>
 
-  </div>
+        <div class="add-form" id="add-form">
+            <h5 class="mb-4" style="font-weight: 900;"><i class="fas fa-plus-circle ms-2" style="color:#6c63ff"></i> تسجيل مطعم جديد</h5>
+            <div class="form-row">
+                <div class="field"><label>اسم المطعم *</label><input type="text" id="a-name" placeholder="مثلاً: شاورما الأمير"></div>
+                <div class="field"><label>رقم الهاتف</label><input type="text" id="a-phone" placeholder="07XXXXXXXX"></div>
+            </div>
+            <div class="form-row">
+                <div class="field"><label>اسم مستخدم لوحة التحكم *</label><input type="text" id="a-user" placeholder="alameer_admin"></div>
+                <div class="field"><label>كلمة المرور *</label><input type="text" id="a-pass" placeholder="••••••••"></div>
+            </div>
+            <div class="form-row">
+                <div class="field"><label>وقت الفتح</label><input type="time" id="a-open" value="10:00"></div>
+                <div class="field"><label>وقت الإغلاق</label><input type="time" id="a-close" value="23:00"></div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>اللون الرئيسي</label>
+                    <input type="color" id="a-color1" value="#6c63ff" style="height: 45px; cursor: pointer;">
+                </div>
+                <div class="field">
+                    <label>اللون الثانوي</label>
+                    <input type="color" id="a-color2" value="#a855f7" style="height: 45px; cursor: pointer;">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary w-100 py-3" onclick="addRestaurant()" style="font-weight: 800; border-radius: 12px;">حفظ وإضافة المطعم</button>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-head">
+                <div class="section-title"><i class="fas fa-list-ul" style="color:#6c63ff"></i> إدارة المطاعم</div>
+                <button class="btn-sm-act btn-view" onclick="loadRestaurants()"><i class="fas fa-sync"></i> تحديث</button>
+            </div>
+            <div class="table-responsive">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>المطعم</th>
+                            <th>اليوزر</th>
+                            <th>الهاتف</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="restaurants-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-head">
+                <div class="section-title"><i class="fas fa-history" style="color:#f39c12"></i> آخر طلبات الشبكة</div>
+            </div>
+            <div class="table-responsive">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>المطعم</th>
+                            <th>العميل</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API = 'http://localhost:5122/api';
+    const API_BASE = 'http://localhost:5122/api';
+    let currentAdmin = 'admin';
 
-function apiFetch(url, options = {}) {
-  options.headers = options.headers || {};
-  if (options.body && !options.headers['Content-Type'])
-    options.headers['Content-Type'] = 'application/json';
-  return fetch(url, options);
-}
-
-let restaurants = [], allOrders = [];
-let currentAdminUser = 'admin';
-
-// ── AUTH ──────────────────────────────────────────────
-const saved = sessionStorage.getItem('rms_superadmin');
-if (saved) {
-  try {
-    const s = JSON.parse(saved);
-    if (s.loggedIn) {
-      currentAdminUser = s.username || 'admin';
-      window.addEventListener('load', () => {
-        const ls = document.getElementById('login-screen');
-        const ma = document.getElementById('main-app');
-        const ud = document.getElementById('sa-username-display');
-        if(ls) ls.style.display = 'none';
-        if(ma) ma.style.display = 'block';
-        if(ud) ud.textContent = currentAdminUser;
-        loadAll();
-      });
-    }
-  } catch(e) { sessionStorage.removeItem('rms_superadmin'); }
-}
-
-async function doLogin() {
-  const user = document.getElementById('l-user')?.value.trim() || '';
-  const pass = document.getElementById('l-pass')?.value.trim() || '';
-  const errEl = document.getElementById('login-error');
-  if(errEl) errEl.style.display = 'none';
-  if (!user || !pass) { errEl.style.display='block'; errEl.textContent='❗ أدخل البيانات'; return; }
-  const btn = document.getElementById('login-btn');
-  btn.textContent = '⏳...'; btn.disabled = true;
-  try {
-    const res  = await apiFetch(`${API}/Auth/login`, {
-      method: 'POST', body: JSON.stringify({ Username: user, Password: pass })
+    // ── AUTH ──────────────────────────────────────────
+    window.addEventListener('load', () => {
+        const session = JSON.parse(sessionStorage.getItem('rms_superadmin'));
+        if (session && session.loggedIn) showApp(session.username);
     });
-    const data = await res.json();
-    if (data.success && data.role === 'superadmin') {
-      currentAdminUser = user;
-      sessionStorage.setItem('rms_superadmin', JSON.stringify({ loggedIn: true, username: user }));
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      document.getElementById('sa-username-display').textContent = currentAdminUser;
-      loadAll();
-    } else {
-      errEl.style.display='block';
-      errEl.textContent = data.success ? '❗ ليس لديك صلاحية Super Admin' : '❗ بيانات غلط';
+
+    async function doLogin() {
+        const user = document.getElementById('l-user').value.trim();
+        const pass = document.getElementById('l-pass').value.trim();
+        const btn = document.getElementById('login-btn');
+
+        btn.disabled = true; btn.textContent = 'جاري التحقق...';
+
+        try {
+            const res = await fetch(`${API_BASE}/Auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Username: user, Password: pass })
+            });
+            const data = await res.json();
+
+            if (data.success && data.role === 'superadmin') {
+                sessionStorage.setItem('rms_superadmin', JSON.stringify({ loggedIn: true, username: user }));
+                showApp(user);
+            } else {
+                showToast("خطأ في البيانات أو الصلاحيات", "e");
+            }
+        } catch(e) { showToast("فشل الاتصال بالسيرفر", "e"); }
+        btn.disabled = false; btn.textContent = 'دخول للمنصة ←';
     }
-  } catch(e) { errEl.style.display='block'; errEl.textContent='❗ فشل الاتصال'; }
-  btn.textContent='دخول ←'; btn.disabled=false;
-}
 
-function doLogout() {
-  sessionStorage.removeItem('rms_superadmin');
-  document.getElementById('main-app').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('l-user').value='';
-  document.getElementById('l-pass').value='';
-}
-
-// ── CHANGE SUPERADMIN CREDENTIALS ────────────────────
-async function changeSAPassword() {
-  const cur  = document.getElementById('sa-cur-pass').value.trim();
-  const nw   = document.getElementById('sa-new-pass').value.trim();
-  const conf = document.getElementById('sa-conf-pass').value.trim();
-  if (!cur)        { toast('❗ أدخل كلمة المرور الحالية','e'); return; }
-  if (!nw)         { toast('❗ أدخل كلمة المرور الجديدة','e'); return; }
-  if (nw !== conf) { toast('❗ كلمات المرور غير متطابقة','e'); return; }
-  if (nw.length<6) { toast('❗ يجب 6 أحرف على الأقل','e'); return; }
-  try {
-    const res = await apiFetch(`${API}/Auth/change-password`, {
-      method: 'PUT',
-      body: JSON.stringify({ username: currentAdminUser, currentPassword: cur, newPassword: nw })
-    });
-    if (res.ok) {
-      toast('✅ تم تغيير كلمة المرور — سيتم الخروج','s');
-      ['sa-cur-pass','sa-new-pass','sa-conf-pass'].forEach(id=>document.getElementById(id).value='');
-      setTimeout(doLogout, 2000);
-    } else {
-      const err = await res.text().catch(()=>'');
-      toast('❗ فشل: '+(err||res.status),'e');
+    function showApp(user) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        document.getElementById('sa-username-display').textContent = user;
+        loadData();
     }
-  } catch(e) { toast('❗ خطأ في الاتصال','e'); }
-}
 
-// ── LOAD ─────────────────────────────────────────────
-async function loadAll() {
-  await Promise.allSettled([loadRestaurants(), loadOrders()]);
-}
-
-async function loadRestaurants() {
-  try {
-    const res = await apiFetch(`${API}/Auth/restaurants?adminPassword=admin123`);
-    const raw = await res.json();
-    restaurants = raw.map(r => ({
-      ...r,
-      RestaurantId: r.restaurantId || r.RestaurantId || r.id,
-      name:         r.name || r.Name || '',
-      username:     r.username || r.Username || '',
-      phone:        r.phone || '',
-      address:      r.address || '',
-      isActive:     r.isActive !== undefined ? r.isActive : true,
-      createdAt:    r.createdAt || r.CreatedAt || '',
-    }));
-
-    const total    = restaurants.length;
-    const active   = restaurants.filter(r=>r.isActive).length;
-    const inactive = total - active;
-    const st = document.getElementById('s-total');   if(st) st.textContent = total;
-    const sa = document.getElementById('s-active');  if(sa) sa.textContent = active;
-    const si = document.getElementById('s-inactive');if(si) si.textContent = inactive;
-
-    const tbody = document.getElementById('restaurants-tbody');
-    if (!tbody) { console.warn('restaurants-tbody not found'); return; }
-    tbody.innerHTML = restaurants.map(r => `<tr>
-      <td><strong style="color:#6c63ff">#${r.RestaurantId}</strong></td>
-      <td><strong style="color:white">${r.name}</strong></td>
-      <td><code style="color:#a855f7;background:rgba(168,85,247,.1);padding:2px 8px;border-radius:6px">${r.username}</code></td>
-      <td style="color:#888">${r.phone||'--'}</td>
-      <td style="color:#888;font-size:.82rem">${r.createdAt?new Date(r.createdAt).toLocaleDateString('ar'):'--'}</td>
-      <td><span class="${r.isActive?'badge-active':'badge-inactive'}">${r.isActive?'✅ نشط':'⏸️ موقوف'}</span></td>
-      <td>
-        <button class="btn-sm-act ${r.isActive?'btn-toggle-on':'btn-toggle-off'}" onclick="toggleRestaurant(${r.RestaurantId},${r.isActive})">
-          ${r.isActive?'⏸️ إيقاف':'▶️ تفعيل'}
-        </button>
-        <button class="btn-sm-act btn-view" onclick="openRestaurant(${r.RestaurantId},'${encodeURIComponent(r.name||'')}')">
-          <i class="fas fa-external-link-alt"></i> فتح
-        </button>
-      </td>
-    </tr>`).join('');
-  } catch(e) { toast('❗ فشل تحميل المطاعم','e'); }
-}
-
-async function loadOrders() {
-  try {
-    const res = await apiFetch(`${API}/Orders`);
-    const raw = await res.json();
-    const restMap = {};
-    restaurants.forEach(r => { restMap[r.RestaurantId] = r.name; restMap[r.restaurantId] = r.name; });
-    const STATUS_AR = {Placed:'🔴 جديد',Pending:'🟠 معلق',Preparing:'🟡 تحضير',Ready:'🟢 جاهز',Delivered:'🔵 مكتمل',Cancelled:'⚫ ملغي'};
-
-    allOrders = raw.map(o => ({
-      ...o,
-      OrderId:       o.orderId       || o.OrderId      || o.id   || '?',
-      RestaurantId:  o.restaurantId  || o.RestaurantId,
-      TotalAmount:   parseFloat(o.totalAmount || o.TotalAmount || 0),
-      OrderDate:     o.orderDate     || o.OrderDate     || o.createdAt || null,
-      status:        o.status        || o.Status        || 'Placed',
-      customerName:  o.customerName  || o.CustomerName  || o.customer?.fullName || 'غير معروف',
-      customerPhone: o.customerPhone || o.CustomerPhone || '',
-      items:         o.items         || o.orderItems    || [],
-    }));
-
-    const so = document.getElementById('s-orders');
-    if(so) so.textContent = allOrders.length;
-
-    const recent = [...allOrders].sort((a,b)=>new Date(b.OrderDate)-new Date(a.OrderDate)).slice(0,20);
-    const tbody = document.getElementById('orders-tbody');
-    if (!tbody) return;
-    tbody.innerHTML = recent.map(o => {
-      const items = (o.items||[]).map(i=>{
-        const name=i.menuName||i.MenuName||i.menuItem?.name||i.name||'صنف';
-        const qty=i.quantity||i.Quantity||1;
-        return `<span style="display:block;font-size:.8rem">${name} ×${qty}</span>`;
-      }).join('');
-      const dateStr = o.OrderDate ? new Date(o.OrderDate).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}) : '--';
-      return `<tr>
-        <td><strong style="color:#6c63ff">#${o.OrderId}</strong></td>
-        <td><span style="background:rgba(108,99,255,.15);color:#a855f7;padding:3px 10px;border-radius:50px;font-size:.8rem">${restMap[o.RestaurantId]||'مطعم #'+o.RestaurantId}</span></td>
-        <td><div style="font-weight:700;color:white">${o.customerName}</div><small style="color:#888">${o.customerPhone}</small></td>
-        <td>${items||'--'}</td>
-        <td><strong style="color:#27ae60">${o.TotalAmount.toFixed(2)} د</strong></td>
-        <td style="font-size:.82rem;color:#888">${dateStr}</td>
-        <td><span style="padding:4px 12px;border-radius:50px;font-size:.8rem;font-weight:700;background:rgba(255,255,255,.07);color:#eee">${STATUS_AR[o.status]||o.status}</span></td>
-      </tr>`;
-    }).join('');
-  } catch(e) { toast('❗ فشل تحميل الطلبات','e'); }
-}
-
-// ── ADD RESTAURANT ────────────────────────────────────
-async function addRestaurant() {
-  const name  = document.getElementById('a-name').value.trim();
-  const user  = document.getElementById('a-user').value.trim();
-  const pass  = document.getElementById('a-pass').value.trim();
-  const phone = document.getElementById('a-phone').value.trim();
-  const addr  = document.getElementById('a-address')?.value.trim() || '';
-  const c1    = document.getElementById('a-color1').value;
-  const c2    = document.getElementById('a-color2').value;
-  const open  = document.getElementById('a-open').value;
-  const close = document.getElementById('a-close').value;
-
-  if (!name) { toast('❗ أدخل اسم المطعم','e'); return; }
-  if (!user) { toast('❗ أدخل اسم المستخدم','e'); return; }
-  if (!pass) { toast('❗ أدخل كلمة المرور','e'); return; }
-
-  const btn = document.getElementById('a-submit-btn');
-  if(btn) { btn.disabled=true; btn.textContent='⏳ جارٍ الإضافة...'; }
-
-  try {
-    const res = await apiFetch(`${API}/Auth/add-restaurant`, {
-      method: 'POST',
-      body: JSON.stringify({
-        name, Username: user, Password: pass,
-        phone, address: addr,
-        primaryColor: c1, secondaryColor: c2,
-        openTime: open, closeTime: close,
-        adminPassword: 'admin123',
-      })
-    });
-    const data = await res.json();
-    if (res.ok && (data.restaurantId || data.RestaurantId || data.success)) {
-      toast(`✅ تم إضافة ${name} بنجاح!`,'s');
-      document.getElementById('add-form')?.classList.remove('show');
-      await loadRestaurants();
-    } else {
-      toast('❗ فشل: '+(data.message||res.status),'e');
+    function doLogout() {
+        sessionStorage.removeItem('rms_superadmin');
+        location.reload();
     }
-  } catch(e) { toast('❗ خطأ في الاتصال','e'); }
-  if(btn) { btn.disabled=false; btn.textContent='✅ إضافة المطعم'; }
-}
 
-async function toggleRestaurant(id, isActive) {
-  try {
-    const res = await apiFetch(`${API}/Auth/toggle/${id}?adminPassword=admin123`, { method: 'PUT' });
-    if (res.ok) {
-      toast(`${isActive ? '⏸️ تم إيقاف' : '✅ تم تفعيل'} المطعم`,'s');
-      await loadRestaurants();
-    } else toast('❗ فشل التغيير','e');
-  } catch(e) { toast('❗ خطأ في الاتصال','e'); }
-}
+    // ── DATA LOADING ──────────────────────────────────
+    async function loadData() {
+        await Promise.allSettled([loadRestaurants(), loadOrders()]);
+    }
 
-function openRestaurant(id, name) {
-  window.open(`dashboard.html?RestaurantId=${id}&name=${name||''}`, '_blank');
-}
+    async function loadRestaurants() {
+        try {
+            const res = await fetch(`${API_BASE}/Auth/restaurants?adminPassword=admin123`);
+            const data = await res.json();
+            
+            document.getElementById('s-total').textContent = data.length;
+            document.getElementById('s-active').textContent = data.filter(r => r.isActive).length;
+            document.getElementById('s-inactive').textContent = data.filter(r => !r.isActive).length;
 
-function toggleAddForm() {
-  document.getElementById('add-form')?.classList.toggle('show');
-}
+            const tbody = document.getElementById('restaurants-tbody');
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>#${r.id}</td>
+                    <td><strong>${r.name}</strong></td>
+                    <td><span class="badge bg-dark">${r.username}</span></td>
+                    <td>${r.phone || '--'}</td>
+                    <td><span class="${r.isActive ? 'badge-active' : 'badge-inactive'}">${r.isActive ? 'نشط' : 'موقف'}</span></td>
+                    <td>
+                        <button class="btn-sm-act ${r.isActive ? 'btn-toggle-on' : 'btn-toggle-off'}" onclick="toggleStatus(${r.id}, ${r.isActive})">
+                            ${r.isActive ? 'إيقاف' : 'تفعيل'}
+                        </button>
+                        <button class="btn-sm-act btn-view" onclick="window.open('restaurant-dash.html?id=${r.id}', '_blank')">فتح</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { showToast("فشل تحميل المطاعم", "e"); }
+    }
 
-// ── TOAST ─────────────────────────────────────────────
-let toastT;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  if(!el) return;
-  el.textContent = msg;
-  el.className = 'show ' + (type==='s'?'success':type==='e'?'error':'');
-  clearTimeout(toastT);
-  toastT = setTimeout(()=>el.className='', 3500);
-}
+    async function loadOrders() {
+        try {
+            const res = await fetch(`${API_BASE}/Orders`);
+            const data = await res.json();
+            document.getElementById('s-orders').textContent = data.length;
 
-async function resetRestaurantPassword(id, username) {
-  const newPass = prompt(`كلمة مرور جديدة للمطعم (${username}):`);
-  if (!newPass) return;
-  if (newPass.length < 6) { toast('❗ كلمة المرور يجب 6 أحرف على الأقل','e'); return; }
-  try {
-    const res = await apiFetch(`${API}/Auth/reset-password?adminPassword=admin123&username=${username}&newPassword=${encodeURIComponent(newPass)}`, {method:'PUT'});
-    if(res.ok) toast(`✅ تم تغيير كلمة مرور ${username} بنجاح`,'s');
-    else toast('❗ فشل تغيير كلمة المرور','e');
-  } catch(e) { toast('❗ خطأ في الاتصال','e'); }
-}
+            const tbody = document.getElementById('orders-tbody');
+            tbody.innerHTML = data.slice(-10).reverse().map(o => `
+                <tr>
+                    <td>#${o.id}</td>
+                    <td>${o.restaurantName || 'مطعم'}</td>
+                    <td>${o.customerName || 'عميل'}</td>
+                    <td class="text-success fw-bold">${parseFloat(o.totalAmount).toFixed(2)} د.أ</td>
+                    <td>${o.status}</td>
+                </tr>
+            `).join('');
+        } catch(e) {}
+    }
 
-function toggleChangePass() {
-  const p = document.getElementById('change-pass-panel');
-  if(p) p.style.display = p.style.display==='none' ? 'block' : 'none';
-}
+    // ── ACTIONS ───────────────────────────────────────
+    async function addRestaurant() {
+        const payload = {
+            name: document.getElementById('a-name').value,
+            username: document.getElementById('a-user').value,
+            password: document.getElementById('a-pass').value,
+            phone: document.getElementById('a-phone').value,
+            primaryColor: document.getElementById('a-color1').value,
+            secondaryColor: document.getElementById('a-color2').value,
+            openTime: document.getElementById('a-open').value,
+            closeTime: document.getElementById('a-close').value,
+            adminPassword: 'admin123'
+        };
 
-// Auto-refresh
-setInterval(loadAll, 30000);
+        if(!payload.name || !payload.username) return showToast("أكمل البيانات المطلوبة", "e");
+
+        try {
+            const res = await fetch(`${API_BASE}/Auth/add-restaurant`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                showToast("تم الإضافة بنجاح", "s");
+                toggleAddForm();
+                loadRestaurants();
+            } else showToast("حدث خطأ أثناء الإضافة", "e");
+        } catch(e) { showToast("خطأ في الاتصال", "e"); }
+    }
+
+    async function toggleStatus(id, current) {
+        try {
+            await fetch(`${API_BASE}/Auth/toggle/${id}?adminPassword=admin123`, { method: 'PUT' });
+            showToast("تم تحديث الحالة", "s");
+            loadRestaurants();
+        } catch(e) {}
+    }
+
+    function toggleAddForm() {
+        const f = document.getElementById('add-form');
+        f.classList.toggle('show');
+    }
+
+    function showToast(m, t) {
+        const el = document.getElementById('toast');
+        el.textContent = m;
+        el.className = `show ${t === 's' ? 'success' : 'error'}`;
+        setTimeout(() => el.className = '', 3000);
+    }
+
+    setInterval(loadData, 30000);
 </script>
+
 </body>
 </html>
