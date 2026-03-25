@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --main: #3b82f6; 
-            --bg: #f8fafc; 
-            --card-bg: #ffffff; 
+        :root {
+            --main: #3b82f6;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
             --text-color: #1e293b;
             --muted-text: #64748b;
         }
-        /* Dark Mode Colors */
+
         [data-theme="dark"] {
             --bg: #0f172a;
             --card-bg: #1e293b;
@@ -23,217 +23,371 @@
             --muted-text: #94a3b8;
         }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text-color); padding-bottom: 100px; transition: 0.3s; }
-        
-        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
-        
-        /* Theme Toggle Button */
-        .theme-toggle { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 50px; font-size: 0.9rem; }
-
-        .item-card { border: none; border-radius: 20px; background: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; transition: 0.2s; height: 100%; color: var(--text-color); }
-        .item-card:active { transform: scale(0.95); }
-        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; }
-        
-        .cart-btn {
-            position: fixed; bottom: 20px; left: 20px; width: 75px; height: 75px;
-            background: var(--main); color: white; border-radius: 50%; font-size: 1.8rem;
-            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; cursor: pointer;
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text-color);
+            padding-bottom: 100px;
+            transition: 0.3s;
+            min-height: 100vh;
         }
-        .count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 28px; height: 28px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
-        
-        /* Toast Notification */
-        .toast-msg { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.85rem; display: none; z-index: 10001; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-        .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; color: var(--text-color); }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; background: var(--bg); color: var(--text-color); }
+        .header {
+            padding: 40px 20px;
+            background: var(--main);
+            color: white;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
 
-        .bill-summary { background: rgba(0,0,0,0.05); border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; }
-        .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--muted-text); padding: 5px 0; }
-        .total-line { font-weight: 900; color: var(--main); font-size: 1.2rem; border-top: 2px solid var(--main); margin-top: 10px; padding-top: 5px; }
-        
-        .argon-footer { text-align: center; padding: 20px; font-size: 0.8rem; opacity: 0.7; font-weight: bold; }
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
 
-        @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(15deg)} 50% {transform: rotate(-15deg)} 100% {transform: rotate(0)} }
-        .shaking { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-        #confirmStep { display: none; }
+        .item-card {
+            border: none;
+            border-radius: 20px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: 0.2s;
+            height: 100%;
+            color: var(--text-color);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .add-btn {
+            background: var(--main);
+            color: white;
+            border: none;
+            width: 100%;
+            border-radius: 12px;
+            padding: 10px;
+            font-weight: 900;
+            transition: 0.3s;
+        }
+
+            .add-btn:active {
+                transform: scale(0.95);
+            }
+
+        .cart-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            width: 70px;
+            height: 70px;
+            background: var(--main);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid var(--card-bg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 999;
+            cursor: pointer;
+        }
+
+        .count {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            font-weight: bold;
+        }
+
+        .order-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 30px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            color: var(--text-color);
+            border: none;
+        }
+
+            .modal-content input, .modal-content textarea {
+                width: 100%;
+                padding: 14px;
+                margin: 10px 0;
+                border: 1px solid rgba(0,0,0,0.1);
+                border-radius: 15px;
+                text-align: center;
+                background: var(--bg);
+                color: var(--text-color);
+                font-family: 'Cairo';
+            }
+
+        .bill-summary {
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: right;
+            border: 1px dashed var(--main);
+        }
+
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .total-line {
+            font-weight: 900;
+            color: var(--main);
+            font-size: 1.3rem;
+            border-top: 2px solid rgba(59, 130, 246, 0.2);
+            margin-top: 10px;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body data-theme="light">
 
-<div class="header">
-    <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> وضع الليل</button>
-    <h1 id="resName" style="font-weight: 900;">تحميل...</h1>
-    <p>أهلاً بك في منيو أرغون المتطور</p>
-</div>
-
-<div class="container mt-4">
-    <div id="menuGrid" class="row g-3"></div>
-</div>
-
-<div class="toast-msg" id="toast">✅ تم الإضافة للسلة! اذهب للسلة لإتمام الطلب</div>
-
-<div class="cart-btn" id="basket" onclick="openOrderModal()">
-    <i class="fas fa-shopping-basket"></i>
-    <div class="count" id="cartCount">0</div>
-</div>
-
-<div class="argon-footer">
-    Powered by <span style="color:var(--main)">ARGON SYSTEM</span> &copy; 2026
-</div>
-
-<div id="orderModal" class="order-modal">
-    <div class="modal-content shadow-lg">
-        <h4 class="fw-bold mb-3" id="modalTitle">بيانات المستلم 👤</h4>
-        
-        <div id="infoStep">
-            <input type="text" id="custName" placeholder="اسمك الكريم">
-            <input type="tel" id="custPhone" placeholder="رقم تلفونك">
-            <textarea id="orderNotes" rows="2" placeholder="ملاحظات إضافية (اختياري)"></textarea>
-            <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="goToConfirmation()">عرض الفاتورة وتأكيد الطلب</button>
+    <div id="mainUI">
+        <div class="header">
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+                <i class="fas fa-moon"></i> الوضع الليلي
+            </button>
+            <h1 id="resName" style="font-weight: 900; margin-bottom: 5px;">جاري التحميل...</h1>
+            <p id="resSlogan" style="opacity: 0.9; font-size: 0.9rem;">أهلاً بك في منيو أرغون المتطور</p>
         </div>
 
-        <div id="confirmStep">
-            <div class="bill-summary" id="billContent"></div>
-            <button class="btn btn-success w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">تأكيد وإرسال الطلب الآن ✅</button>
-            <button class="btn btn-outline-secondary w-100 mt-2 btn-sm rounded-pill" onclick="backToInfo()">تعديل البيانات</button>
+        <div class="container mt-4">
+            <div id="menuGrid" class="row g-3">
+            </div>
         </div>
 
-        <button class="btn btn-light w-100 mt-3 btn-sm" onclick="closeOrderModal()">إلغاء</button>
+        <div class="cart-btn" onclick="openOrderModal()">
+            <i class="fas fa-shopping-basket"></i>
+            <div class="count" id="cartCount">0</div>
+        </div>
     </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <div id="orderModal" class="order-modal">
+        <div class="modal-content">
+            <h4 class="fw-black mb-3">تأكيد الطلب 🛍️</h4>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-        authDomain: "argon-system.firebaseapp.com",
-        projectId: "argon-system",
-        storageBucket: "argon-system.firebasestorage.app",
-        messagingSenderId: "858120444233",
-        appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
-        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+            <div id="infoStep">
+                <input type="text" id="custName" placeholder="اسمك الكريم">
+                <input type="tel" id="custPhone" placeholder="رقم الهاتف">
+                <textarea id="orderNotes" rows="2" placeholder="أي ملاحظات إضافية؟ (اختياري)"></textarea>
+                <button class="btn btn-primary w-100 py-3 mt-3 fw-bold rounded-pill" onclick="goToConfirmation()">عرض الفاتورة</button>
+            </div>
 
-    const RES_ID = new URLSearchParams(window.location.search).get("id") || "1";
-    let cart = [];
+            <div id="confirmStep" style="display:none">
+                <div class="bill-summary" id="billContent">
+                </div>
+                <button class="btn btn-success w-100 py-3 mt-3 fw-bold rounded-pill" onclick="sendOrder()">إرسال الطلب للمطعم ✅</button>
+                <button class="btn btn-link text-muted w-100 mt-2 btn-sm text-decoration-none" onclick="backToInfo()">تعديل البيانات</button>
+            </div>
 
-    // جلب البيانات
-    db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
-        const data = snapshot.val();
-        if(!data) return;
-        document.getElementById('resName').innerText = data.settings.name;
-        
-        const grid = document.getElementById('menuGrid');
-        grid.innerHTML = "";
-        const products = data.products || {};
-        for(let key in products) {
-            const p = products[key];
-            grid.innerHTML += `
-                <div class="col-6">
-                    <div class="item-card p-2 text-center">
-                        <img src="${p.img}" style="width:100%; height:120px; object-fit:cover; border-radius:15px">
-                        <h6 class="mt-2 fw-bold">${p.name}</h6>
-                        <p class="text-primary fw-bold" style="font-size: 1.1rem;">${p.price} د.أ</p>
-                        <button class="add-btn" onclick="addToCart('${p.name}', ${p.price})">إضافة +</button>
-                    </div>
-                </div>`;
-        }
-    });
+            <button class="btn btn-light w-100 mt-3 rounded-pill btn-sm" onclick="closeOrderModal()">إغلاق</button>
+        </div>
+    </div>
 
-    // تبديل الثيم
-    function toggleTheme() {
-        const body = document.body;
-        const btn = document.querySelector('.theme-toggle');
-        if(body.getAttribute('data-theme') === 'light') {
-            body.setAttribute('data-theme', 'dark');
-            btn.innerHTML = '<i class="fas fa-sun"></i> وضع النهار';
-        } else {
-            body.setAttribute('data-theme', 'light');
-            btn.innerHTML = '<i class="fas fa-moon"></i> وضع الليل';
-        }
-    }
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-    // إضافة للسلة مع تنبيه
-    function addToCart(name, price) {
-        cart.push({name, price});
-        document.getElementById('cartCount').innerText = cart.length;
-        
-        // إظهار التنبيه (Toast)
-        const toast = document.getElementById('toast');
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 2500);
-
-        if ("vibrate" in navigator) navigator.vibrate(100);
-        const b = document.getElementById('basket');
-        b.classList.remove('shaking');
-        void b.offsetWidth;
-        b.classList.add('shaking');
-    }
-
-    function openOrderModal() {
-        if(cart.length === 0) return alert("السلة فارغة!");
-        backToInfo();
-        document.getElementById('orderModal').style.display = 'flex';
-    }
-
-    function closeOrderModal() {
-        document.getElementById('orderModal').style.display = 'none';
-    }
-
-    function goToConfirmation() {
-        const name = document.getElementById('custName').value;
-        const phone = document.getElementById('custPhone').value;
-        if(!name || !phone) return alert("لطفاً، أدخل الاسم ورقم الهاتف للمتابعة.");
-
-        const billDiv = document.getElementById('billContent');
-        let billHtml = `<p class="text-center fw-bold border-bottom pb-2">فاتورة الطلب</p>`;
-        let total = 0;
-
-        cart.forEach(item => {
-            billHtml += `<div class="bill-item"><span>${item.name}</span><span>${parseFloat(item.price).toFixed(2)} د.أ</span></div>`;
-            total += parseFloat(item.price);
-        });
-
-        billHtml += `<div class="bill-item total-line"><span>المجموع:</span><span>${total.toFixed(2)} د.أ</span></div>`;
-        billDiv.innerHTML = billHtml;
-
-        document.getElementById('modalTitle').innerText = "تأكيد طلبك 🛒";
-        document.getElementById('infoStep').style.display = 'none';
-        document.getElementById('confirmStep').style.display = 'block';
-    }
-
-    function backToInfo() {
-        document.getElementById('modalTitle').innerText = "بيانات المستلم 👤";
-        document.getElementById('infoStep').style.display = 'block';
-        document.getElementById('confirmStep').style.display = 'none';
-    }
-
-    function sendOrderToDashboard() {
-        const name = document.getElementById('custName').value;
-        const phone = document.getElementById('custPhone').value;
-        const notes = document.getElementById('orderNotes').value;
-        const orderNo = Math.floor(1000 + Math.random() * 9000);
-        const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2);
-
-        const order = {
-            custName: name, custPhone: phone, orderNo: orderNo,
-            items: cart.map(i => i.name).join(" + "),
-            total: totalPrice, notes: notes || "لا يوجد",
-            time: new Date().toLocaleTimeString('ar-EG'), status: "جديد"
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+            authDomain: "argon-system.firebaseapp.com",
+            projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
+            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        db.ref('restaurants/' + RES_ID + '/orders').push(order).then(() => {
-            alert(`✅ تم إرسال طلبك بنجاح!\nرقم الطلب: #${orderNo}`);
-            cart = [];
-            document.getElementById('cartCount').innerText = "0";
-            closeOrderModal();
+        // --- الجزء المطور لاستقبال معرف المطعم ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let RES_ID = urlParams.get("id");
+
+        // إذا لم يوجد ID في الرابط، ابحث عنه في التخزين المحلي، وإذا لم يوجد استخدم "1" كافتراضي
+        if (!RES_ID) {
+            RES_ID = localStorage.getItem('argon_store_id') || "1";
+        } else {
+            // حفظ الـ ID في التخزين المحلي للمرات القادمة
+            localStorage.setItem('argon_store_id', RES_ID);
+        }
+
+        let cart = [];
+
+        db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
+            const data = snapshot.val();
+
+            if (!data) {
+                document.body.innerHTML = `<div class="empty-state"><h1>المطعم غير موجود!</h1></div>`;
+                return;
+            }
+
+            if (data.settings && data.settings.status === "disabled") {
+                document.body.innerHTML = `
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;background:#0f172a;color:white;padding:30px;">
+                                <i class="fas fa-store-slash" style="font-size:5rem;color:#ef4444;margin-bottom:20px;"></i>
+                                <h1 style="font-weight:900;">عذراً، المطعم مغلق</h1>
+                                <p style="color:#94a3b8;">هذا المطعم غير متاح للطلبات في الوقت الحالي، يرجى المحاولة لاحقاً.</p>
+                            </div>`;
+                return;
+            }
+
+            document.getElementById('resName').innerText = data.settings.name || "مطعم أرغون";
+
+            const grid = document.getElementById('menuGrid');
+            grid.innerHTML = "";
+            const products = data.products || {};
+
+            const keys = Object.keys(products);
+            if (keys.length === 0) {
+                grid.innerHTML = `<div class="empty-state w-100"><h3>لا توجد وجبات حالياً</h3></div>`;
+            }
+
+            keys.forEach(key => {
+                const p = products[key];
+                grid.innerHTML += `
+                            <div class="col-6">
+                                <div class="item-card p-2">
+                                    <img src="${p.img || 'https://via.placeholder.com/150'}" style="width:100%;height:130px;object-fit:cover;border-radius:15px">
+                                    <h6 class="mt-2 fw-bold" style="font-size:0.9rem">${p.name}</h6>
+                                    <p class="text-primary fw-black mb-2">${p.price} د.أ</p>
+                                    <button class="add-btn" onclick="addToCart('${p.name}', ${p.price})">إضافة +</button>
+                                </div>
+                            </div>`;
+            });
         });
-    }
-</script>
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            document.getElementById('cartCount').innerText = cart.length;
+            const btn = document.querySelector('.cart-btn');
+            btn.style.transform = "scale(1.2)";
+            setTimeout(() => btn.style.transform = "scale(1)", 200);
+        }
+
+        function openOrderModal() {
+            if (cart.length === 0) return alert("سلة المشتريات فارغة!");
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerHTML = '<i class="fas fa-sun"></i> الوضع النهاري';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.innerHTML = '<i class="fas fa-moon"></i> الوضع الليلي';
+            }
+        }
+
+        function goToConfirmation() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            if (!name || !phone) return alert("يرجى إدخال الاسم ورقم الهاتف للمتابعة");
+            document.getElementById('infoStep').style.display = 'none';
+            document.getElementById('confirmStep').style.display = 'block';
+            let total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            let itemsHtml = cart.map(item => `
+                        <div class="bill-item">
+                            <span>${item.name}</span>
+                            <span class="fw-bold">${item.price} د.أ</span>
+                        </div>
+                    `).join("");
+
+            document.getElementById('billContent').innerHTML = `
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">تفاصيل الفاتورة</h6>
+                        ${itemsHtml}
+                        <div class="total-line">
+                            <span>المجموع الكلي:</span>
+                            <span>${total.toFixed(2)} د.أ</span>
+                        </div>
+                    `;
+        }
+
+        function backToInfo() {
+            document.getElementById('infoStep').style.display = 'block';
+            document.getElementById('confirmStep').style.display = 'none';
+        }
+
+        function sendOrder() {
+            const name = document.getElementById('custName').value;
+            const phone = document.getElementById('custPhone').value;
+            const notes = document.getElementById('orderNotes').value;
+            const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+
+            const orderData = {
+                custName: name,
+                custPhone: phone,
+                notes: notes,
+                items: cart.map(i => i.name).join(" + "),
+                total: total.toFixed(2),
+                orderNo: "#" + Math.floor(1000 + Math.random() * 9000),
+                status: "new",
+                time: new Date().toLocaleTimeString('ar-EG'),
+                date: new Date().toLocaleDateString('ar-EG')
+            };
+
+            // الإرسال لقسم الطلبات الخاص بهذا المطعم تحديداً
+            db.ref(`restaurants/${RES_ID}/orders`).push(orderData).then(() => {
+                alert("تم إرسال طلبك بنجاح! شكراً لك.");
+                location.reload();
+            }).catch(err => {
+                alert("حدث خطأ، حاول مرة أخرى");
+            });
+        }
+    </script>
 </body>
 </html>

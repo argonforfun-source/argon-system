@@ -3,83 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول أصحاب المطاعم | RestaurantOS</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <title>دخول النظام | ARGON SMART</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Tajawal', sans-serif; }
-        body { background: #0f0f13; color: #eee; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-        .login-box {
-            background: #1a1a24; border-radius: 24px; padding: 40px;
-            width: min(400px, 95vw); border: 1.5px solid rgba(255,255,255,.08);
-            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        :root {
+            --primary: #3b82f6;
+            --bg: #020617;
         }
-        .login-logo { text-align: center; margin-bottom: 30px; }
-        .login-logo h2 { font-weight: 900; color: white; }
-        .login-field { margin-bottom: 20px; }
-        .login-field label { display: block; font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 8px; }
-        .login-field input {
-            width: 100%; padding: 14px; border-radius: 12px;
-            border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13;
-            color: white; outline: none; transition: 0.3s;
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
         }
-        .login-field input:focus { border-color: #6c63ff; }
-        #login-btn {
-            width: 100%; padding: 14px; background: linear-gradient(135deg, #6c63ff, #a855f7);
-            border: none; border-radius: 12px; color: white; font-weight: 800; cursor: pointer;
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 50px 40px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            text-align: center;
         }
-        .error { color: #ff4d4d; font-size: 0.85rem; text-align: center; margin-top: 15px; display: none; }
+
+        .logo-title {
+            font-weight: 900;
+            font-size: 3.5rem;
+            color: #fff;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 2px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 18px !important;
+            padding: 15px !important;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+            .form-control:focus {
+                border-color: var(--primary) !important;
+                background: rgba(255, 255, 255, 0.12) !important;
+                box-shadow: none !important;
+            }
+
+        .btn-login {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 18px;
+            padding: 16px;
+            width: 100%;
+            color: white;
+            font-weight: 800;
+            font-size: 1.2rem;
+            transition: 0.4s;
+            cursor: pointer;
+        }
+
+            .btn-login:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
+            }
+
+        .status-msg {
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: none;
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .wait {
+            background: #dcfce7;
+            color: #166534;
+        }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <div class="login-logo">
-        <h2>🍽️ دخول المطاعم</h2>
-        <p style="color:#888">أدخل بياناتك لإدارة طلباتك</p>
-    </div>
-    <div class="login-field">
-        <label>اسم المستخدم</label>
-        <input type="text" id="u" placeholder="Username">
-    </div>
-    <div class="login-field">
-        <label>كلمة المرور</label>
-        <input type="password" id="p" placeholder="••••••••">
-    </div>
-    <button id="login-btn" onclick="login()">دخول ←</button>
-    <div id="err" class="error">❌ البيانات غير صحيحة</div>
-</div>
+    <div class="login-card">
+        <div class="logo-title">ARGON</div>
+        <p style="color: #94a3b8; margin-bottom: 40px; font-weight: 600;">نظام الإدارة الفخم - تسجيل دخول</p>
 
-<script>
-    async function login() {
-        const user = document.getElementById('u').value;
-        const pass = document.getElementById('p').value;
-        const btn = document.getElementById('login-btn');
-        
-        btn.disabled = true; btn.textContent = 'جاري التحقق...';
+        <div id="status" class="status-msg"></div>
 
-        try {
-            // نربط مع الـ API اللي انت مستخدمه في السوبر ادمن
-            const res = await fetch('http://localhost:5122/api/Auth/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ Username: user, Password: pass })
+        <form id="entryForm">
+            <input type="text" id="resIdInp" class="form-control" placeholder="أدخل الـ ID الخاص بك" required>
+            <input type="password" id="passInp" class="form-control" placeholder="كلمة المرور" required>
+
+            <button type="submit" class="btn-login" id="subBtn">دخول لوحة التحكم <i class="fas fa-arrow-left ms-2"></i></button>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+            authDomain: "argon-system.firebaseapp.com",
+            projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
+            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        document.getElementById('entryForm').onsubmit = function (e) {
+            e.preventDefault();
+            const id = document.getElementById('resIdInp').value.trim();
+            const pass = document.getElementById('passInp').value;
+            const status = document.getElementById('status');
+
+            status.className = "status-msg wait";
+            status.innerText = "جاري فتح النظام...";
+            status.style.display = "block";
+
+            // التحقق من وجود الـ ID في النظام
+            db.ref('restaurants/' + id).once('value', (snap) => {
+                if (snap.exists()) {
+                    // حفظ الجلسة والانتقال فوراً
+                    const session = { restaurantId: id, name: "أدمن أرغون" };
+                    localStorage.setItem('argon_session', JSON.stringify(session));
+
+                    status.innerText = "أهلاً بك.. جاري التحويل 🚀";
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+                } else {
+                    status.className = "status-msg err";
+                    status.innerText = "❌ المعرف (ID) غير مسجل في أرغون";
+                }
             });
-            const data = await res.json();
-
-            if(data.success) {
-                // حفظ البيانات في الجلسة وتوجيهه للوحة تحكم المطعم
-                sessionStorage.setItem('restaurant_user', JSON.stringify(data));
-                window.location.href = `dashboard.html?RestaurantId=${data.restaurantId}`;
-            } else {
-                document.getElementById('err').style.display = 'block';
-            }
-        } catch(e) {
-            alert('السيرفر غير متصل (تأكد من تشغيل الـ Backend)');
-        }
-        btn.disabled = false; btn.textContent = 'دخول ←';
-    }
-</script>
+        };
+    </script>
 </body>
 </html>

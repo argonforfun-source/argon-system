@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم | الفرع المستقل</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <style>
+        body { background: #050507; color: white; font-family: 'Tajawal', sans-serif; padding: 50px; }
+        .main-box { background: #111118; border: 2px solid #00d2ff; border-radius: 30px; padding: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.8); max-width: 900px; margin: auto; }
+        .id-badge { background: #00d2ff; color: #000; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 1.5rem; }
+        .nav-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 40px; }
+        .btn-tool { background: transparent; border: 1px solid #333; color: #00d2ff; padding: 20px; border-radius: 15px; font-weight: bold; transition: 0.3s; }
+        .btn-tool:hover { background: #00d2ff; color: #000; }
+        h1 { font-weight: 900; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="main-box text-center">
+    <span class="id-badge" id="res-id">ID: --</span>
+    <h1 id="res-name-title">جاري تحميل بيانات المطعم...</h1>
+    <p class="text-muted">نظام فرعي مستقل - Powered by Argon OS</p>
+
+    <div class="nav-btns">
+        <button class="btn-tool"><i class="fas fa-list mb-2 d-block"></i> إدارة المنيو</button>
+        <button class="btn-tool"><i class="fas fa-shopping-cart mb-2 d-block"></i> الطلبات</button>
+        <button class="btn-tool"><i class="fas fa-users mb-2 d-block"></i> الموظفين</button>
+    </div>
+
+    <div class="mt-5">
+        <button class="btn btn-outline-light px-5" onclick="location.href='super-admin.html'">العودة للمركز الرئيسي</button>
+    </div>
+</div>
+
+<script>
+    // 1. استخراج الـ ID من الرابط آلياً
+    const urlParams = new URLSearchParams(window.location.search);
+    const restaurantId = urlParams.get('id');
+
+    async function fetchRestaurantDetails() {
+        if(!restaurantId) return;
+        
+        // جلب البيانات من السيرفر لهذا المطعم تحديداً
+        const res = await fetch(`http://localhost:5235/api/Auth/restaurants?adminPassword=admin123`);
+        const allRestaurants = await res.json();
+        
+        // البحث عن المطعم المطلوب ضمن القائمة
+        const currentRes = allRestaurants.find(r => r.id == restaurantId);
+        
+        if(currentRes) {
+            document.getElementById('res-id').textContent = `ID: ${currentRes.id}`;
+            document.getElementById('res-name-title').textContent = currentRes.name;
+        }
+    }
+
+    window.onload = fetchRestaurantDetails;
+</script>
+</body>
+</html>

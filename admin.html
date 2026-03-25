@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>أرغون | منشئ الأنظمة السريع</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 50px; }
+        .admin-card { background: #1e293b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #3b82f6; }
+        input { background: #0f172a !important; color: white !important; border: 1px solid #334155 !important; margin-bottom: 20px; }
+        .res-link { background: #334155; padding: 15px; border-radius: 10px; margin-top: 20px; word-break: break-all; border-left: 5px solid #10b981; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h2 class="text-center mb-4 text-info">🚀 منشئ مطعم جديد</h2>
+                
+                <label>اسم المطعم</label>
+                <input type="text" id="newResName" class="form-control" placeholder="مثلاً: مطعم الشيف">
+                
+                <label>رقم الواتساب (مع رمز الدولة)</label>
+                <input type="text" id="newResPhone" class="form-control" placeholder="962790000000">
+
+                <button class="btn btn-info w-100 fw-bold py-3" onclick="createRestaurant()">تفعيل النظام للمطعم الآن</button>
+
+                <div id="resultArea" style="display: none;">
+                    <div class="res-link">
+                        <small class="text-info">رابط لوحة تحكم المطعم:</small><br>
+                        <code id="dashLink" class="text-white"></code>
+                    </div>
+                    <div class="res-link">
+                        <small class="text-success">رابط منيو الزبائن:</small><br>
+                        <code id="menuLink" class="text-white"></code>
+                    </div>
+                    <p class="text-warning mt-3 small">* انسخ الروابط وأرسلها لصاحب المطعم فوراً.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+    // نفس إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+        authDomain: "argon-system.firebaseapp.com",
+        projectId: "argon-system",
+        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function createRestaurant() {
+        const name = document.getElementById('newResName').value;
+        const phone = document.getElementById('newResPhone').value;
+        
+        if(!name || !phone) return alert("عبي البيانات أول يا زعيم!");
+
+        // إنشاء ID عشوائي فريد
+        const newID = "RES" + Math.floor(1000 + Math.random() * 9000);
+
+        // بناء هيكل المطعم في قاعدة البيانات فوراً
+        db.ref('restaurants/' + newID + '/settings').set({
+            name: name,
+            phone: phone,
+            status: "active",
+            createdAt: new Date().toISOString()
+        }).then(() => {
+            // تجهيز الروابط (افترضنا أن ملفاتك مرفوعة على استضافة)
+            const baseUrl = window.location.origin; // سيأخذ رابط موقعك الحالي
+            
+            document.getElementById('dashLink').innerText = `${baseUrl}/dashboard.html?id=${newID}`;
+            document.getElementById('menuLink').innerText = `${baseUrl}/index.html?id=${newID}`;
+            document.getElementById('resultArea').style.display = 'block';
+            
+            alert("تم إنشاء النظام بنجاح للمطعم: " + name);
+        });
+    }
+</script>
+</body>
+</html>
