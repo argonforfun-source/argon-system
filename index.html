@@ -28,7 +28,7 @@
 
         .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; }
         
         .bill-summary { background: #f1f5f9; border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; font-size: 0.9rem; display: none; }
         .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding: 5px 0; }
@@ -60,6 +60,7 @@
         <div id="infoStep">
             <input type="text" id="custName" placeholder="اسمك الكريم">
             <input type="tel" id="custPhone" placeholder="رقم تلفونك">
+            <textarea id="orderNotes" rows="2" placeholder="ملاحظات إضافية (اختياري)"></textarea>
             <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="goToConfirmation()">عرض الفاتورة وتأكيد الطلب</button>
         </div>
 
@@ -126,7 +127,7 @@
 
     function openOrderModal() {
         if(cart.length === 0) return alert("السلة فارغة!");
-        backToInfo(); // التأكد من البدء بخطوة البيانات
+        backToInfo();
         document.getElementById('orderModal').style.display = 'flex';
     }
 
@@ -134,17 +135,16 @@
         document.getElementById('orderModal').style.display = 'none';
     }
 
-    // الانتقال لخطوة الفاتورة
     function goToConfirmation() {
         const name = document.getElementById('custName').value;
         const phone = document.getElementById('custPhone').value;
+        const notes = document.getElementById('orderNotes').value;
 
         if(!name || !phone) {
             alert("لطفاً، أدخل الاسم ورقم الهاتف للمتابعة.");
             return;
         }
 
-        // بناء الفاتورة
         const billDiv = document.getElementById('billContent');
         let billHtml = `<p class="text-center fw-bold border-bottom pb-2">مرحباً ${name}، هاد طلبك:</p>`;
         let total = 0;
@@ -154,11 +154,14 @@
             total += parseFloat(item.price);
         });
 
+        if(notes) {
+            billHtml += `<div class="mt-2 text-muted small" style="text-align:right;"><strong>ملاحظاتك:</strong> ${notes}</div>`;
+        }
+
         billHtml += `<div class="bill-item total-line"><span>المجموع:</span><span>${total.toFixed(2)} د.أ</span></div>`;
         
         billDiv.innerHTML = billHtml;
 
-        // تبديل العرض
         document.getElementById('modalTitle').innerText = "تأكيد طلبك 🛒";
         document.getElementById('infoStep').style.display = 'none';
         document.getElementById('confirmStep').style.display = 'block';
@@ -173,6 +176,7 @@
     function sendOrderToDashboard() {
         const name = document.getElementById('custName').value;
         const phone = document.getElementById('custPhone').value;
+        const notes = document.getElementById('orderNotes').value;
         const orderNo = Math.floor(1000 + Math.random() * 9000);
         const itemsSummary = cart.map(i => i.name).join(" + ");
         const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2);
@@ -183,6 +187,7 @@
             orderNo: orderNo,
             items: itemsSummary,
             total: totalPrice,
+            notes: notes || "لا يوجد", // إرسال الملاحظات
             time: new Date().toLocaleTimeString('ar-EG'),
             status: "جديد"
         };
@@ -191,6 +196,7 @@
             alert(`تم الإرسال بنجاح! 🎉\nرقم الطلب: #${orderNo}\nالمجموع: ${totalPrice} د.أ`);
             cart = [];
             document.getElementById('cartCount').innerText = "0";
+            document.getElementById('orderNotes').value = ""; // تصفير الخانة
             closeOrderModal();
         }).catch(() => alert("خطأ في الإرسال"));
     }

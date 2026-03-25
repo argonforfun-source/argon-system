@@ -8,64 +8,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --side: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --muted: #64748b; }
-        
-        /* تحسينات الوضع الداكن للقراءة والوضوح */
-        body.dark-mode { 
-            --side: #020617; --bg: #0b0f1a; --text: #ffffff; 
-            --card: #1e293b; --border: #475569; --muted: #f1f5f9; 
-        }
-
+        body.dark-mode { --side: #020617; --bg: #0b0f1a; --text: #ffffff; --card: #1e293b; --border: #475569; --muted: #f1f5f9; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
         .wrapper { display: flex; height: 100vh; }
-        
         .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
         .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .argon-logo h4 { color: #60a5fa; font-weight: 800; margin: 0; letter-spacing: 2px; }
-        
         .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: 0.3s; display: flex; align-items: center; font-weight: 600; margin: 4px 10px; border-radius: 8px; }
         .menu-item.active, .menu-item:hover { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-right-color: var(--accent); }
-
         .main-content { flex: 1; padding: 35px; overflow-y: auto; scroll-behavior: smooth; }
         .page-section { display: none; }
         .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
-
-        /* تحسين المدخلات والـ Placeholder */
-        input, select, textarea { 
-            background: var(--card) !important; 
-            color: #ffffff !important; /* نص أبيض دائماً في الكتابة */
-            border: 2px solid var(--border) !important; 
-            border-radius: 12px !important;
-            padding: 12px !important;
-        }
-        input::placeholder { color: #cbd5e1 !important; opacity: 1; font-weight: 400; } /* تفتيح الهنت */
-
-        label { font-weight: 700; margin-bottom: 8px; display: block; color: var(--text); }
-
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        input, select, textarea { background: var(--card) !important; color: var(--text) !important; border: 2px solid var(--border) !important; border-radius: 12px !important; padding: 12px !important; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .res-row { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid var(--accent); }
-
         #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .phone-frame { width: 360px; height: 720px; background: #fff; border: 12px solid #334155; border-radius: 50px; overflow: hidden; position: relative; }
-
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body class="dark-mode">
 
-<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/1017/1017-preview.mp3" preload="auto"></audio>
+<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
 <div class="wrapper">
     <div class="sidebar">
         <div class="argon-logo"><h4>ARGON</h4><small id="resIdDisplay">ID: --</small></div>
-        <div class="p-4 text-center">
-            <h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5>
-        </div>
+        <div class="p-4 text-center"><h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5></div>
         <div class="sidebar-menu flex-grow-1">
             <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-pie"></i> الجرد العام</div>
             <div class="menu-item" onclick="showSec('liveOrders', this)"><i class="fas fa-bolt"></i> الطلبات الحية</div>
             <div class="menu-item" onclick="showSec('reservations', this)"><i class="fas fa-calendar-check"></i> الحجوزات</div>
             <div class="menu-item" onclick="showSec('menu', this)"><i class="fas fa-list-ul"></i> المنيو</div>
-            <div class="menu-item" onclick="showSec('trash', this)" style="color: #fb7185;"><i class="fas fa-trash-can"></i> سلة المحذوفات</div>
             <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-sliders"></i> الإعدادات</div>
         </div>
         <div class="p-4 pt-0">
@@ -78,8 +52,8 @@
         <div id="dash" class="page-section active">
             <h3 class="fw-bold mb-4">📊 ملخص النشاط</h3>
             <div class="row g-4">
-                <div class="col-md-4"><div class="stat-card"><h6>💰 المبيعات</h6><h2 id="statSales">0.00</h2><small>بالدينار</small></div></div>
-                <div class="col-md-4"><div class="stat-card"><h6>✅ طلبات منجزة</h6><h2 id="statDone" class="text-success">0</h2></div></div>
+                <div class="col-md-4"><div class="stat-card"><h6>💰 المبيعات التقريبية</h6><h2 id="statSales">0.00</h2><small>بالدينار</small></div></div>
+                <div class="col-md-4"><div class="stat-card"><h6>✅ طلبات نشطة</h6><h2 id="statActive" class="text-primary">0</h2></div></div>
                 <div class="col-md-4"><div class="stat-card"><h6>🍴 أصناف المنيو</h6><h2 id="statItems" class="text-warning">0</h2></div></div>
             </div>
         </div>
@@ -92,7 +66,7 @@
         <div id="reservations" class="page-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold">📅 مواعيد الحجوزات</h3>
-                <button class="btn btn-success rounded-pill px-4" onclick="addManualRes()">+ إضافة حجز يدوي</button>
+                <button class="btn btn-success rounded-pill px-4 fw-bold" onclick="addManualRes()">+ إضافة حجز يدوي</button>
             </div>
             <div id="resList"></div>
         </div>
@@ -101,28 +75,19 @@
             <h3 class="fw-bold mb-4">🍴 إدارة قائمة الطعام</h3>
             <div class="card p-4 border-0 shadow-sm mb-4 rounded-4" style="background: var(--card)">
                 <div class="row g-3">
-                    <div class="col-md-4"><label>اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثلاً: وجبة سوبر"></div>
+                    <div class="col-md-3"><label>اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثلاً: وجبة سوبر"></div>
                     <div class="col-md-2"><label>السعر</label><input type="number" id="itemPrice" class="form-control" placeholder="0.00"></div>
-                    <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control" placeholder="https://..."></div>
-                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="addItem()">إضافة</button></div>
+                    <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control" placeholder="رابط مباشر للصورة"></div>
+                    <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="addItem()">إضافة الصنف الآن</button></div>
                 </div>
             </div>
             <div id="menuGrid" class="row g-4"></div>
-        </div>
-
-        <div id="trash" class="page-section">
-            <h3 class="fw-bold mb-4 text-danger">🗑️ المحذوفات</h3>
-            <div id="trashGrid" class="row g-3"></div>
         </div>
 
         <div id="settings" class="page-section">
             <h3 class="fw-bold mb-4">⚙️ الإعدادات العامة</h3>
             <div class="card p-4 col-md-8 border-0 shadow-sm rounded-4" style="background: var(--card)">
                 <div class="mb-3"><label>اسم المطعم</label><input type="text" id="resNameInp" class="form-control"></div>
-                <div class="row mb-3">
-                    <div class="col-6"><label>ساعة الفتح</label><input type="time" id="openT" class="form-control"></div>
-                    <div class="col-6"><label>ساعة الإغلاق</label><input type="time" id="closeT" class="form-control"></div>
-                </div>
                 <div class="mb-3"><label>رقم الواتساب</label><input type="text" id="resPhoneInp" class="form-control"></div>
                 <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ كل التغييرات</button>
             </div>
@@ -153,11 +118,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const RES_ID = urlParams.get("id") || "1";
+    const RES_ID = new URLSearchParams(window.location.search).get("id") || "1";
     document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
 
     let isFirstLoad = true;
+
+    // طلب إذن الإشعارات
+    if (Notification.permission !== "granted") Notification.requestPermission();
 
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val() || {};
@@ -169,62 +136,70 @@
         document.getElementById('sideName').innerText = sets.name || "أرغون";
         document.getElementById('resNameInp').value = sets.name || "";
         document.getElementById('resPhoneInp').value = sets.phone || "";
-        document.getElementById('openT').value = sets.open || "08:00";
-        document.getElementById('closeT').value = sets.close || "23:00";
 
+        // عرض المنيو
         const menuGrid = document.getElementById('menuGrid');
         menuGrid.innerHTML = "";
         let pCount = 0;
         for(let key in prods) {
             pCount++;
             menuGrid.innerHTML += `<div class="col-md-3"><div class="stat-card p-2 text-center">
-                <img src="${prods[key].img}" height="100" class="w-100" style="object-fit:cover;border-radius:15px">
-                <h6 class="mt-2 fw-bold">${prods[key].name}</h6>
-                <button class="btn btn-danger btn-sm w-100" onclick="moveToTrash('${key}', 'products')">حذف</button>
+                <img src="${prods[key].img}" height="100" class="w-100 mb-2" style="object-fit:cover;border-radius:15px">
+                <h6 class="fw-bold mb-1">${prods[key].name}</h6>
+                <div class="text-primary fw-bold mb-2">${prods[key].price} د.أ</div>
+                <button class="btn btn-outline-danger btn-sm w-100" onclick="db.ref('restaurants/${RES_ID}/products/${key}').remove()">حذف من المنيو</button>
             </div></div>`;
         }
         document.getElementById('statItems').innerText = pCount;
 
+        // معالجة الطلبات الحية
         const ordersGrid = document.getElementById('ordersGrid');
         const oldOrdersCount = ordersGrid.querySelectorAll('.res-row').length;
         ordersGrid.innerHTML = "";
-        let newOrdersCount = 0;
+        let currentOrdersCount = 0;
+        let totalSales = 0;
 
         for(let key in orders) {
-            newOrdersCount++;
+            currentOrdersCount++;
             const o = orders[key];
+            totalSales += parseFloat(o.total || 0);
             ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row">
                 <div>
-                    <span class="badge bg-primary mb-2">رقم الطلب: #${o.orderNo || '---'}</span><br>
-                    <strong>الزبون: ${o.custName || 'غير معروف'}</strong><br>
-                    <small>الهاتف: ${o.custPhone || '---'}</small><hr class="my-1">
-                    <div class="text-info">${o.items}</div>
+                    <span class="badge bg-primary mb-2">طلب #${o.orderNo}</span>
+                    <h6 class="mb-0 fw-bold">${o.custName}</h6>
+                    <small class="text-muted">${o.custPhone}</small>
+                    <div class="mt-2 text-info small" style="white-space: pre-wrap;">${o.items}</div>
+                    <div class="mt-1 fw-bold text-success">${o.total} د.أ</div>
                 </div>
-                <button class="btn btn-success btn-sm" onclick="db.ref('restaurants/${RES_ID}/orders/${key}').remove()">تم الإنجاز</button>
+                <button class="btn btn-success btn-sm" onclick="db.ref('restaurants/${RES_ID}/orders/${key}').remove()">إكمال ✅</button>
             </div></div>`;
         }
+        document.getElementById('statActive').innerText = currentOrdersCount;
+        document.getElementById('statSales').innerText = totalSales.toFixed(2);
 
-        if (!isFirstLoad && newOrdersCount > oldOrdersCount) {
-            const bell = document.getElementById('orderSound');
-            bell.volume = 1.0; // أعلى صوت
-            bell.play().catch(e => console.log("تحتاج ضغطة واحدة لتفعيل الصوت"));
+        // نظام التنبيه
+        if (!isFirstLoad && currentOrdersCount > oldOrdersCount) {
+            document.getElementById('orderSound').play();
+            if (Notification.permission === "granted") {
+                new Notification("طلب جديد وصل! 🍔", { body: "لديك طلب جديد في لوحة التحكم", icon: "https://cdn-icons-png.flaticon.com/512/3119/3119338.png" });
+            }
         }
         isFirstLoad = false;
 
+        // عرض الحجوزات
         const resList = document.getElementById('resList');
         resList.innerHTML = "";
         for(let key in resv) {
             resList.innerHTML += `<div class="res-row">
-                <div><strong>${resv[key].name}</strong> - <small>${resv[key].time}</small></div>
+                <div>
+                    <strong>${resv[key].name}</strong> - 📱 ${resv[key].phone || 'بدون رقم'}<br>
+                    <small class="text-muted">الوقت: ${resv[key].time}</small><br>
+                    <span class="text-warning small">${resv[key].note || ''}</span>
+                </div>
                 <button class="btn btn-danger btn-sm" onclick="db.ref('restaurants/${RES_ID}/reservations/${key}').remove()">إلغاء الحجز</button>
             </div>`;
         }
     });
-
-    function addManualRes() {
-        const name = prompt("اسم صاحب الحجز:");
-        if(name) db.ref('restaurants/' + RES_ID + '/reservations').push({name, time: new Date().toLocaleString()});
-    }
 
     function addItem() {
         const name = document.getElementById('itemName').value;
@@ -232,27 +207,25 @@
         const img = document.getElementById('itemImg').value;
         if(name && price) {
             db.ref('restaurants/' + RES_ID + '/products').push({name, price, img});
-            document.getElementById('itemName').value = "";
-            document.getElementById('itemPrice').value = "";
-            document.getElementById('itemImg').value = "";
-        }
+            document.getElementById('itemName').value = ""; document.getElementById('itemPrice').value = ""; document.getElementById('itemImg').value = "";
+        } else { alert("عبي الاسم والسعر يا غالي"); }
     }
 
-    function moveToTrash(key, type) {
-        db.ref('restaurants/' + RES_ID + '/' + type + '/' + key).once('value', s => {
-            db.ref('restaurants/' + RES_ID + '/trash').push(s.val());
-            db.ref('restaurants/' + RES_ID + '/' + type + '/' + key).remove();
+    function addManualRes() {
+        const name = prompt("اسم الزبون:");
+        if(!name) return;
+        const phone = prompt("رقم الهاتف:");
+        const note = prompt("ملاحظات إضافية (اختياري):");
+        db.ref('restaurants/' + RES_ID + '/reservations').push({
+            name, phone, note, time: new Date().toLocaleString('ar-EG')
         });
     }
 
     function saveSets() {
         db.ref('restaurants/' + RES_ID + '/settings').update({
             name: document.getElementById('resNameInp').value,
-            phone: document.getElementById('resPhoneInp').value,
-            open: document.getElementById('openT').value,
-            close: document.getElementById('closeT').value
-        });
-        alert("تم حفظ الإعدادات!");
+            phone: document.getElementById('resPhoneInp').value
+        }).then(() => alert("تم الحفظ بنجاح!"));
     }
 
     function showSec(id, btn) {
