@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول أصحاب المطاعم | RestaurantOS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        body { background: #0f0f13; color: #eee; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .login-box {
+            background: #1a1a24; border-radius: 24px; padding: 40px;
+            width: min(400px, 95vw); border: 1.5px solid rgba(255,255,255,.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+        .login-logo { text-align: center; margin-bottom: 30px; }
+        .login-logo h2 { font-weight: 900; color: white; }
+        .login-field { margin-bottom: 20px; }
+        .login-field label { display: block; font-size: .85rem; font-weight: 700; color: #888; margin-bottom: 8px; }
+        .login-field input {
+            width: 100%; padding: 14px; border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,.1); background: #0f0f13;
+            color: white; outline: none; transition: 0.3s;
+        }
+        .login-field input:focus { border-color: #6c63ff; }
+        #login-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #6c63ff, #a855f7);
+            border: none; border-radius: 12px; color: white; font-weight: 800; cursor: pointer;
+        }
+        .error { color: #ff4d4d; font-size: 0.85rem; text-align: center; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <div class="login-logo">
+        <h2>🍽️ دخول المطاعم</h2>
+        <p style="color:#888">أدخل بياناتك لإدارة طلباتك</p>
+    </div>
+    <div class="login-field">
+        <label>اسم المستخدم</label>
+        <input type="text" id="u" placeholder="Username">
+    </div>
+    <div class="login-field">
+        <label>كلمة المرور</label>
+        <input type="password" id="p" placeholder="••••••••">
+    </div>
+    <button id="login-btn" onclick="login()">دخول ←</button>
+    <div id="err" class="error">❌ البيانات غير صحيحة</div>
+</div>
+
+<script>
+    async function login() {
+        const user = document.getElementById('u').value;
+        const pass = document.getElementById('p').value;
+        const btn = document.getElementById('login-btn');
+        
+        btn.disabled = true; btn.textContent = 'جاري التحقق...';
+
+        try {
+            // نربط مع الـ API اللي انت مستخدمه في السوبر ادمن
+            const res = await fetch('http://localhost:5122/api/Auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ Username: user, Password: pass })
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                // حفظ البيانات في الجلسة وتوجيهه للوحة تحكم المطعم
+                sessionStorage.setItem('restaurant_user', JSON.stringify(data));
+                window.location.href = `dashboard.html?RestaurantId=${data.restaurantId}`;
+            } else {
+                document.getElementById('err').style.display = 'block';
+            }
+        } catch(e) {
+            alert('السيرفر غير متصل (تأكد من تشغيل الـ Backend)');
+        }
+        btn.disabled = false; btn.textContent = 'دخول ←';
+    }
+</script>
+</body>
+</html>
