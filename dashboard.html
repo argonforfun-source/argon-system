@@ -39,7 +39,7 @@
         .page-section { display: none; }
         .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
 
-        /* Stat Cards - تحسين الرؤية */
+        /* Stat Cards */
         .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 30px 25px; position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .dark-mode .stat-card h2 { color: #ffffff !important; font-weight: 800; }
         .dark-mode .stat-card h6 { color: #cbd5e1 !important; }
@@ -65,14 +65,11 @@
         <div class="argon-logo"><h4 id="headerLogo">ARGON</h4><small id="resIdDisplay">ID: --</small></div>
         <div class="p-4 text-center">
             <h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5>
-            <div id="shopStatusUI"></div>
         </div>
         <div class="sidebar-menu flex-grow-1">
             <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-pie"></i> الجرد العام</div>
             <div class="menu-item" onclick="showSec('liveOrders', this)" id="btnOrders"><i class="fas fa-rocket"></i> الطلبات الحية</div>
-            <div class="menu-item" onclick="showSec('reservations', this)" id="btnRes"><i class="fas fa-calendar-check"></i> الحجوزات</div>
             <div class="menu-item" onclick="showSec('menu', this)" id="btnMenu"><i class="fas fa-list-ul"></i> المنيو</div>
-            <div class="menu-item" onclick="showSec('trash', this)" id="btnTrash" style="color: #fb7185;"><i class="fas fa-trash-can"></i> سلة المحذوفات</div>
             <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-sliders"></i> الإعدادات</div>
         </div>
         <div class="p-4 pt-0">
@@ -121,28 +118,11 @@
         </div>
 
         <div id="liveOrders" class="page-section"><h3 class="fw-bold mb-4">🔔 الطلبات الحية</h3><div id="ordersGrid" class="row g-3"></div></div>
-        
-        <div id="reservations" class="page-section">
-            <h3 class="fw-bold mb-4">📑 إدارة الحجوزات</h3>
-            <div id="resList"></div>
-        </div>
-
-        <div id="trash" class="page-section">
-            <h3 class="fw-bold mb-4 text-danger">🗑️ سلة المحذوفات</h3>
-            <div class="row">
-                <div class="col-md-6"><h5 class="text-info">أصناف محذوفة</h5><div id="trashMenuGrid"></div></div>
-                <div class="col-md-6"><h5 class="text-info">حجوزات ملغاة</h5><div id="trashResGrid"></div></div>
-            </div>
-        </div>
 
         <div id="settings" class="page-section">
             <h3 class="fw-bold mb-4">⚙️ الإعدادات</h3>
             <div class="card p-4 col-md-8 border-0 shadow-sm rounded-4">
                 <div class="mb-3"><label>اسم المطعم في النظام</label><input type="text" id="resNameInp" class="form-control"></div>
-                <div class="row mb-3">
-                    <div class="col-6"><label>ساعة الفتح</label><input type="time" id="openT" class="form-control"></div>
-                    <div class="col-6"><label>ساعة الإغلاق</label><input type="time" id="closeT" class="form-control"></div>
-                </div>
                 <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ الإعدادات</button>
             </div>
         </div>
@@ -156,136 +136,107 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
 <script>
-    // نظام الفصل الصارم بناءً على معرف المطعم
-    const urlParams = new URLSearchParams(window.location.search);
-    const resId = urlParams.get("RestaurantId") || urlParams.get("id") || "1";
-    const superName = urlParams.get("name") ? decodeURIComponent(urlParams.get("name")) : "مطعم غير معرف";
-
-    // مفاتيح تخزين فريدة لكل ID لمنع تداخل البيانات
-    const DB = {
-        sets: 'resSets_argon_' + resId,
-        menu: 'menu_argon_' + resId,
-        orders: 'orders_argon_' + resId,
-        res: 'reserves_argon_' + resId,
-        trash: 'trash_argon_' + resId
+    // 1. إعدادات Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+        authDomain: "argon-system.firebaseapp.com",
+        projectId: "argon-system",
+        storageBucket: "argon-system.firebasestorage.app",
+        messagingSenderId: "858120444233",
+        appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
+        databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
     };
 
-    window.onload = () => {
-        if (!localStorage.getItem(DB.sets)) {
-            localStorage.setItem(DB.sets, JSON.stringify({name: superName, open: '08:00', close: '23:00'}));
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // جلب البيانات الأساسية
+    db.ref('settings/restaurantName').on('value', snap => {
+        const name = snap.val() || "مطعم أرغون";
+        document.getElementById('sideName').innerText = name;
+        document.getElementById('dashRestName').innerText = name;
+        document.getElementById('resNameInp').value = name;
+    });
+
+    // جلب المنيو
+    db.ref('products').on('value', snapshot => {
+        const menu = snapshot.val();
+        const grid = document.getElementById('menuGrid');
+        grid.innerHTML = '';
+        let count = 0;
+        for (let key in menu) {
+            count++;
+            const m = menu[key];
+            grid.innerHTML += `
+                <div class="col-md-3">
+                    <div class="card p-3 border-0 shadow-sm h-100">
+                        <img src="${m.img || 'https://via.placeholder.com/150'}" style="height:120px; object-fit:cover; border-radius:10px;" class="mb-2">
+                        <div class="card-title-custom text-center mb-1">${m.name}</div>
+                        <div class="text-primary fw-bold text-center mb-3">${m.price} د.أ</div>
+                        <button class="btn btn-sm btn-outline-danger w-100" onclick="delItem('${key}')">حذف</button>
+                    </div>
+                </div>`;
         }
-        document.getElementById('resIdDisplay').innerText = "ID: " + resId;
-        init();
-        setInterval(init, 3000); // تحديث دوري للبيانات الحية
-    };
+        document.getElementById('statItems').innerText = count;
+    });
 
-    function init() {
-        const sets = JSON.parse(localStorage.getItem(DB.sets));
-        const orders = JSON.parse(localStorage.getItem(DB.orders)) || [];
-        const menu = JSON.parse(localStorage.getItem(DB.menu)) || [];
-        const res = JSON.parse(localStorage.getItem(DB.res)) || [];
-        const trash = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
+    // جلب الطلبات
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    db.ref('orders').on('value', snapshot => {
+        const orders = snapshot.val();
+        const grid = document.getElementById('ordersGrid');
+        grid.innerHTML = '';
+        let sales = 0;
+        let done = 0;
 
-        document.getElementById('sideName').innerText = sets.name;
-        document.getElementById('dashRestName').innerText = sets.name;
-        document.getElementById('resNameInp').value = sets.name;
-        document.getElementById('openT').value = sets.open;
-        document.getElementById('closeT').value = sets.close;
+        for (let key in orders) {
+            const o = orders[key];
+            if(o.status === 'منجز') done++;
+            sales += parseFloat(o.total || 0);
 
-        const income = orders.reduce((s,o)=> s + parseFloat(o.total||0), 0);
-        document.getElementById('statSales').innerText = income.toFixed(2) + " د.أ";
-        document.getElementById('statDone').innerText = orders.filter(o=>o.status==='منجز').length;
-        document.getElementById('statItems').innerText = menu.length;
+            grid.innerHTML = `
+                <div class="col-md-6"><div class="card p-3 mb-2" style="opacity:${o.status==='منجز'?'0.6':'1'}">
+                    <div class="d-flex justify-content-between"><b>${o.customer}</b><span class="text-success fw-bold">${o.total} د.أ</span></div>
+                    <div class="p-2 my-2 rounded bg-dark text-info fw-bold">${o.items}</div>
+                    ${o.status!=='منجز' ? `<button onclick="updStatus('${key}')" class="btn btn-success btn-sm w-100">إنجاز</button>` : '<span class="text-muted">مكتمل ✅</span>'}
+                </div></div>` + grid.innerHTML;
+        }
+        document.getElementById('statSales').innerText = sales.toFixed(2);
+        document.getElementById('statDone').innerText = done;
+    });
 
-        renderMenu(menu);
-        renderOrders(orders);
-        renderRes(res);
-        renderTrash(trash);
-    }
-
-    function renderMenu(menu) {
-        document.getElementById('menuGrid').innerHTML = menu.map((m, i) => `
-            <div class="col-md-3">
-                <div class="card p-3 border-0 shadow-sm h-100">
-                    <img src="${m.img}" style="height:120px; object-fit:cover; border-radius:10px;" class="mb-2">
-                    <div class="card-title-custom text-center mb-1">${m.name}</div>
-                    <div class="text-primary fw-bold text-center mb-3">${m.price} د.أ</div>
-                    <button class="btn btn-sm btn-outline-danger w-100" onclick="delItem(${i})">حذف</button>
-                </div>
-            </div>`).join('');
-    }
-
-    function renderOrders(orders) {
-        document.getElementById('ordersGrid').innerHTML = orders.slice().reverse().map((o, i) => `
-            <div class="col-md-6"><div class="card p-3 mb-2" style="opacity:${o.status==='منجز'?'0.6':'1'}">
-                <div class="d-flex justify-content-between"><b>${o.customer}</b><span class="text-success fw-bold">${o.total} د.أ</span></div>
-                <div class="p-2 my-2 rounded bg-dark text-info fw-bold">${o.items}</div>
-                ${o.status!=='منجز' ? `<button onclick="updStatus(${orders.length-1-i})" class="btn btn-success btn-sm w-100">إنجاز</button>` : '<span class="text-muted">مكتمل ✅</span>'}
-            </div></div>`).join('');
-    }
-
-    function renderRes(list) {
-        document.getElementById('resList').innerHTML = list.map((r, i) => `
-            <div class="res-row d-flex justify-content-between align-items-center">
-                <div class="res-info-name">${r.name} (#${r.guests})</div>
-                <div><span class="text-accent fw-bold">${r.time}</span> <button class="btn btn-sm text-danger ms-3" onclick="delRes(${i})">إلغاء</button></div>
-            </div>`).join('');
-    }
-
-    function renderTrash(trash) {
-        document.getElementById('trashMenuGrid').innerHTML = trash.menu.map((m, i) => `<div class="p-2 mb-2 border-bottom d-flex justify-content-between"><span>${m.name}</span><button class="btn btn-sm btn-success" onclick="restore('menu', ${i})">استعادة</button></div>`).join('');
-        document.getElementById('trashResGrid').innerHTML = trash.res.map((r, i) => `<div class="p-2 mb-2 border-bottom d-flex justify-content-between"><span>${r.name}</span><button class="btn btn-sm btn-success" onclick="restore('res', ${i})">استعادة</button></div>`).join('');
-    }
+    // جرس عند إضافة طلب جديد
+    db.ref('orders').on('child_added', snap => {
+        if (snap.val().status !== 'منجز') audio.play().catch(() => {});
+    });
 
     function addItem() {
-        let m = JSON.parse(localStorage.getItem(DB.menu)) || [];
-        m.push({ name: document.getElementById('itemName').value, price: document.getElementById('itemPrice').value, img: document.getElementById('itemImg').value });
-        localStorage.setItem(DB.menu, JSON.stringify(m));
-        init();
-        document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemImg').value = '';
+        const name = document.getElementById('itemName').value;
+        const price = document.getElementById('itemPrice').value;
+        const img = document.getElementById('itemImg').value;
+        if(name && price) {
+            db.ref('products').push({ name, price, img });
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemImg').value = '';
+        }
     }
 
-    function delItem(i) {
-        let m = JSON.parse(localStorage.getItem(DB.menu));
-        let t = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
-        t.menu.push(m[i]); m.splice(i,1);
-        localStorage.setItem(DB.menu, JSON.stringify(m));
-        localStorage.setItem(DB.trash, JSON.stringify(t));
-        init();
+    function delItem(key) {
+        if(confirm("هل تريد حذف هذا الصنف؟")) db.ref('products/' + key).remove();
     }
 
-    function delRes(i) {
-        let r = JSON.parse(localStorage.getItem(DB.res));
-        let t = JSON.parse(localStorage.getItem(DB.trash)) || {menu: [], res: []};
-        t.res.push(r[i]); r.splice(i,1);
-        localStorage.setItem(DB.res, JSON.stringify(r));
-        localStorage.setItem(DB.trash, JSON.stringify(t));
-        init();
-    }
-
-    function restore(type, i) {
-        let t = JSON.parse(localStorage.getItem(DB.trash));
-        let key = type === 'menu' ? DB.menu : DB.res;
-        let d = JSON.parse(localStorage.getItem(key)) || [];
-        d.push(t[type][i]); t[type].splice(i,1);
-        localStorage.setItem(key, JSON.stringify(d));
-        localStorage.setItem(DB.trash, JSON.stringify(t));
-        init();
+    function updStatus(key) {
+        db.ref('orders/' + key).update({ status: 'منجز' });
     }
 
     function saveSets() {
-        const s = { name: document.getElementById('resNameInp').value, open: document.getElementById('openT').value, close: document.getElementById('closeT').value };
-        localStorage.setItem(DB.sets, JSON.stringify(s));
-        alert("تم حفظ إعدادات هذا المطعم بنجاح");
-        init();
-    }
-
-    function updStatus(idx) {
-        let o = JSON.parse(localStorage.getItem(DB.orders));
-        o[idx].status = 'منجز';
-        localStorage.setItem(DB.orders, JSON.stringify(o));
-        init();
+        const name = document.getElementById('resNameInp').value;
+        db.ref('settings/restaurantName').set(name).then(() => alert("تم الحفظ!"));
     }
 
     function showSec(id, btn) {
@@ -296,13 +247,12 @@
     }
 
     function openPreview() {
-        document.getElementById('prevFrame').src = `index.html?RestaurantId=${resId}`;
+        document.getElementById('prevFrame').src = `index.html`;
         document.getElementById('previewModal').style.display = 'flex';
     }
 
     function closePreview() {
         document.getElementById('previewModal').style.display = 'none';
-        document.getElementById('prevFrame').src = '';
     }
 </script>
 </body>
