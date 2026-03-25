@@ -187,5 +187,32 @@
         bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
     }
 </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+  // إعداداتك الخاصة (تم تحديث الرابط ليتطابق مع صورتك)
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+    authDomain: "argon-system.firebaseapp.com",
+    projectId: "argon-system",
+    storageBucket: "argon-system.firebasestorage.app",
+    messagingSenderId: "858120444233",
+    appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
+    databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+
+  // تشغيل المحرك
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // جلب البيانات لحظياً
+  db.ref('products').on('value', (snapshot) => {
+    const products = snapshot.val();
+    console.log("المنيو تحديث أونلاين!");
+    // هنا استدعي الدالة اللي بتعرض الوجبات في صفحتك
+    if (typeof renderMenu === "function") renderMenu(products);
+  });
+</script>
 </body>
 </html>
