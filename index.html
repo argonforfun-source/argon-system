@@ -11,8 +11,9 @@
         :root { --main: #3b82f6; --bg: #f8fafc; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
         .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; transition: 0.2s; }
+        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; transition: 0.2s; height: 100%; }
         .item-card:active { transform: scale(0.95); }
+        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12 :root { --main: #3b82f6; --bg: #f8fafc; }
         .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; }
         
         .cart-btn {
@@ -26,10 +27,14 @@
         @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(15deg)} 50% {transform: rotate(-15deg)} 100% {transform: rotate(0)} }
         .shaking { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
 
-        /* ستايل نافذة طلب البيانات */
+        /* ستايل نافذة طلب البيانات والفاتورة */
         .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; }
+        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .modal-content input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; }
+        
+        .bill-summary { background: #f1f5f9; border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; font-size: 0.9rem; }
+        .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding: 5px 0; }
+        .total-line { font-weight: 900; color: #1e293b; font-size: 1.1rem; border-top: 2px solid #3b82f6; margin-top: 10px; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -50,11 +55,16 @@
 
 <div id="orderModal" class="order-modal">
     <div class="modal-content">
-        <h4 class="fw-bold mb-3">أكمل طلبك 🛒</h4>
+        <h4 class="fw-bold mb-3">تفاصيل طلبك 🛒</h4>
+        
+        <div class="bill-summary" id="billContent">
+            </div>
+
         <input type="text" id="custName" placeholder="اسمك الكريم">
         <input type="tel" id="custPhone" placeholder="رقم تلفونك">
-        <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">تأكيد الطلب</button>
-        <button class="btn btn-light w-100 mt-2 btn-sm" onclick="closeOrderModal()">إلغاء</button>
+        
+        <button class="btn btn-primary w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">إرسال الطلب والدفع</button>
+        <button class="btn btn-light w-100 mt-2 btn-sm" onclick="closeOrderModal()">رجوع للمنيو</button>
     </div>
 </div>
 
@@ -111,7 +121,21 @@
     }
 
     function openOrderModal() {
-        if(cart.length === 0) return alert("السلة فارغة!");
+        if(cart.length === 0) return alert("السلة فارغة، اختار وجباتك أولاً!");
+        
+        // توليد الفاتورة داخل المودال
+        const billDiv = document.getElementById('billContent');
+        let billHtml = "";
+        let total = 0;
+
+        cart.forEach(item => {
+            billHtml += `<div class="bill-item"><span>${item.name}</span><span>${parseFloat(item.price).toFixed(2)} د.أ</span></div>`;
+            total += parseFloat(item.price);
+        });
+
+        billHtml += `<div class="bill-item total-line"><span>المجموع الإجمالي:</span><span>${total.toFixed(2)} د.أ</span></div>`;
+        
+        billDiv.innerHTML = billHtml;
         document.getElementById('orderModal').style.display = 'flex';
     }
 
@@ -124,33 +148,38 @@
         const phone = document.getElementById('custPhone').value;
 
         if(!name || !phone) {
-            alert("يا غالي عبي اسمك ورقمك عشان نعرف نوصلك!");
+            alert("يا غالي، الاسم والرقم ضروريين عشان نجهز طلبك!");
             return;
         }
 
-        const orderNo = Math.floor(1000 + Math.random() * 9000); // توليد رقم طلب عشوائي
+        const orderNo = Math.floor(1000 + Math.random() * 9000);
         const itemsSummary = cart.map(i => i.name).join(" + ");
-        const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0);
+        const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2);
 
         const order = {
             custName: name,
             custPhone: phone,
             orderNo: orderNo,
             items: itemsSummary,
-            total: totalPrice.toFixed(2),
+            total: totalPrice,
             time: new Date().toLocaleTimeString('ar-EG'),
             status: "جديد"
         };
 
         db.ref('restaurants/' + RES_ID + '/orders').push(order).then(() => {
-            alert(`تم إرسال طلبك بنجاح! 🎉\nرقم طلبك هو: #${orderNo}\nاحفظ الرقم عشان تستلم وجبتك.`);
+            // رسالة النجاح مع تفاصيل كاملة
+            alert(`تم إرسال طلبك بنجاح! 🎉\n\n--- ملخص الطلب ---\nرقم الطلب: #${orderNo}\nالأصناف: ${itemsSummary}\nالمجموع: ${totalPrice} د.أ\n---------------\nصحتين وعافية سلفاً!`);
+            
             if ("vibrate" in navigator) navigator.vibrate([100, 50, 100]);
             
+            // تصفير السلة
             cart = [];
             document.getElementById('cartCount').innerText = "0";
+            document.getElementById('custName').value = "";
+            document.getElementById('custPhone').value = "";
             closeOrderModal();
         }).catch(err => {
-            alert("صار خطأ بالشبكة، جرب كمان مرة.");
+            alert("مشكلة بالاتصال، حاول مرة ثانية.");
         });
     }
 </script>

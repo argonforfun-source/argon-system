@@ -8,28 +8,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --side: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --muted: #64748b; }
-        body.dark-mode { --side: #020617; --bg: #0b0f1a; --text: #ffffff; --card: #1e293b; --border: #334155; --muted: #cbd5e1; }
+        
+        /* تحسينات الوضع الداكن للقراءة والوضوح */
+        body.dark-mode { 
+            --side: #020617; --bg: #0b0f1a; --text: #ffffff; 
+            --card: #1e293b; --border: #475569; --muted: #f1f5f9; 
+        }
+
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
         .wrapper { display: flex; height: 100vh; }
+        
         .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
         .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .argon-logo h4 { color: #60a5fa; font-weight: 800; margin: 0; letter-spacing: 2px; }
+        
         .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: 0.3s; display: flex; align-items: center; font-weight: 600; margin: 4px 10px; border-radius: 8px; }
         .menu-item.active, .menu-item:hover { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-right-color: var(--accent); }
+
         .main-content { flex: 1; padding: 35px; overflow-y: auto; scroll-behavior: smooth; }
         .page-section { display: none; }
         .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
-        input { background: var(--card) !important; color: var(--text) !important; border: 2px solid var(--border) !important; border-radius: 12px !important; padding: 10px !important; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+
+        /* تحسين المدخلات والـ Placeholder */
+        input, select, textarea { 
+            background: var(--card) !important; 
+            color: #ffffff !important; /* نص أبيض دائماً في الكتابة */
+            border: 2px solid var(--border) !important; 
+            border-radius: 12px !important;
+            padding: 12px !important;
+        }
+        input::placeholder { color: #cbd5e1 !important; opacity: 1; font-weight: 400; } /* تفتيح الهنت */
+
+        label { font-weight: 700; margin-bottom: 8px; display: block; color: var(--text); }
+
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .res-row { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid var(--accent); }
+
         #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .phone-frame { width: 360px; height: 720px; background: #fff; border: 12px solid #334155; border-radius: 50px; overflow: hidden; position: relative; }
+
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body class="dark-mode">
 
-<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/1017/1017-preview.mp3" preload="auto"></audio>
 
 <div class="wrapper">
     <div class="sidebar">
@@ -79,8 +102,8 @@
             <div class="card p-4 border-0 shadow-sm mb-4 rounded-4" style="background: var(--card)">
                 <div class="row g-3">
                     <div class="col-md-4"><label>اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثلاً: وجبة سوبر"></div>
-                    <div class="col-md-2"><label>السعر</label><input type="number" id="itemPrice" class="form-control"></div>
-                    <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control"></div>
+                    <div class="col-md-2"><label>السعر</label><input type="number" id="itemPrice" class="form-control" placeholder="0.00"></div>
+                    <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control" placeholder="https://..."></div>
                     <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="addItem()">إضافة</button></div>
                 </div>
             </div>
@@ -134,7 +157,7 @@
     const RES_ID = urlParams.get("id") || "1";
     document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
 
-    let isFirstLoad = true; // لمنع رنين الجرس عند فتح الصفحة لأول مرة
+    let isFirstLoad = true;
 
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val() || {};
@@ -149,7 +172,6 @@
         document.getElementById('openT').value = sets.open || "08:00";
         document.getElementById('closeT').value = sets.close || "23:00";
 
-        // تحديث المنيو
         const menuGrid = document.getElementById('menuGrid');
         menuGrid.innerHTML = "";
         let pCount = 0;
@@ -163,7 +185,6 @@
         }
         document.getElementById('statItems').innerText = pCount;
 
-        // تحديث الطلبات وتشغيل الجرس للطلبات الجديدة فقط
         const ordersGrid = document.getElementById('ordersGrid');
         const oldOrdersCount = ordersGrid.querySelectorAll('.res-row').length;
         ordersGrid.innerHTML = "";
@@ -183,13 +204,13 @@
             </div></div>`;
         }
 
-        // تشغيل صوت الجرس إذا زاد عدد الطلبات ولم تكن هذه المرة الأولى للتحميل
         if (!isFirstLoad && newOrdersCount > oldOrdersCount) {
-            document.getElementById('orderSound').play().catch(e => console.log("التصفح يمنع الصوت تلقائياً"));
+            const bell = document.getElementById('orderSound');
+            bell.volume = 1.0; // أعلى صوت
+            bell.play().catch(e => console.log("تحتاج ضغطة واحدة لتفعيل الصوت"));
         }
         isFirstLoad = false;
 
-        // الحجوزات
         const resList = document.getElementById('resList');
         resList.innerHTML = "";
         for(let key in resv) {
@@ -209,7 +230,12 @@
         const name = document.getElementById('itemName').value;
         const price = document.getElementById('itemPrice').value;
         const img = document.getElementById('itemImg').value;
-        db.ref('restaurants/' + RES_ID + '/products').push({name, price, img});
+        if(name && price) {
+            db.ref('restaurants/' + RES_ID + '/products').push({name, price, img});
+            document.getElementById('itemName').value = "";
+            document.getElementById('itemPrice').value = "";
+            document.getElementById('itemImg').value = "";
+        }
     }
 
     function moveToTrash(key, type) {
@@ -226,7 +252,7 @@
             open: document.getElementById('openT').value,
             close: document.getElementById('closeT').value
         });
-        alert("تم الحفظ بنجاح!");
+        alert("تم حفظ الإعدادات!");
     }
 
     function showSec(id, btn) {
