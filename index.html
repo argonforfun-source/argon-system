@@ -8,38 +8,61 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #3b82f6; --bg: #f8fafc; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
-        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; transition: 0.2s; height: 100%; }
+        :root { 
+            --main: #3b82f6; 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff; 
+            --text-color: #1e293b;
+            --muted-text: #64748b;
+        }
+        /* Dark Mode Colors */
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --muted-text: #94a3b8;
+        }
+
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text-color); padding-bottom: 100px; transition: 0.3s; }
+        
+        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
+        
+        /* Theme Toggle Button */
+        .theme-toggle { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 50px; font-size: 0.9rem; }
+
+        .item-card { border: none; border-radius: 20px; background: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; transition: 0.2s; height: 100%; color: var(--text-color); }
         .item-card:active { transform: scale(0.95); }
         .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; }
         
         .cart-btn {
             position: fixed; bottom: 20px; left: 20px; width: 75px; height: 75px;
-            background: #3b82f6; color: white; border-radius: 50%; font-size: 1.8rem;
-            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999;
-            cursor: pointer;
+            background: var(--main); color: white; border-radius: 50%; font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; cursor: pointer;
         }
         .count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 28px; height: 28px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
         
+        /* Toast Notification */
+        .toast-msg { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.85rem; display: none; z-index: 10001; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; color: var(--text-color); }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; background: var(--bg); color: var(--text-color); }
+
+        .bill-summary { background: rgba(0,0,0,0.05); border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; }
+        .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--muted-text); padding: 5px 0; }
+        .total-line { font-weight: 900; color: var(--main); font-size: 1.2rem; border-top: 2px solid var(--main); margin-top: 10px; padding-top: 5px; }
+        
+        .argon-footer { text-align: center; padding: 20px; font-size: 0.8rem; opacity: 0.7; font-weight: bold; }
+
         @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(15deg)} 50% {transform: rotate(-15deg)} 100% {transform: rotate(0)} }
         .shaking { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-
-        .order-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-family: 'Cairo'; text-align: center; }
-        
-        .bill-summary { background: #f1f5f9; border-radius: 15px; padding: 15px; margin: 15px 0; text-align: right; font-size: 0.9rem; display: none; }
-        .bill-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding: 5px 0; }
-        .total-line { font-weight: 900; color: #1e293b; font-size: 1.1rem; border-top: 2px solid #3b82f6; margin-top: 10px; padding-top: 5px; }
-        
         #confirmStep { display: none; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
 <div class="header">
+    <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> وضع الليل</button>
     <h1 id="resName" style="font-weight: 900;">تحميل...</h1>
     <p>أهلاً بك في منيو أرغون المتطور</p>
 </div>
@@ -48,13 +71,19 @@
     <div id="menuGrid" class="row g-3"></div>
 </div>
 
+<div class="toast-msg" id="toast">✅ تم الإضافة للسلة! اذهب للسلة لإتمام الطلب</div>
+
 <div class="cart-btn" id="basket" onclick="openOrderModal()">
     <i class="fas fa-shopping-basket"></i>
     <div class="count" id="cartCount">0</div>
 </div>
 
+<div class="argon-footer">
+    Powered by <span style="color:var(--main)">ARGON SYSTEM</span> &copy; 2026
+</div>
+
 <div id="orderModal" class="order-modal">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg">
         <h4 class="fw-bold mb-3" id="modalTitle">بيانات المستلم 👤</h4>
         
         <div id="infoStep">
@@ -65,7 +94,7 @@
         </div>
 
         <div id="confirmStep">
-            <div class="bill-summary" id="billContent" style="display: block;"></div>
+            <div class="bill-summary" id="billContent"></div>
             <button class="btn btn-success w-100 py-2 mt-3 fw-bold rounded-pill" onclick="sendOrderToDashboard()">تأكيد وإرسال الطلب الآن ✅</button>
             <button class="btn btn-outline-secondary w-100 mt-2 btn-sm rounded-pill" onclick="backToInfo()">تعديل البيانات</button>
         </div>
@@ -93,6 +122,7 @@
     const RES_ID = new URLSearchParams(window.location.search).get("id") || "1";
     let cart = [];
 
+    // جلب البيانات
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val();
         if(!data) return;
@@ -107,7 +137,7 @@
                 <div class="col-6">
                     <div class="item-card p-2 text-center">
                         <img src="${p.img}" style="width:100%; height:120px; object-fit:cover; border-radius:15px">
-                        <h6 class="mt-2 fw-bold" style="font-size: 0.9rem;">${p.name}</h6>
+                        <h6 class="mt-2 fw-bold">${p.name}</h6>
                         <p class="text-primary fw-bold" style="font-size: 1.1rem;">${p.price} د.أ</p>
                         <button class="add-btn" onclick="addToCart('${p.name}', ${p.price})">إضافة +</button>
                     </div>
@@ -115,10 +145,30 @@
         }
     });
 
+    // تبديل الثيم
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.querySelector('.theme-toggle');
+        if(body.getAttribute('data-theme') === 'light') {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerHTML = '<i class="fas fa-sun"></i> وضع النهار';
+        } else {
+            body.setAttribute('data-theme', 'light');
+            btn.innerHTML = '<i class="fas fa-moon"></i> وضع الليل';
+        }
+    }
+
+    // إضافة للسلة مع تنبيه
     function addToCart(name, price) {
         cart.push({name, price});
         document.getElementById('cartCount').innerText = cart.length;
-        if ("vibrate" in navigator) navigator.vibrate(150);
+        
+        // إظهار التنبيه (Toast)
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+
+        if ("vibrate" in navigator) navigator.vibrate(100);
         const b = document.getElementById('basket');
         b.classList.remove('shaking');
         void b.offsetWidth;
@@ -138,15 +188,10 @@
     function goToConfirmation() {
         const name = document.getElementById('custName').value;
         const phone = document.getElementById('custPhone').value;
-        const notes = document.getElementById('orderNotes').value;
-
-        if(!name || !phone) {
-            alert("لطفاً، أدخل الاسم ورقم الهاتف للمتابعة.");
-            return;
-        }
+        if(!name || !phone) return alert("لطفاً، أدخل الاسم ورقم الهاتف للمتابعة.");
 
         const billDiv = document.getElementById('billContent');
-        let billHtml = `<p class="text-center fw-bold border-bottom pb-2">مرحباً ${name}، هاد طلبك:</p>`;
+        let billHtml = `<p class="text-center fw-bold border-bottom pb-2">فاتورة الطلب</p>`;
         let total = 0;
 
         cart.forEach(item => {
@@ -154,12 +199,7 @@
             total += parseFloat(item.price);
         });
 
-        if(notes) {
-            billHtml += `<div class="mt-2 text-muted small" style="text-align:right;"><strong>ملاحظاتك:</strong> ${notes}</div>`;
-        }
-
         billHtml += `<div class="bill-item total-line"><span>المجموع:</span><span>${total.toFixed(2)} د.أ</span></div>`;
-        
         billDiv.innerHTML = billHtml;
 
         document.getElementById('modalTitle').innerText = "تأكيد طلبك 🛒";
@@ -178,27 +218,21 @@
         const phone = document.getElementById('custPhone').value;
         const notes = document.getElementById('orderNotes').value;
         const orderNo = Math.floor(1000 + Math.random() * 9000);
-        const itemsSummary = cart.map(i => i.name).join(" + ");
         const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2);
 
         const order = {
-            custName: name,
-            custPhone: phone,
-            orderNo: orderNo,
-            items: itemsSummary,
-            total: totalPrice,
-            notes: notes || "لا يوجد", // إرسال الملاحظات
-            time: new Date().toLocaleTimeString('ar-EG'),
-            status: "جديد"
+            custName: name, custPhone: phone, orderNo: orderNo,
+            items: cart.map(i => i.name).join(" + "),
+            total: totalPrice, notes: notes || "لا يوجد",
+            time: new Date().toLocaleTimeString('ar-EG'), status: "جديد"
         };
 
         db.ref('restaurants/' + RES_ID + '/orders').push(order).then(() => {
-            alert(`تم الإرسال بنجاح! 🎉\nرقم الطلب: #${orderNo}\nالمجموع: ${totalPrice} د.أ`);
+            alert(`✅ تم إرسال طلبك بنجاح!\nرقم الطلب: #${orderNo}`);
             cart = [];
             document.getElementById('cartCount').innerText = "0";
-            document.getElementById('orderNotes').value = ""; // تصفير الخانة
             closeOrderModal();
-        }).catch(() => alert("خطأ في الإرسال"));
+        });
     }
 </script>
 </body>
