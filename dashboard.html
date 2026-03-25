@@ -13,7 +13,6 @@
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
         .wrapper { display: flex; height: 100vh; }
         
-        /* Sidebar */
         .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
         .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .argon-logo h4 { color: #60a5fa; font-weight: 800; margin: 0; letter-spacing: 2px; }
@@ -26,7 +25,6 @@
         .page-section { display: none; }
         .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
 
-        /* تصحيح الحقول في الوضع الداكن */
         input, select, textarea { 
             background: var(--card) !important; 
             color: var(--text) !important; 
@@ -37,13 +35,17 @@
         input::placeholder { color: var(--muted) !important; opacity: 0.7; }
         label { font-weight: 700; margin-bottom: 8px; display: block; color: var(--text); }
 
-        /* الكروت */
         .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .res-row { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .res-row { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid var(--accent); }
 
-        /* المعاينة */
+        /* معاينة التلفون */
         #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .phone-frame { width: 360px; height: 700px; background: #fff; border: 12px solid #334155; border-radius: 45px; overflow: hidden; }
+        .phone-frame { 
+            width: 360px; height: 720px; background: #fff; 
+            border: 12px solid #334155; border-radius: 50px; 
+            overflow: hidden; position: relative;
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+        }
 
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     </style>
@@ -81,12 +83,15 @@
         </div>
 
         <div id="liveOrders" class="page-section">
-            <h3 class="fw-bold mb-4 text-primary">🔔 الطلبات الواردة الآن</h3>
+            <h3 class="fw-bold mb-4 text-primary">🔔 الطلبات الحية</h3>
             <div id="ordersGrid" class="row g-3"></div>
         </div>
 
         <div id="reservations" class="page-section">
-            <h3 class="fw-bold mb-4">📅 مواعيد الحجوزات</h3>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">📅 مواعيد الحجوزات</h3>
+                <button class="btn btn-success rounded-pill px-4" onclick="addManualRes()">+ إضافة حجز يدوي</button>
+            </div>
             <div id="resList"></div>
         </div>
 
@@ -116,7 +121,7 @@
                     <div class="col-6"><label>ساعة الفتح</label><input type="time" id="openT" class="form-control"></div>
                     <div class="col-6"><label>ساعة الإغلاق</label><input type="time" id="closeT" class="form-control"></div>
                 </div>
-                <div class="mb-3"><label>رقم الواتساب (للسلة)</label><input type="text" id="resPhoneInp" class="form-control"></div>
+                <div class="mb-3"><label>رقم الواتساب</label><input type="text" id="resPhoneInp" class="form-control"></div>
                 <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ كل التغييرات</button>
             </div>
         </div>
@@ -150,13 +155,12 @@
     const RES_ID = urlParams.get("id") || "1";
     document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
 
-    // جلب البيانات الحية
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val() || {};
         const sets = data.settings || {};
         const prods = data.products || {};
         const orders = data.orders || {};
-        const trash = data.trash || {};
+        const resv = data.reservations || {};
 
         document.getElementById('sideName').innerText = sets.name || "أرغون";
         document.getElementById('resNameInp').value = sets.name || "";
@@ -178,16 +182,37 @@
         }
         document.getElementById('statItems').innerText = pCount;
 
-        // تحديث الطلبات
+        // تحديث الطلبات بالتفاصيل الجديدة
         const ordersGrid = document.getElementById('ordersGrid');
         ordersGrid.innerHTML = "";
         for(let key in orders) {
+            const o = orders[key];
             ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row">
-                <div><strong>${orders[key].items}</strong><br><small>${orders[key].time}</small></div>
-                <button class="btn btn-success btn-sm" onclick="completeOrder('${key}')">تم الإنجاز</button>
+                <div>
+                    <span class="badge bg-primary mb-2">رقم الطلب: #${o.orderNo || '---'}</span><br>
+                    <strong>الزبون: ${o.custName || 'غير معروف'}</strong><br>
+                    <small>الهاتف: ${o.custPhone || '---'}</small><hr class="my-1">
+                    <div class="text-info">${o.items}</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="db.ref('restaurants/${RES_ID}/orders/${key}').remove()">تم الإنجاز</button>
             </div></div>`;
         }
+
+        // الحجوزات
+        const resList = document.getElementById('resList');
+        resList.innerHTML = "";
+        for(let key in resv) {
+            resList.innerHTML += `<div class="res-row">
+                <div><strong>${resv[key].name}</strong> - <small>${resv[key].time}</small></div>
+                <button class="btn btn-danger btn-sm" onclick="db.ref('restaurants/${RES_ID}/reservations/${key}').remove()">إلغاء الحجز</button>
+            </div>`;
+        }
     });
+
+    function addManualRes() {
+        const name = prompt("اسم صاحب الحجز:");
+        if(name) db.ref('restaurants/' + RES_ID + '/reservations').push({name, time: new Date().toLocaleString()});
+    }
 
     function addItem() {
         const name = document.getElementById('itemName').value;
@@ -210,7 +235,7 @@
             open: document.getElementById('openT').value,
             close: document.getElementById('closeT').value
         });
-        alert("تم حفظ المواعيد والإعدادات بنجاح!");
+        alert("تم الحفظ بنجاح!");
     }
 
     function showSec(id, btn) {
