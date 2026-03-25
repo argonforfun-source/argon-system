@@ -3,123 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو المطعم الذكي</title>
+    <title>منيو أرغون الذكي</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #3b82f6; --bg: #f8fafc; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; transition: 0.3s; }
         
-        /* هزة السلة */
+        /* تأثيرات الحركة */
         @keyframes basketShake {
             0% { transform: scale(1); }
             25% { transform: scale(1.2) rotate(-10deg); }
             50% { transform: scale(1.2) rotate(10deg); }
-            75% { transform: scale(1.2) rotate(-10deg); }
             100% { transform: scale(1); }
         }
         .shake { animation: basketShake 0.4s ease-in-out; }
 
-        /* إشعار تمت الاضافة */
         #toastNotice {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 25px;
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 30px;
             border-radius: 50px; z-index: 9999; display: none; font-weight: bold;
-            animation: fadeInOut 2s forwards;
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -20px); }
-            20% { opacity: 1; transform: translate(-50%, 0); }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .cart-btn {
             position: fixed; bottom: 30px; left: 30px;
             width: 70px; height: 70px; background: var(--main);
             color: white; border-radius: 50%; display: flex;
-            justify-content: center; align-items: center; font-size: 1.5rem;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); border: none; z-index: 1000;
+            justify-content: center; align-items: center; font-size: 1.8rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: none; z-index: 1000;
         }
-        .item-card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .add-btn { background: var(--main); border: none; border-radius: 12px; font-weight: bold; }
-        .cart-count { position: absolute; top: 0; right: 0; background: #ef4444; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+        .cart-count { 
+            position: absolute; top: 0; right: 0; background: #ef4444; 
+            color: white; width: 24px; height: 24px; border-radius: 50%; 
+            font-size: 0.8rem; display: flex; align-items: center; justify-content: center; 
+            border: 2px solid white;
+        }
+
+        .item-card { border: none; border-radius: 25px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: #fff; height: 100%; }
+        .add-btn { background: var(--main); border: none; border-radius: 15px; font-weight: bold; padding: 8px; }
+        .res-header { padding: 40px 20px; background: var(--main); color: white; border-radius: 0 0 40px 40px; margin-bottom: 30px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="toastNotice">✅ تمت الإضافة للسلة</div>
 
-    <div class="container py-4">
-        <h2 id="resName" class="text-center fw-900 mb-4">تحميل المنيو...</h2>
-        <div id="itemsGrid" class="row g-3"></div>
+    <div id="headerArea" class="res-header">
+        <h2 id="resName" class="fw-900 mb-1">جاري التحميل...</h2>
+        <small id="resStatus">يرجى الانتظار</small>
     </div>
 
-    <button class="cart-btn" id="mainBasket" onclick="showCart()">
+    <div class="container">
+        <div id="itemsGrid" class="row g-3">
+            </div>
+    </div>
+
+    <button class="cart-btn" id="mainBasket">
         <i class="fas fa-shopping-basket"></i>
         <div class="cart-count" id="cartCount">0</div>
     </button>
 
 <script>
+    // 1. تحديد أي مطعم نفتح (مهم جداً)
     const urlParams = new URLSearchParams(window.location.search);
-    const resId = urlParams.get("id") || "1";
-    let cart = [];
+    const RES_ID = urlParams.get("id") || "1"; // إذا ما في ID بفتح رقم 1 تلقائياً
 
-    // جلب البيانات (سنستخدم الـ LocalStorage حالياً للتجربة)
-    const DB_MENU = 'res_menu_' + resId;
-    const DB_SETS = 'res_sets_' + resId;
+    // 2. مفاتيح التخزين (لازم تكون نفس اللي في الـ Dashboard)
+    const DB_KEYS = {
+        menu: 'res_menu_' + RES_ID,
+        sets: 'res_sets_' + RES_ID
+    };
 
-    function loadMenu() {
-        const sets = JSON.parse(localStorage.getItem(DB_SETS)) || {name: "مطعمنا"};
-        const menu = JSON.parse(localStorage.getItem(DB_MENU)) || [];
+    let cartCount = 0;
+
+    function initCustomerPage() {
+        // جلب الإعدادات (الاسم واللون)
+        const sets = JSON.parse(localStorage.getItem(DB_KEYS.sets)) || { name: "مطعم أرغون", phone: "", themeColor: "#3b82f6" };
         
-        document.getElementById('resName').innerText = sets.name;
-        document.body.style.setProperty('--main', sets.themeColor || '#3b82f6');
+        // جلب الأصناف
+        const menu = JSON.parse(localStorage.getItem(DB_KEYS.menu)) || [];
 
-        document.getElementById('itemsGrid').innerHTML = menu.map((item, i) => `
-            <div class="col-6">
-                <div class="card item-card h-100">
-                    <img src="${item.img}" class="card-img-top" style="height:140px; object-fit:cover">
-                    <div class="card-body p-2 text-center">
-                        <h6 class="fw-bold mb-1">${item.name}</h6>
-                        <p class="text-primary fw-bold mb-2">${item.price} د.أ</p>
-                        <button class="btn btn-primary btn-sm w-100 add-btn" onclick="addToCart('${item.name}', ${item.price})">إضافة +</button>
+        // تحديث الواجهة
+        document.getElementById('resName').innerText = sets.name;
+        document.documentElement.style.setProperty('--main', sets.themeColor || '#3b82f6');
+        document.getElementById('resStatus').innerText = "أهلاً بك في منيو " + sets.name;
+
+        // عرض الأصناف
+        const grid = document.getElementById('itemsGrid');
+        if (menu.length === 0) {
+            grid.innerHTML = '<div class="text-center p-5"><h5>لا يوجد أصناف معروضة حالياً</h5></div>';
+        } else {
+            grid.innerHTML = menu.map((item, i) => `
+                <div class="col-6">
+                    <div class="card item-card">
+                        <img src="${item.img || 'https://via.placeholder.com/150'}" class="card-img-top" style="height:130px; object-fit:cover">
+                        <div class="card-body p-3 text-center">
+                            <h6 class="fw-bold mb-1">${item.name}</h6>
+                            <p class="text-primary fw-bold mb-3">${item.price} د.أ</p>
+                            <button class="btn btn-primary btn-sm w-100 add-btn" onclick="addToCart()">إضافة +</button>
+                        </div>
                     </div>
-                </div>
-            </div>`).join('');
+                </div>`).join('');
+        }
     }
 
-    function addToCart(name, price) {
-        cart.push({name, price});
-        
-        // 1. تحديث العداد
-        document.getElementById('cartCount').innerText = cart.length;
+    function addToCart() {
+        cartCount++;
+        document.getElementById('cartCount').innerText = cartCount;
 
-        // 2. هزة السلة (Animation)
+        // تأثير الاهتزاز (Haptic)
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        // هزة السلة
         const basket = document.getElementById('mainBasket');
         basket.classList.remove('shake');
-        void basket.offsetWidth; // إعادة تشغيل الانيميشن
+        void basket.offsetWidth; 
         basket.classList.add('shake');
 
-        // 3. هزة التلفون (Haptic Feedback)
-        if (navigator.vibrate) {
-            navigator.vibrate(50); // يهز التلفون لمدة 50 ميللي ثانية
-        }
-
-        // 4. إظهار الإشعار (Toast)
+        // إشعار التوست
         const toast = document.getElementById('toastNotice');
         toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        setTimeout(() => { toast.style.display = 'none'; }, 1500);
     }
 
-    function showCart() {
-        if(cart.length === 0) { alert("السلة فارغة!"); return; }
-        // هنا تفتح المودال الخاص بالدفع وإرسال الطلب
-        alert("طلباتك: " + cart.map(i => i.name).join(', '));
-    }
-
-    window.onload = loadMenu;
+    window.onload = initCustomerPage;
 </script>
 </body>
 </html>
