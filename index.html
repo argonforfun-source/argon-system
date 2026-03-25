@@ -3,45 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو أرغون الذكي</title>
+    <title>منيو أرغون</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #3b82f6; --bg: #f8fafc; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
-        .res-header { padding: 50px 20px; background: var(--main); color: white; border-radius: 0 0 40px 40px; text-align: center; }
-        .item-card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: #fff; transition: 0.3s; }
-        .add-btn { background: var(--main); border: none; border-radius: 12px; color: white; width: 100%; padding: 8px; font-weight: bold; }
-        
-        /* زر السلة العائم */
+        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; }
+        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 10px; padding: 8px; font-weight: bold; }
         .cart-btn {
-            position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px;
-            background: var(--main); color: white; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2); border: 3px solid white; z-index: 2000;
+            position: fixed; bottom: 20px; left: 20px; width: 70px; height: 70px;
+            background: #25d366; color: white; border-radius: 50%; font-size: 1.5rem;
+            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 999;
         }
-        .cart-count { position: absolute; top: -5px; right: -5px; background: red; color: white; width: 25px; height: 25px; border-radius: 50%; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
-        
-        @keyframes shake { 0% { transform: scale(1); } 50% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1); } }
-        .shake-anim { animation: shake 0.3s ease-in-out; }
+        .count { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 25px; height: 25px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
+        @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(10deg)} 50% {transform: rotate(-10deg)} 100% {transform: rotate(0)} }
+        .shaking { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body>
 
-<div id="headerArea" class="res-header">
-    <h1 id="resName">...</h1>
-    <p id="resStatus">جاري التحميل</p>
+<div class="header">
+    <h1 id="resName">تحميل...</h1>
+    <p>أهلاً بك في منيو أرغون الذكي</p>
 </div>
 
 <div class="container mt-4">
-    <div id="itemsGrid" class="row g-3"></div>
+    <div id="menuGrid" class="row g-3"></div>
 </div>
 
-<button class="cart-btn" id="mainBasket" onclick="sendToWhatsApp()">
-    <i class="fas fa-shopping-basket"></i>
-    <div class="cart-count" id="cartCount">0</div>
-</button>
+<div class="cart-btn" id="basket" onclick="orderWhatsApp()">
+    <i class="fas fa-shopping-cart"></i>
+    <div class="count" id="cartCount">0</div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -59,30 +55,30 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const RES_ID = urlParams.get("id") || "1";
+    const RES_ID = new URLSearchParams(window.location.search).get("id") || "1";
     let cart = [];
-    let restaurantPhone = "";
+    let phone = "";
 
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val();
-        if(data) {
-            document.getElementById('resName').innerText = data.settings.name;
-            restaurantPhone = data.settings.phone;
-            const products = data.products || {};
-            const grid = document.getElementById('itemsGrid');
-            grid.innerHTML = "";
-            Object.values(products).forEach(p => {
-                grid.innerHTML += `
+        if(!data) return;
+        document.getElementById('resName').innerText = data.settings.name;
+        phone = data.settings.phone;
+        
+        const grid = document.getElementById('menuGrid');
+        grid.innerHTML = "";
+        const products = data.products || {};
+        for(let key in products) {
+            const p = products[key];
+            grid.innerHTML += `
                 <div class="col-6">
                     <div class="item-card p-2 text-center">
-                        <img src="${p.img}" style="width:100%; height:120px; object-fit:cover; border-radius:15px">
+                        <img src="${p.img}" style="width:100%; height:110px; object-fit:cover; border-radius:15px">
                         <h6 class="mt-2 fw-bold">${p.name}</h6>
-                        <p class="text-primary">${p.price} د.أ</p>
+                        <p class="text-primary fw-bold">${p.price} د.أ</p>
                         <button class="add-btn" onclick="addToCart('${p.name}', ${p.price})">إضافة +</button>
                     </div>
                 </div>`;
-            });
         }
     });
 
@@ -90,20 +86,20 @@
         cart.push({name, price});
         document.getElementById('cartCount').innerText = cart.length;
         
-        // هزة التلفون
-        if(navigator.vibrate) navigator.vibrate(100);
+        // اهتزاز حقيقي
+        if(navigator.vibrate) navigator.vibrate(50);
         
-        // هزة الزر بصرية
-        const btn = document.getElementById('mainBasket');
-        btn.classList.add('shake-anim');
-        setTimeout(() => btn.classList.remove('shake-anim'), 300);
+        // هزة بصرية
+        const b = document.getElementById('basket');
+        b.classList.add('shaking');
+        setTimeout(() => b.classList.remove('shaking'), 300);
     }
 
-    function sendToWhatsApp() {
-        if(cart.length === 0) return alert("السلة فارغة!");
-        let msg = "طلب جديد:\n";
-        cart.forEach(i => msg += `- ${i.name} (${i.price} د.أ)\n`);
-        window.open(`https://wa.me/${restaurantPhone}?text=${encodeURIComponent(msg)}`);
+    function orderWhatsApp() {
+        if(cart.length === 0) return alert("السلة فارغة");
+        let text = "طلب جديد من المنيو:\n";
+        cart.forEach(i => text += `- ${i.name} (${i.price} د.أ)\n`);
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`);
     }
 </script>
 </body>
