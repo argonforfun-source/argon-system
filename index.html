@@ -3,39 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو أرغون</title>
+    <title>منيو أرغون الذكي</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #3b82f6; --bg: #f8fafc; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 100px; }
-        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; }
-        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
-        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 10px; padding: 8px; font-weight: bold; }
+        .header { padding: 40px 20px; background: var(--main); color: white; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .item-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; transition: 0.2s; }
+        .item-card:active { transform: scale(0.95); } /* تأثير ضغطة الصنف */
+        .add-btn { background: var(--main); color: white; border: none; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; }
+        
         .cart-btn {
-            position: fixed; bottom: 20px; left: 20px; width: 70px; height: 70px;
-            background: #25d366; color: white; border-radius: 50%; font-size: 1.5rem;
-            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 999;
+            position: fixed; bottom: 20px; left: 20px; width: 75px; height: 75px;
+            background: #3b82f6; color: white; border-radius: 50%; font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center; border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999;
+            cursor: pointer;
         }
-        .count { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 25px; height: 25px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
-        @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(10deg)} 50% {transform: rotate(-10deg)} 100% {transform: rotate(0)} }
-        .shaking { animation: shake 0.3s ease-in-out; }
+        .count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 28px; height: 28px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
+        
+        @keyframes shake { 0% {transform: rotate(0)} 25% {transform: rotate(15deg)} 50% {transform: rotate(-15deg)} 100% {transform: rotate(0)} }
+        .shaking { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1 id="resName">تحميل...</h1>
-    <p>أهلاً بك في منيو أرغون الذكي</p>
+    <h1 id="resName" style="font-weight: 900;">تحميل...</h1>
+    <p>أهلاً بك في منيو أرغون المتطور</p>
 </div>
 
 <div class="container mt-4">
     <div id="menuGrid" class="row g-3"></div>
 </div>
 
-<div class="cart-btn" id="basket" onclick="orderWhatsApp()">
-    <i class="fas fa-shopping-cart"></i>
+<div class="cart-btn" id="basket" onclick="sendOrderToDashboard()">
+    <i class="fas fa-shopping-basket"></i>
     <div class="count" id="cartCount">0</div>
 </div>
 
@@ -57,13 +61,12 @@
 
     const RES_ID = new URLSearchParams(window.location.search).get("id") || "1";
     let cart = [];
-    let phone = "";
 
+    // جلب البيانات وتحديث المنيو
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val();
         if(!data) return;
         document.getElementById('resName').innerText = data.settings.name;
-        phone = data.settings.phone;
         
         const grid = document.getElementById('menuGrid');
         grid.innerHTML = "";
@@ -73,9 +76,9 @@
             grid.innerHTML += `
                 <div class="col-6">
                     <div class="item-card p-2 text-center">
-                        <img src="${p.img}" style="width:100%; height:110px; object-fit:cover; border-radius:15px">
-                        <h6 class="mt-2 fw-bold">${p.name}</h6>
-                        <p class="text-primary fw-bold">${p.price} د.أ</p>
+                        <img src="${p.img}" style="width:100%; height:120px; object-fit:cover; border-radius:15px">
+                        <h6 class="mt-2 fw-bold" style="font-size: 0.9rem;">${p.name}</h6>
+                        <p class="text-primary fw-bold" style="font-size: 1.1rem;">${p.price} د.أ</p>
                         <button class="add-btn" onclick="addToCart('${p.name}', ${p.price})">إضافة +</button>
                     </div>
                 </div>`;
@@ -86,20 +89,48 @@
         cart.push({name, price});
         document.getElementById('cartCount').innerText = cart.length;
         
-        // اهتزاز حقيقي
-        if(navigator.vibrate) navigator.vibrate(50);
+        // --- الهزة القوية المطلوبة ---
+        if ("vibrate" in navigator) {
+            navigator.vibrate(150); // يهز التلفون لمدة 150 مللي ثانية
+        }
         
-        // هزة بصرية
+        // هزة بصرية للزر
         const b = document.getElementById('basket');
+        b.classList.remove('shaking'); // إعادة التعيين
+        void b.offsetWidth; // Force reflow
         b.classList.add('shaking');
-        setTimeout(() => b.classList.remove('shaking'), 300);
     }
 
-    function orderWhatsApp() {
-        if(cart.length === 0) return alert("السلة فارغة");
-        let text = "طلب جديد من المنيو:\n";
-        cart.forEach(i => text += `- ${i.name} (${i.price} د.أ)\n`);
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`);
+    // إرسال الطلب للداشبورد مباشرة
+    function sendOrderToDashboard() {
+        if(cart.length === 0) {
+            alert("السلة فارغة !");
+            return;
+        }
+
+        const itemsSummary = cart.map(i => i.name).join(" + ");
+        const totalPrice = cart.reduce((total, item) => total + parseFloat(item.price), 0);
+
+        const order = {
+            items: itemsSummary,
+            total: totalPrice.toFixed(2),
+            time: new Date().toLocaleTimeString('ar-EG'),
+            status: "جديد"
+        };
+
+        db.ref('restaurants/' + RES_ID + '/orders').push(order).then(() => {
+            alert("تم إرسال طلبك بنجاح!");
+            
+            // هزة تأكيد النجاح (هزتين قصيرة)
+            if ("vibrate" in navigator) {
+                navigator.vibrate([100, 50, 100]);
+            }
+
+            cart = [];
+            document.getElementById('cartCount').innerText = "0";
+        }).catch(err => {
+            alert("حدث خطأ في الإرسال، حاول مرة ثانية.");
+        });
     }
 </script>
 </body>
