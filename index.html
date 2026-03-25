@@ -3,214 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اطلب وجبتك | Powered by ARGON</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <title>Menu | Powered by ARGON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand:   #E63946;
-            --brand2:  #FF6B35;
-            --dark:    #1a1a2e;
-            --card:    #16213e;
-            --surface: #0f3460;
-            --text:    #eaeaea;
-            --muted:   #9ba3b4;
-            --radius:  14px;
-            --shadow:  0 8px 32px rgba(0,0,0,.45);
+            --brand: #E63946; --brand2: #FF6B35; --dark: #1a1a2e;
+            --card: #16213e; --text: #eaeaea; --muted: #9ba3b4;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: var(--dark); 
-            color: var(--text); 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%);
-            padding: 20px 24px;
-            display: flex; align-items: center; justify-content: space-between;
-            position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 4px 20px rgba(0,0,0,.3);
-        }
-        .header-right h1 { font-size: 1.4rem; font-weight: 900; }
-        .header-right span { font-size: .85rem; opacity: .85; }
-
-        #cart-btn {
-            background: rgba(255,255,255,.2); border: 2px solid rgba(255,255,255,.4);
-            color: white; padding: 10px 18px; border-radius: 50px; cursor: pointer;
-            font-weight: 700; backdrop-filter: blur(8px); transition: all .25s;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #cart-count {
-            background: white; color: var(--brand); border-radius: 50%;
-            width: 22px; height: 22px; display: flex; align-items: center;
-            justify-content: center; font-size: .75rem; font-weight: 900;
-        }
-
-        #categories-bar {
-            display: flex; gap: 10px; padding: 16px 24px;
-            overflow-x: auto; scrollbar-width: none;
-            background: var(--card); border-bottom: 1px solid rgba(255,255,255,.07);
-        }
-        .cat-chip {
-            white-space: nowrap; padding: 8px 20px; border-radius: 50px;
-            background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.1);
-            color: var(--muted); cursor: pointer; font-weight: 600; transition: all .2s;
-        }
-        .cat-chip.active { background: var(--brand); border-color: var(--brand); color: white; }
-
-        main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 28px 24px; width: 100%; }
-
-        #search-box {
-            width: 100%; padding: 14px 20px; border-radius: var(--radius);
-            border: 1.5px solid rgba(255,255,255,.12); background: var(--card);
-            color: var(--text); font-family: 'Cairo', sans-serif; margin-bottom: 28px; outline: none;
-        }
-
-        #menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-        .menu-card {
-            background: var(--card); border-radius: var(--radius); overflow: hidden;
-            border: 1.5px solid rgba(255,255,255,.07); transition: all .25s;
-        }
-        .menu-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(230,57,70,.4); }
-
-        .card-img { width: 100%; height: 180px; object-fit: cover; background: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; }
-        .card-body { padding: 16px; }
-        .card-price { font-size: 1.2rem; font-weight: 900; color: var(--brand2); }
-        .add-btn { background: var(--brand); color: white; border: none; padding: 9px 20px; border-radius: 50px; cursor: pointer; font-weight: 700; }
-
-        /* FOOTER - ARGON SIGNATURE */
-        footer {
-            text-align: center; padding: 40px 20px; margin-top: 40px;
-            border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);
-        }
-        .argon-brand {
-            color: #fff; font-weight: 900; 
-            background: linear-gradient(135deg, var(--brand), var(--brand2)); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-family: sans-serif; letter-spacing: 2px;
-        }
-
-        /* MODALS & OVERLAYS (Cart, Success, etc.) */
-        #cart-overlay, #order-modal, #submit-overlay, #success-screen { display:none; position:fixed; inset:0; z-index:300; backdrop-filter:blur(6px); }
-        .open { display: flex !important; align-items: center; justify-content: center; }
+        body { font-family: 'Cairo', sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
         
-        /* استكمالاً للتنسيقات المختصرة */
-        #cart-sidebar { position:fixed; top:0; left:-100%; width:min(400px,90vw); height:100vh; background:var(--card); z-index:400; transition: .3s; display:flex; flex-direction:column; }
-        #cart-sidebar.open { left:0; }
+        header { background: linear-gradient(135deg, var(--brand), var(--brand2)); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        #cart-btn { background: rgba(255,255,255,0.2); border: 1px solid #fff; color: white; padding: 8px 15px; border-radius: 50px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+        
+        main { flex: 1; padding: 20px; max-width: 1100px; margin: 0 auto; width: 100%; }
+        #search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--card); color: white; margin-bottom: 20px; outline: none; }
+        
+        #menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .menu-card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .menu-card:hover { transform: translateY(-5px); border-color: var(--brand); }
+        .card-img { width: 100%; height: 160px; background: #0f3460; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .card-body { padding: 15px; }
+        .price { color: var(--brand2); font-weight: 900; font-size: 1.2rem; }
+        .add-btn { background: var(--brand); color: white; border: none; padding: 7px 15px; border-radius: 5px; cursor: pointer; font-family: 'Cairo'; }
+
+        footer { text-align: center; padding: 30px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); margin-top: 40px; }
+        .argon-txt { font-weight: 900; background: linear-gradient(135deg, var(--brand), var(--brand2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        #error-msg { display: none; color: #ff4d4d; text-align: center; padding: 20px; background: rgba(255,0,0,0.1); border-radius: 10px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="header-right">
-        <h1 id="restaurant-title">🍽️ مطعمي</h1>
-        <span id="restaurant-hours">⏰ جاري التحميل...</span>
+    <div>
+        <h1 id="res-name" style="font-size: 1.2rem;">🍽️ مطعمي</h1>
+        <span id="res-hours" style="font-size: 0.8rem; opacity: 0.8;">⏰ جاري التحميل...</span>
     </div>
-    <button id="cart-btn" onclick="toggleCart()">
-        🛒 السلة <div id="cart-count">0</div>
-    </button>
+    <button id="cart-btn">🛒 السلة <b id="cart-count">0</b></button>
 </header>
 
-<div id="categories-bar">
-    <button class="cat-chip active" onclick="filterCategory('all',this)">الكل</button>
-</div>
-
 <main>
-    <input type="text" id="search-box" placeholder="🔍 ابحث عن وجبتك..." oninput="filterSearch()">
-    <div id="loader" style="text-align:center; padding:50px;">جاري التحميل...</div>
+    <div id="error-msg">⚠️ عذراً، لا يمكن الاتصال بالسيرفر حالياً.</div>
+    <input type="text" id="search-box" placeholder="🔎 ابحث عن وجبة..." oninput="search()">
+    <div id="loader" style="text-align:center; padding:40px;">⏳ جاري جلب قائمة الطعام...</div>
     <div id="menu-grid"></div>
 </main>
 
 <footer>
-    <p style="color: var(--muted); font-size: 0.85rem;">
-        تم التطوير بواسطة 
-        <span class="argon-brand">ARGON</span>
-    </p>
-    <div style="margin-top: 8px; opacity: 0.3; font-size: 0.7rem;">&copy; 2026 All Rights Reserved</div>
+    <p style="font-size: 0.9rem; color: var(--muted);">Developed by <span class="argon-txt">ARGON</span> &copy; 2026</p>
 </footer>
 
 <script>
-    const API = 'https://restaurant-clean-production.up.railway.app/api';
+    const API_BASE = 'https://restaurant-clean-production.up.railway.app/api';
     const RESTAURANT_ID = 1; 
-    let allMenuItems = [];
-    let cart = [];
+    let menuData = [];
 
-    // بصمة المطور في الكونسول
-    console.log("%c Powered by ARGON %c v2.1 ", "background:#E63946;color:#fff;padding:5px;font-weight:bold;","background:#1a1a2e;color:#FF6B35;padding:5px;border:1px solid #E63946;");
+    // بصمة ARGON
+    console.log("%c Powered by ARGON ", "background:#E63946; color:#fff; font-weight:bold; padding:5px; border-radius:5px;");
 
-    async function init() {
-        await loadSettings();
-        await loadMenuItems();
-    }
-
-    async function loadSettings() {
+    async function start() {
         try {
-            const res = await fetch(`${API}/RestaurantSettings`);
-            const s = await res.json();
-            document.getElementById('restaurant-title').textContent = '🍽️ ' + (s.restaurantName || "مطعمي");
-            document.getElementById('restaurant-hours').textContent = `⏰ ${s.openTime || '10:00'} - ${s.closeTime || '23:00'}`;
-        } catch(e) { console.error("Settings error"); }
-    }
+            // جلب الإعدادات
+            const setRes = await fetch(`${API_BASE}/RestaurantSettings`);
+            if(setRes.ok) {
+                const s = await setRes.json();
+                document.getElementById('res-name').innerText = "🍽️ " + (s.restaurantName || s.RestaurantName || "مطعمي");
+                document.getElementById('res-hours').innerText = `⏰ ${s.openTime || '10:00'} - ${s.closeTime || '23:00'}`;
+            }
 
-    async function loadMenuItems() {
-        try {
-            const res = await fetch(`${API}/MenuItems?restaurantId=${RESTAURANT_ID}`);
-            const data = await res.json();
-            allMenuItems = data.map(i => ({
-                id: i.menuItemId || i.id,
-                name: i.name || i.Name,
-                price: parseFloat(i.price || i.Price || 0),
-                category: i.category || i.Category,
-                img: i.imageUrl || ''
+            // جلب المنيو - مع دعم الحالات المختلفة للأسماء
+            const menuRes = await fetch(`${API_BASE}/MenuItems?restaurantId=${RESTAURANT_ID}`);
+            if(!menuRes.ok) throw new Error();
+            
+            const rawData = await menuRes.json();
+            
+            // معالجة البيانات لتفادي اختلاف أسماء الحقول (Id vs id)
+            menuData = rawData.map(item => ({
+                id: item.menuItemId || item.MenuItemId || item.id,
+                name: item.name || item.Name || "صنف بدون اسم",
+                price: item.price || item.Price || 0,
+                img: item.imageUrl || item.ImageUrl || "",
+                cat: item.category || item.Category || ""
             }));
-            renderMenus(allMenuItems);
+
+            render(menuData);
             document.getElementById('loader').style.display = 'none';
-        } catch(e) { console.error("Menu error"); }
+
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error-msg').style.display = 'block';
+        }
     }
 
-    function renderMenus(items) {
+    function render(items) {
         const grid = document.getElementById('menu-grid');
-        grid.innerHTML = items.map(item => `
+        if(items.length === 0) {
+            grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>لا توجد أصناف متاحة حالياً.</p>";
+            return;
+        }
+        grid.innerHTML = items.map(i => `
             <div class="menu-card">
-                <div class="card-img">${item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover">` : '🍔'}</div>
+                <div class="card-img">${i.img ? `<img src="${i.img}" style="width:100%;height:100%;object-fit:cover;">` : '🍕'}</div>
                 <div class="card-body">
-                    <div style="font-weight:700;margin-bottom:5px;">${item.name}</div>
-                    <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span class="card-price">${item.price.toFixed(2)} د</span>
-                        <button class="add-btn" onclick="addToCart(${item.id},'${item.name}',${item.price})">+ أضف</button>
+                    <h3 style="font-size:1rem; margin-bottom:10px;">${i.name}</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="price">${i.price} د.أ</span>
+                        <button class="add-btn" onclick="alert('تمت الإضافة للسلة')">أضف +</button>
                     </div>
                 </div>
             </div>
         `).join('');
     }
 
-    function addToCart(id, name, price) {
-        const existing = cart.find(c => c.id === id);
-        if (existing) existing.qty++;
-        else cart.push({ id, name, price, qty: 1 });
-        updateCart();
+    function search() {
+        const txt = document.getElementById('search-box').value.toLowerCase();
+        const filtered = menuData.filter(i => i.name.toLowerCase().includes(txt));
+        render(filtered);
     }
 
-    function updateCart() {
-        const count = cart.reduce((s, i) => s + i.qty, 0);
-        document.getElementById('cart-count').textContent = count;
-    }
-
-    function toggleCart() {
-        alert("سلة المشتريات تحتوي على " + cart.length + " أصناف. (يمكنك استكمال واجهة السلة هنا)");
-    }
-
-    function filterSearch() {
-        const val = document.getElementById('search-box').value.toLowerCase();
-        const filtered = allMenuItems.filter(i => i.name.toLowerCase().includes(val));
-        renderMenus(filtered);
-    }
-
-    init();
+    start();
 </script>
 </body>
 </html>
