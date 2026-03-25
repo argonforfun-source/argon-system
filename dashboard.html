@@ -9,48 +9,27 @@
     <style>
         :root { --side: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --muted: #64748b; }
         body.dark-mode { --side: #020617; --bg: #0b0f1a; --text: #ffffff; --card: #1e293b; --border: #334155; --muted: #cbd5e1; }
-
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; margin: 0; overflow: hidden; }
         .wrapper { display: flex; height: 100vh; }
-        
         .sidebar { width: 280px; background: var(--side); color: white; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
         .argon-logo { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .argon-logo h4 { color: #60a5fa; font-weight: 800; margin: 0; letter-spacing: 2px; }
-        
         .menu-item { padding: 14px 25px; cursor: pointer; color: #94a3b8; border-right: 4px solid transparent; transition: 0.3s; display: flex; align-items: center; font-weight: 600; margin: 4px 10px; border-radius: 8px; }
         .menu-item.active, .menu-item:hover { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-right-color: var(--accent); }
-        .menu-item i { width: 30px; }
-
         .main-content { flex: 1; padding: 35px; overflow-y: auto; scroll-behavior: smooth; }
         .page-section { display: none; }
         .page-section.active { display: block; animation: slideIn 0.4s ease-out; }
-
-        input, select, textarea { 
-            background: var(--card) !important; 
-            color: var(--text) !important; 
-            border: 2px solid var(--border) !important; 
-            border-radius: 12px !important;
-            padding: 10px !important;
-        }
-        input::placeholder { color: var(--muted) !important; opacity: 0.7; }
-        label { font-weight: 700; margin-bottom: 8px; display: block; color: var(--text); }
-
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        input { background: var(--card) !important; color: var(--text) !important; border: 2px solid var(--border) !important; border-radius: 12px !important; padding: 10px !important; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .res-row { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid var(--accent); }
-
-        /* معاينة التلفون */
         #previewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .phone-frame { 
-            width: 360px; height: 720px; background: #fff; 
-            border: 12px solid #334155; border-radius: 50px; 
-            overflow: hidden; position: relative;
-            box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
-        }
-
+        .phone-frame { width: 360px; height: 720px; background: #fff; border: 12px solid #334155; border-radius: 50px; overflow: hidden; position: relative; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body class="dark-mode">
+
+<audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
 <div class="wrapper">
     <div class="sidebar">
@@ -155,6 +134,8 @@
     const RES_ID = urlParams.get("id") || "1";
     document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
 
+    let isFirstLoad = true; // لمنع رنين الجرس عند فتح الصفحة لأول مرة
+
     db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
         const data = snapshot.val() || {};
         const sets = data.settings || {};
@@ -182,10 +163,14 @@
         }
         document.getElementById('statItems').innerText = pCount;
 
-        // تحديث الطلبات بالتفاصيل الجديدة
+        // تحديث الطلبات وتشغيل الجرس للطلبات الجديدة فقط
         const ordersGrid = document.getElementById('ordersGrid');
+        const oldOrdersCount = ordersGrid.querySelectorAll('.res-row').length;
         ordersGrid.innerHTML = "";
+        let newOrdersCount = 0;
+
         for(let key in orders) {
+            newOrdersCount++;
             const o = orders[key];
             ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row">
                 <div>
@@ -197,6 +182,12 @@
                 <button class="btn btn-success btn-sm" onclick="db.ref('restaurants/${RES_ID}/orders/${key}').remove()">تم الإنجاز</button>
             </div></div>`;
         }
+
+        // تشغيل صوت الجرس إذا زاد عدد الطلبات ولم تكن هذه المرة الأولى للتحميل
+        if (!isFirstLoad && newOrdersCount > oldOrdersCount) {
+            document.getElementById('orderSound').play().catch(e => console.log("التصفح يمنع الصوت تلقائياً"));
+        }
+        isFirstLoad = false;
 
         // الحجوزات
         const resList = document.getElementById('resList');
