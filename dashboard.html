@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARGON — لوحة التحكم الاحترافية</title>
+    <title>ARGON — لوحة التحكم</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* التنسيقات الفاخرة المعتمدة */
+        /* التنسيق الأساسي */
         * {
             margin: 0;
             padding: 0;
@@ -16,18 +16,11 @@
 
         :root {
             --g1: #d4a843;
-            --g2: #f5cc6a;
-            --g3: #a07820;
             --bg: #06060f;
             --card: #0d0d1a;
-            --card2: #131320;
             --border: #1c1c2e;
             --text: #ede8f5;
-            --muted: #5a5470;
-            --red: #e84050;
-            --green: #28c070;
-            --blue: #4888f0;
-            --accent: var(--g1)
+            --muted: #5a5470
         }
 
         body {
@@ -38,242 +31,166 @@
             height: 100vh
         }
 
-        #app {
-            display: flex;
-            flex-direction: column;
+        .app {
+            display: grid;
+            grid-template-columns: 260px 1fr;
             height: 100vh
         }
 
-        .hdr {
-            background: rgba(10,10,20,.95);
-            border-bottom: 1px solid var(--border);
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 65px
-        }
-
-        .main {
-            display: flex;
-            flex: 1;
-            overflow: hidden
-        }
-
-        .sb {
-            width: 240px;
+        aside {
             background: var(--card);
             border-left: 1px solid var(--border);
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column
+            padding: 20px
         }
 
-        .nav {
-            padding: 14px 20px;
-            cursor: pointer;
-            color: var(--muted);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: .3s
-        }
-
-            .nav.on {
-                color: var(--g1);
-                background: rgba(212,168,67,.08);
-                border-right: 3px solid var(--g1)
-            }
-
-        .content {
-            flex: 1;
+        main {
             padding: 30px;
             overflow-y: auto
         }
 
-        .srow {
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 20px;
-            margin-bottom: 30px
-        }
-
-        .sc {
+        .stat-card {
             background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 25px;
+            margin-bottom: 20px;
             text-align: center
         }
 
-        .sc-num {
-            font-size: 35px;
-            font-weight: 900
+        .stat-val {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--g1)
         }
 
         .ocard {
-            background: var(--card2);
-            border: 1px solid var(--border);
-            border-radius: 18px;
+            background: #131326;
+            border-radius: 15px;
             padding: 20px;
             margin-bottom: 15px;
-            position: relative;
-            animation: slideIn 0.3s ease-out
+            border-right: 5px solid var(--g1);
+            animation: fadeIn 0.5s
         }
 
-        @keyframes slideIn {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateX(20px)
+                transform: translateY(10px);
             }
 
             to {
                 opacity: 1;
-                transform: translateX(0)
+                transform: translateY(0);
             }
-        }
-
-        .ocard::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--g1)
-        }
-
-        .oh {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px
-        }
-
-        .oitems {
-            background: rgba(255,255,255,0.02);
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            color: var(--muted);
-            line-height: 1.8
         }
 
         .btn-done {
             background: var(--g1);
             color: #000;
             border: none;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-weight: 800;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
             cursor: pointer
         }
     </style>
 </head>
 <body>
 
-    <div id="app">
-        <header class="hdr">
-            <div style="display:flex;align-items:center;gap:15px">
-                <div style="width:40px;height:40px;background:var(--g1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:900">A</div>
-                <h2 id="res-name">ARGON SYSTEM</h2>
+    <div class="app">
+        <aside>
+            <h2 style="color:var(--g1);margin-bottom:30px"><i class="fas fa-crown"></i> ARGON</h2>
+            <div id="conn-status" style="font-size:12px;color:red">جاري المحاولة...</div>
+        </aside>
+
+        <main>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px">
+                <div class="stat-card"><div>طلبات نشطة</div><div class="stat-val" id="active-count">0</div></div>
+                <div class="stat-card"><div>المبيعات</div><div class="stat-val" id="sales-total">0.00</div></div>
             </div>
-            <div id="conn-status" style="font-size:12px;font-weight:bold">جاري التحقق...</div>
-        </header>
 
-        <div class="main">
-            <nav class="sb">
-                <div class="nav on"><i class="fas fa-receipt"></i> الطلبات الواردة</div>
-            </nav>
-
-            <main class="content">
-                <div class="srow">
-                    <div class="sc"><div class="sc-num" id="stat-active" style="color:var(--g1)">0</div><div style="color:var(--muted)">طلبات نشطة</div></div>
-                    <div class="sc"><div class="sc-num" id="stat-sales" style="color:var(--green)">0.00</div><div style="color:var(--muted)">إيراد اليوم (JOD)</div></div>
-                    <div class="sc"><div class="sc-num" id="stat-total" style="color:var(--blue)">0</div><div style="color:var(--muted)">إجمالي الطلبات</div></div>
-                </div>
-
-                <div id="orders-list">
-                </div>
-            </main>
-        </div>
+            <h3 style="margin-bottom:20px">الطلبات الحالية</h3>
+            <div id="orders-container">
+            </div>
+        </main>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <script>
-        // الإعدادات المباشرة
-        const firebaseConfig = { databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/" };
+        // الإعدادات - تأكد من مطابقة هذا الرابط لعنوان قاعدة بياناتك في لوحة Firebase
+        const firebaseConfig = {
+            databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // استلام رقم المطعم من الرابط (id=1)
         const urlParams = new URLSearchParams(window.location.search);
-        const RID = urlParams.get('id') || "1";
+        const RES_ID = urlParams.get('id') || "1";
 
-        // معالجة عرض الأرقام
-        function fNum(n) { return (parseFloat(n) || 0).toFixed(2); }
-
-        // التنصت على الطلبات
-        db.ref(`restaurants/${RID}/orders`).on('value', snap => {
-            const orders = snap.val() || {};
-            const list = document.getElementById('orders-list');
-            let html = '';
-            let activeCount = 0;
-            let totalSales = 0;
-            let totalAll = 0;
-
-            // تحويل الكائن إلى مصفوفة للترتيب
-            const keys = Object.keys(orders).reverse();
-            totalAll = keys.length;
-
-            keys.forEach(id => {
-                const o = orders[id];
-
-                // حساب المبيعات للطلبات المكتملة فقط
-                if (o.status === 'done') {
-                    totalSales += (parseFloat(o.total) || 0);
-                } else {
-                    activeCount++;
-
-                    // معالجة عرض الأصناف بدقة (سواء كانت مصفوفة أو كائن)
-                    let itemsText = "لا توجد تفاصيل";
-                    if (o.items) {
-                        const itemsArr = Array.isArray(o.items) ? o.items : Object.values(o.items);
-                        itemsText = itemsArr.map(i => `${i.name || i.n || 'صنف'} x ${i.qty || i.q || 1}`).join(' + ');
-                    }
-
-                    html += `
-                <div class="ocard">
-                    <div class="oh">
-                        <span style="font-weight:bold;color:var(--g1)">طلب #${id.slice(-4)}</span>
-                        <span style="font-size:12px;color:var(--muted)">${o.time || o.createdAt ? new Date(o.time || o.createdAt).toLocaleTimeString('ar-JO') : ''}</span>
-                    </div>
-                    <div class="oitems">${itemsText}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:15px">
-                        <div style="font-weight:bold;color:var(--green)">${fNum(o.total)} JOD</div>
-                        <button class="btn-done" onclick="markDone('${id}')">إتمام ✅</button>
-                    </div>
-                </div>`;
-                }
-            });
-
-            list.innerHTML = html || '<div style="text-align:center;padding:50px;color:var(--muted)">بانتظار طلبات جديدة...</div>';
-            document.getElementById('stat-active').innerText = activeCount;
-            document.getElementById('stat-sales').innerText = fNum(totalSales);
-            document.getElementById('stat-total').innerText = totalAll;
+        // مراقبة الاتصال
+        db.ref(".info/connected").on("value", (snap) => {
+            const status = document.getElementById('conn-status');
+            if (snap.val() === true) {
+                status.innerText = "● متصل"; status.style.color = "#28c070";
+            } else {
+                status.innerText = "○ فصل الاتصال"; status.style.color = "red";
+            }
         });
 
-        function markDone(id) {
-            db.ref(`restaurants/${RID}/orders/${id}`).update({ status: 'done' });
+        // وظيفة عرض الطلبات
+        function loadOrders() {
+            db.ref(`restaurants/${RES_ID}/orders`).on('value', (snapshot) => {
+                const orders = snapshot.val() || {};
+                const container = document.getElementById('orders-container');
+                let html = '';
+                let active = 0;
+                let sales = 0;
+
+                Object.keys(orders).reverse().forEach(key => {
+                    const o = orders[key];
+                    if (o.status !== 'done') {
+                        active++;
+                        // معالجة أسماء العناصر والكميات (qty أو q)
+                        let itemsList = "";
+                        if (o.items) {
+                            const items = Array.isArray(o.items) ? o.items : Object.values(o.items);
+                            itemsList = items.map(i => `${i.name || i.n} (x${i.qty || i.q || 1})`).join(' + ');
+                        }
+
+                        html += `
+                    <div class="ocard">
+                        <div style="display:flex;justify-content:space-between">
+                            <strong>طلب #${key.slice(-4)}</strong>
+                            <small style="color:var(--muted)">${o.time || ''}</small>
+                        </div>
+                        <div style="margin:10px 0;color:#bbb">${itemsList}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="color:var(--g1);font-weight:900">${(parseFloat(o.total) || 0).toFixed(2)} JOD</span>
+                            <button class="btn-done" onclick="markAsDone('${key}')">إتمام الطلب</button>
+                        </div>
+                    </div>`;
+                    } else {
+                        sales += (parseFloat(o.total) || 0);
+                    }
+                });
+
+                container.innerHTML = html || '<p style="text-align:center;color:var(--muted)">لا توجد طلبات جديدة</p>';
+                document.getElementById('active-count').innerText = active;
+                document.getElementById('sales-total').innerText = sales.toFixed(2);
+            }, (error) => {
+                console.error("خطأ في القراءة:", error);
+            });
         }
 
-        // حالة الاتصال
-        db.ref(".info/connected").on("value", snap => {
-            const s = document.getElementById('conn-status');
-            if (snap.val()) { s.innerText = "● متصل"; s.style.color = "var(--green)"; }
-            else { s.innerText = "○ غير متصل"; s.style.color = "var(--red)"; }
-        });
+        function markAsDone(key) {
+            db.ref(`restaurants/${RES_ID}/orders/${key}`).update({ status: 'done' });
+        }
+
+        // البدء
+        loadOrders();
     </script>
 </body>
 </html>
