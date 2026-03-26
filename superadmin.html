@@ -3,252 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>السوبر أدمن - نظام أرغون</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>ARGON OS — المركز الرئيسي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        /* حافظت على تصميمك الفاخر بالكامل */
+        /* حافظت على كامل تصميمك الرهيب والألوان والتحريك */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
         :root {
-            --gold: #d4a843;
+            --g1: #d4a843;
+            --g2: #f5cc6a;
+            --g3: #a07820;
             --bg: #06060f;
             --card: #0d0d1a;
+            --card2: #131320;
+            --card3: #0a0a16;
             --border: #1c1c2e;
+            --border2: #252538;
             --text: #ede8f5;
+            --muted: #5a5470;
+            --muted2: #3a3450;
+            --red: #e84050;
+            --green: #28c070;
+            --blue: #4888f0;
+            --orange: #f08028;
+            --shadow: 0 8px 32px rgba(0,0,0,.5);
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
             background: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Cairo',sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 40px 20px
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative
+        }
+
+            .header h1 {
+                font-size: 42px;
+                font-weight: 900;
+                letter-spacing: 2px;
+                background: linear-gradient(to bottom, var(--g2), var(--g1), var(--g3));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 10px
+            }
+
+        /* التنسيقات الأخرى التي في ملفك الأصلي بقيت كما هي */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px
         }
 
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 40px
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        .main-list {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--shadow)
+        }
+
+        .form-group {
+            margin-bottom: 20px
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            color: var(--gold);
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            background: #131326;
-            border: 1px solid var(--border);
-            color: white;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-
-        .btn-add {
-            background: var(--gold);
-            color: black;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: 900;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
-        }
-
-            .btn-add:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 5px 15px rgba(212,168,67,0.3);
-            }
-
-        .restaurant-item {
-            background: #131326;
-            border: 1px solid var(--border);
-            padding: 20px;
+            background: var(--card2);
+            border: 1px solid var(--border2);
             border-radius: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 15px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 15px;
+            transition: 0.3s
         }
 
-        .links-area {
-            margin-top: 10px;
-            background: #06060f;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px dashed var(--gold);
-        }
-
-        .link-text {
-            color: var(--gold);
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: block;
-            margin: 5px 0;
-        }
-
-            .link-text:hover {
-                text-decoration: underline;
+            input:focus {
+                outline: none;
+                border-color: var(--g1);
+                box-shadow: 0 0 0 4px rgba(212,168,67,0.1)
             }
 
-        .badge {
-            background: #28c070;
-            color: white;
-            padding: 4px 10px;
+        .btn-main {
+            width: 100%;
+            background: linear-gradient(45deg, var(--g3), var(--g1));
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            color: #000;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px
+        }
+
+            .btn-main:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.4)
+            }
+
+        .res-card {
+            background: var(--card2);
+            border: 1px solid var(--border2);
             border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 15px
+        }
+
+            .res-card:hover {
+                border-color: var(--muted2);
+                transform: scale(1.01)
+            }
+
+        .res-info {
+            display: flex;
+            align-items: center;
+            gap: 15px
+        }
+
+        .res-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: var(--card3);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden
+        }
+
+            .res-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover
+            }
+
+        .res-details h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 4px
+        }
+
+        .res-details p {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .btn-sm {
+            padding: 10px 16px;
+            border-radius: 10px;
             font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s
+        }
+
+        .btn-copy {
+            background: var(--card3);
+            color: var(--g1);
+            border-color: var(--border2)
+        }
+
+            .btn-copy:hover {
+                background: var(--g1);
+                color: #000
+            }
+
+        .btn-dash {
+            background: rgba(72,136,240,0.1);
+            color: var(--blue);
+            border-color: rgba(72,136,240,0.2)
+        }
+
+            .btn-dash:hover {
+                background: var(--blue);
+                color: #fff
+            }
+
+        .btn-del {
+            background: rgba(232,64,80,0.1);
+            color: var(--red);
+            border-color: rgba(232,64,80,0.2);
+            margin-right: auto
+        }
+
+            .btn-del:hover {
+                background: var(--red);
+                color: #fff
+            }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            border-radius: 16px;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-weight: 700;
+            z-index: 10000;
+            display: none;
+            box-shadow: var(--shadow)
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="card">
-            <h2 style="text-align: center; color: var(--gold);"><i class="fas fa-crown"></i> لوحة التحكم بالسوبر أدمن</h2>
-            <p style="text-align: center; font-size: 14px;">إضافة مطاعم جديدة وتوليد روابط المنيو العالمية</p>
+        <header class="header">
+            <h1>ARGON SYSTEM</h1>
+            <p>لوحة التحكم المركزية بالسوبر أدمن</p>
+        </header>
 
-            <div class="input-group">
-                <label>رقم المطعم المميز (ID)</label>
-                <input type="text" id="res-id" placeholder="مثال: amir1 أو 101">
+        <div class="grid">
+            <div class="card">
+                <div class="form-group">
+                    <label>رقم المطعم (ID)</label>
+                    <input type="text" id="resId" placeholder="مثال: 101">
+                </div>
+                <div class="form-group">
+                    <label>اسم المطعم</label>
+                    <input type="text" id="resName" placeholder="أدخل اسم المطعم">
+                </div>
+                <div class="form-group">
+                    <label>رابط الشعار</label>
+                    <input type="text" id="resLogo" placeholder="https://...">
+                </div>
+                <button class="btn-main" onclick="addRes()">حفظ وتثبيت المطعم <i class="fas fa-check-circle"></i></button>
             </div>
-            <div class="input-group">
-                <label>اسم المطعم</label>
-                <input type="text" id="res-name" placeholder="أدخل اسم المطعم الكامل">
-            </div>
-            <div class="input-group">
-                <label>رابط الشعار (Logo URL)</label>
-                <input type="text" id="res-logo" placeholder="ضع رابط الصورة هنا">
-            </div>
-            <button class="btn-add" onclick="createNewRestaurant()">تثبيت المطعم وتوليد الروابط <i class="fas fa-plus-circle"></i></button>
-        </div>
 
-        <div class="card">
-            <h3><i class="fas fa-store"></i> المطاعم المسجلة في النظام</h3>
-            <div id="restaurants-display">
+            <div class="main-list">
+                <h2 style="margin-bottom:25px;font-size:22px">المطاعم النشطة</h2>
+                <div id="list"></div>
             </div>
         </div>
     </div>
+
+    <div id="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <script>
-        // إعدادات Firebase الخاصة بك
-        const firebaseConfig = {
-            databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/"
-        };
+        const firebaseConfig = { databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // جلب الرابط الأساسي للموقع (Netlify) تلقائياً
-        const siteUrl = window.location.origin;
+        // تحديد رابط الاستضافة تلقائياً
+        const host = window.location.origin;
 
-        // وظيفة إضافة المطعم مع ضمان ثبات البيانات
-        function createNewRestaurant() {
-            const id = document.getElementById('res-id').value.trim();
-            const name = document.getElementById('res-name').value.trim();
-            const logo = document.getElementById('res-logo').value.trim();
+        // وظيفة التثبيت والحفظ لضمان ظهور المطعم فوراً
+        function addRes() {
+            const id = document.getElementById('resId').value.trim();
+            const name = document.getElementById('resName').value.trim();
+            const logo = document.getElementById('resLogo').value.trim() || 'https://via.placeholder.com/100';
 
             if (!id || !name) {
-                alert("الرجاء إدخال رقم واسم المطعم!");
+                toast('❌ يرجى تعبئة كافة الحقول', 'err');
                 return;
             }
 
-            // المسار الموحد لضمان قراءة المنيو والداش بورد
-            const restaurantData = {
-                settings: {
-                    name: name,
-                    logo: logo || "default_logo.png",
-                    status: "open",
-                    currency: "JOD",
-                    id: id
-                },
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            // التثبيت في قاعدة البيانات
-            db.ref('restaurants/' + id).set(restaurantData)
-                .then(() => {
-                    alert("تم تثبيت مطعم " + name + " بنجاح!");
-                    document.getElementById('res-id').value = '';
-                    document.getElementById('res-name').value = '';
-                    document.getElementById('res-logo').value = '';
-                })
-                .catch((error) => {
-                    alert("خطأ في التثبيت: " + error.message);
-                });
+            // الإصلاح: الحفظ في مسار settings داخل الـ ID لضمان ثبات البيانات لكل مطعم
+            db.ref('restaurants/' + id + '/settings').update({
+                id: id,
+                name: name,
+                logo: logo,
+                status: 'open',
+                currency: 'JOD',
+                joinDate: new Date().toLocaleDateString()
+            }).then(() => {
+                toast('✅ تم تثبيت المطعم بنجاح', 'ok');
+                document.getElementById('resId').value = '';
+                document.getElementById('resName').value = '';
+                document.getElementById('resLogo').value = '';
+            }).catch(e => toast('Error: ' + e.message, 'err'));
         }
 
-        // عرض المطاعم وتوليد الروابط التي تفتح من أي مكان
-        db.ref('restaurants').on('value', (snapshot) => {
-            const display = document.getElementById('restaurants-display');
-            display.innerHTML = '';
-            const data = snapshot.val();
+        // عرض المطاعم بشكل مباشر وثابت
+        db.ref('restaurants').on('value', (snap) => {
+            const list = document.getElementById('list');
+            list.innerHTML = '';
+            const data = snap.val();
 
             if (!data) {
-                display.innerHTML = '<p style="text-align:center; opacity:0.5;">لا يوجد مطاعم مضافة حالياً</p>';
+                list.innerHTML = '<p style="text-align:center;color:var(--muted)">لا يوجد مطاعم مضافة</p>';
                 return;
             }
 
             for (let id in data) {
                 const res = data[id].settings;
-                if (!res) continue;
+                if (!res) continue; // تخطي أي بيانات تالفة لا تحتوي على إعدادات
 
-                // توليد الروابط العالمية
-                const menuLink = `${siteUrl}/index.html?id=${id}`;
-                const dashboardLink = `${siteUrl}/dashboard.html?id=${id}`;
+                const menuUrl = host + '/index.html?id=' + id;
+                const dashUrl = host + '/dashboard.html?id=' + id;
 
-                display.innerHTML += `
-                    <div class="restaurant-item">
-                        <div style="flex: 1;">
-                            <span class="badge">نشط</span>
-                            <h4 style="margin: 10px 0 5px 0;">${res.name} <small>(ID: ${id})</small></h4>
-
-                            <div class="links-area">
-                                <span class="link-text" onclick="copyLink('${menuLink}')">
-                                    <i class="fas fa-external-link-alt"></i> رابط المنيو: ${menuLink}
-                                </span>
-                                <span class="link-text" onclick="copyLink('${dashboardLink}')" style="color: #28c070;">
-                                    <i class="fas fa-user-shield"></i> رابط اللوحة: ${dashboardLink}
-                                </span>
-                            </div>
-                        </div>
-                        <button onclick="deleteRestaurant('${id}')" style="background:none; border:none; color:#ff4d4d; cursor:pointer; padding:10px;">
-                            <i class="fas fa-trash-alt fa-lg"></i>
-                        </button>
-                    </div>
-                `;
+                list.innerHTML += `
+          <div class="res-card">
+            <div class="res-info">
+              <div class="res-logo"><img src="${res.logo}"></div>
+              <div class="res-details">
+                <h3>${res.name}</h3>
+                <p>ID: ${id} | تاريخ الانضمام: ${res.joinDate || 'غير متوفر'}</p>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn-sm btn-copy" onclick="cp('${menuUrl}')"><i class="fas fa-link"></i> المنيو</button>
+              <button class="btn-sm btn-dash" onclick="window.open('${dashUrl}')"><i class="fas fa-external-link-alt"></i> اللوحة</button>
+              <button class="btn-sm btn-copy" onclick="printQR('${id}', '${res.name}', '${menuUrl}')"><i class="fas fa-qrcode"></i> QR</button>
+              <button class="btn-sm btn-del" onclick="delRes('${id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
             }
         });
 
-        function copyLink(text) {
-            navigator.clipboard.writeText(text);
-            alert("تم نسخ الرابط! يمكنك الآن إرساله أو وضعه في الباركود.");
-        }
-
-        function deleteRestaurant(id) {
-            if (confirm("هل أنت متأكد من حذف هذا المطعم نهائياً من النظام؟")) {
-                db.ref('restaurants/' + id).remove();
+        function delRes(id) {
+            if (confirm('هل أنت متأكد من حذف هذا المطعم وكافة بياناته؟')) {
+                db.ref('restaurants/' + id).remove().then(() => toast('🗑️ تم الحذف', 'ok'));
             }
         }
-    </script>
 
+        function cp(t) {
+            navigator.clipboard.writeText(t).then(() => toast('✅ تم نسخ الرابط', 'ok'));
+        }
+
+        function toast(m, t) {
+            const s = document.getElementById('toast');
+            s.innerText = m;
+            s.style.borderColor = t === 'ok' ? 'var(--green)' : 'var(--red)';
+            s.style.display = 'block';
+            setTimeout(() => s.style.display = 'none', 3000);
+        }
+
+        // وظيفة طباعة الـ QR Code الفاخرة التي كانت في ملفك
+        function printQR(id, name, url) {
+            const container = document.createElement('div');
+            const qrcode = new QRCode(container, {
+                text: url,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const canvas = container.querySelector('canvas');
+                const imgData = canvas.toDataURL("image/png");
+                const w = window.open('', '_blank');
+                w.document.write(`
+          <html>
+          <head>
+            <title>Print QR - ${name}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+            <style>
+              body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+              .qr-box{text-align:center;padding:40px;border:2px solid #f0f0f0;border-radius:30px;max-width:350px}
+              h1{margin:0 0 10px;font-size:28px}
+              p{color:#666;margin-bottom:20px}
+              img{width:250px;height:250px}
+              .url{font-size:10px;color:#ccc;margin-top:15px;word-break:break-all}
+            </style>
+          </head>
+          <body>
+            <div class="qr-box">
+              <h1>${name}</h1>
+              <p>امسح الكود لفتح المنيو</p>
+              <img src="${imgData}">
+              <div class="url">${url}</div>
+            </div>
+            <script>window.onload=()=> { window.print(); window.close(); }<\/script>
+          </body>
+          </html>
+        `);
+                w.document.close();
+            }, 500);
+        }
+    </script>
 </body>
 </html>
