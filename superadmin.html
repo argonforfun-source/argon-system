@@ -25,7 +25,7 @@
             --muted: #5a5470;
             --red: #e84050;
             --green: #28c070;
-            --blue: #4888f0
+            --blue: #4888f0;
         }
 
         body {
@@ -45,6 +45,7 @@
                 z-index: 0
             }
 
+        /* ─── LOGIN ─── */
         #loginPage {
             position: fixed;
             inset: 0;
@@ -69,7 +70,7 @@
             border-radius: 28px;
             padding: 48px 40px;
             text-align: center;
-            box-shadow: 0 40px 80px rgba(0,0,0,.7),inset 0 0 0 1px rgba(212,168,67,.05)
+            box-shadow: 0 40px 80px rgba(0,0,0,.7)
         }
 
         .login-logo {
@@ -116,8 +117,7 @@
 
             .li:focus {
                 border-color: rgba(212,168,67,.5);
-                background: rgba(212,168,67,.05);
-                box-shadow: 0 0 0 4px rgba(212,168,67,.06)
+                background: rgba(212,168,67,.05)
             }
 
             .li::placeholder {
@@ -148,7 +148,11 @@
             color: var(--red);
             font-size: 13px;
             margin-top: 12px;
-            display: none
+            display: none;
+            padding: 10px;
+            background: rgba(232,64,80,.08);
+            border-radius: 8px;
+            border: 1px solid rgba(232,64,80,.2)
         }
 
         @keyframes shake {
@@ -169,6 +173,7 @@
             animation: shake .3s
         }
 
+        /* ─── APP ─── */
         #mainApp {
             display: none;
             min-height: 100vh;
@@ -176,8 +181,9 @@
             z-index: 1
         }
 
+        /* ─── HEADER ─── */
         .hdr {
-            background: rgba(10,10,20,.95);
+            background: rgba(8,8,18,.97);
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(20px);
             position: sticky;
@@ -206,8 +212,7 @@
             justify-content: center;
             font-size: 18px;
             font-weight: 900;
-            color: #000;
-            letter-spacing: -1px
+            color: #000
         }
 
         .hdr-name {
@@ -266,21 +271,23 @@
         }
 
         .btn-danger {
-            background: rgba(232,64,80,.1);
+            background: rgba(232,64,80,.08);
             border-color: rgba(232,64,80,.2);
             color: var(--red)
         }
 
             .btn-danger:hover {
-                background: rgba(232,64,80,.2)
+                background: rgba(232,64,80,.18)
             }
 
+        /* ─── BODY ─── */
         .body {
             max-width: 1300px;
             margin: 0 auto;
             padding: 32px 24px
         }
 
+        /* ─── STATS ─── */
         .stats {
             display: grid;
             grid-template-columns: repeat(4,1fr);
@@ -353,15 +360,16 @@
             color: var(--green)
         }
 
-        .sb .sc-icon {
+        .sb2 .sc-icon {
             background: rgba(72,136,240,.1);
             color: var(--blue)
         }
 
-        .sb .sc-num {
+        .sb2 .sc-num {
             color: var(--blue)
         }
 
+        /* ─── PANEL ─── */
         .panel {
             background: var(--card);
             border: 1px solid var(--border);
@@ -388,12 +396,16 @@
             gap: 10px
         }
 
+        /* ─── ADD FORM ─── */
+        .add-form {
+            border-bottom: 1px solid var(--border)
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
             gap: 14px;
-            padding: 22px 24px;
-            border-bottom: 1px solid var(--border)
+            padding: 22px 24px
         }
 
         .fg {
@@ -482,6 +494,52 @@
             border-radius: 9px
         }
 
+        /* ─── LINKS PANEL (result after adding) ─── */
+        .links-result {
+            padding: 18px 24px;
+            display: none;
+            border-top: 1px solid var(--border);
+            background: rgba(40,192,112,.03)
+        }
+
+            .links-result h6 {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--green);
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px
+            }
+
+        .lbox {
+            background: rgba(212,168,67,.05);
+            border: 1px solid rgba(212,168,67,.12);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px
+        }
+
+        .ll {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700
+        }
+
+        .lv {
+            font-size: 12px;
+            color: var(--g1);
+            font-family: monospace;
+            direction: ltr;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            word-break: break-all
+        }
+
+        /* ─── FILTER/SEARCH ─── */
         .filter-row {
             display: flex;
             gap: 10px;
@@ -531,6 +589,7 @@
                 color: var(--g1)
             }
 
+        /* ─── TABLE ─── */
         .tbl-wrap {
             overflow-x: auto
         }
@@ -689,6 +748,7 @@
                     background: rgba(40,192,112,.08)
                 }
 
+        /* ─── MODAL ─── */
         .modal-bg {
             position: fixed;
             inset: 0;
@@ -713,7 +773,7 @@
             border: 1px solid rgba(212,168,67,.2);
             border-radius: 24px;
             padding: 36px;
-            width: 500px;
+            width: 520px;
             max-width: 96vw;
             transform: scale(.93);
             transition: .25s;
@@ -741,7 +801,7 @@
             margin-top: 20px
         }
 
-        .lbox {
+        .lbox-m {
             background: rgba(212,168,67,.05);
             border: 1px solid rgba(212,168,67,.15);
             border-radius: 12px;
@@ -749,7 +809,7 @@
             margin-bottom: 12px
         }
 
-        .ll {
+        .ll-m {
             font-size: 11px;
             color: var(--muted);
             margin-bottom: 7px;
@@ -757,7 +817,7 @@
             letter-spacing: .5px
         }
 
-        .lv {
+        .lv-m {
             font-size: 12px;
             color: var(--g1);
             font-family: monospace;
@@ -799,6 +859,7 @@
             text-align: center
         }
 
+        /* ─── TOAST ─── */
         .toast-wrap {
             position: fixed;
             top: 20px;
@@ -901,6 +962,7 @@
 </head>
 <body>
 
+    <!-- ─── LOGIN ─── -->
     <div id="loginPage">
         <div class="lp-bg"></div>
         <div class="login-card">
@@ -914,11 +976,15 @@
         </div>
     </div>
 
+    <!-- ─── MAIN APP ─── -->
     <div id="mainApp">
         <header class="hdr">
             <div class="hdr-logo">
                 <div class="hdr-icon">A</div>
-                <div><div class="hdr-name">ARGON OS</div><div class="hdr-sub">Restaurant Network</div></div>
+                <div>
+                    <div class="hdr-name">ARGON OS</div>
+                    <div class="hdr-sub">Restaurant Network</div>
+                </div>
             </div>
             <div class="hdr-right">
                 <div class="hdr-clock" id="clock">00:00:00</div>
@@ -928,44 +994,78 @@
         </header>
 
         <div class="body">
+
+            <!-- STATS -->
             <div class="stats">
                 <div class="sc sg"><div class="sc-icon"><i class="fas fa-store"></i></div><div class="sc-num" id="s-tot">0</div><div class="sc-lbl">إجمالي المطاعم</div></div>
                 <div class="sc sgr"><div class="sc-icon"><i class="fas fa-check-circle"></i></div><div class="sc-num" id="s-on">0</div><div class="sc-lbl">نشطة الآن</div></div>
                 <div class="sc sr"><div class="sc-icon"><i class="fas fa-pause-circle"></i></div><div class="sc-num" id="s-off">0</div><div class="sc-lbl">موقوفة</div></div>
-                <div class="sc sb"><div class="sc-icon"><i class="fas fa-calendar-day"></i></div><div class="sc-num" id="s-today">0</div><div class="sc-lbl">مضافة اليوم</div></div>
+                <div class="sc sb2"><div class="sc-icon"><i class="fas fa-calendar-day"></i></div><div class="sc-num" id="s-today">0</div><div class="sc-lbl">مضافة اليوم</div></div>
             </div>
 
+            <!-- ADD RESTAURANT PANEL — مفتوح دايماً -->
             <div class="panel">
                 <div class="ph">
                     <div class="pt"><i class="fas fa-plus-circle"></i> إضافة مطعم جديد</div>
-                    <button class="btn btn-sm btn-outline" onclick="toggleAdd()"><i class="fas fa-chevron-down" id="addChev"></i></button>
                 </div>
-                <div id="addWrap" style="display:none">
+                <div class="add-form">
                     <div class="form-grid">
-                        <div class="fg"><label><i class="fas fa-hashtag"></i> المعرف (ID)</label><input class="fi" id="nId" placeholder="alsham" dir="ltr"></div>
-                        <div class="fg"><label><i class="fas fa-store"></i> اسم المطعم *</label><input class="fi" id="nName" placeholder="مطعم الشام"></div>
-                        <div class="fg"><label><i class="fas fa-lock"></i> كلمة المرور *</label><input class="fi" id="nPass" type="password" placeholder="••••••••"></div>
-                        <div class="fg"><label><i class="fas fa-phone"></i> الواتساب</label><input class="fi" id="nPhone" placeholder="+96279xxxxxxx" dir="ltr"></div>
-                        <div class="fg"><label><i class="fas fa-map-marker-alt"></i> العنوان</label><input class="fi" id="nAddr" placeholder="عمان — الأردن"></div>
                         <div class="fg">
-                            <label><i class="fas fa-palette"></i> اللون</label>
+                            <label><i class="fas fa-hashtag"></i> المعرف (ID) *</label>
+                            <input class="fi" id="nId" placeholder="alsham" dir="ltr" autocomplete="off">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-store"></i> اسم المطعم *</label>
+                            <input class="fi" id="nName" placeholder="مطعم الشام">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-lock"></i> كلمة المرور *</label>
+                            <input class="fi" id="nPass" type="password" placeholder="••••••••" value="123456">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-phone"></i> واتساب</label>
+                            <input class="fi" id="nPhone" placeholder="+96279xxxxxxx" dir="ltr">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-map-marker-alt"></i> العنوان</label>
+                            <input class="fi" id="nAddr" placeholder="عمان — الأردن">
+                        </div>
+                        <div class="fg">
+                            <label><i class="fas fa-palette"></i> لون المطعم</label>
                             <select class="fi" id="nColor">
-                                <option value="#d4a843">ذهبي</option>
-                                <option value="#e84040">أحمر</option>
-                                <option value="#4080e8">أزرق</option>
-                                <option value="#28c070">أخضر</option>
-                                <option value="#a040e0">بنفسجي</option>
-                                <option value="#e88040">برتقالي</option>
+                                <option value="#d4a843">🟡 ذهبي</option>
+                                <option value="#e84040">🔴 أحمر</option>
+                                <option value="#4080e8">🔵 أزرق</option>
+                                <option value="#28c070">🟢 أخضر</option>
+                                <option value="#a040e0">🟣 بنفسجي</option>
+                                <option value="#e88040">🟠 برتقالي</option>
                             </select>
                         </div>
                     </div>
                     <div class="factions">
-                        <button class="btn btn-gold" onclick="addRes()"><i class="fas fa-plus"></i> إضافة وتفعيل</button>
-                        <button class="btn btn-outline" onclick="clearAdd()"><i class="fas fa-times"></i> مسح</button>
+                        <button class="btn btn-gold" onclick="addRes()">
+                            <i class="fas fa-plus"></i> إضافة وتفعيل
+                        </button>
+                        <button class="btn btn-outline" onclick="clearAdd()">
+                            <i class="fas fa-times"></i> مسح الحقول
+                        </button>
+                    </div>
+                </div>
+                <!-- نتيجة الإضافة -->
+                <div class="links-result" id="addResult">
+                    <h6><i class="fas fa-check-circle"></i> تم إنشاء المطعم بنجاح!</h6>
+                    <div class="lbox">
+                        <div class="ll">📊 لوحة تحكم المطعم</div>
+                        <div class="lv"><span id="linkDash">—</span><button class="cpb" onclick="cpTxt('linkDash')">نسخ</button></div>
+                    </div>
+                    <div class="lbox">
+                        <div class="ll">🍽 رابط منيو الزبائن (QR)</div>
+                        <div class="lv"><span id="linkMenu">—</span><button class="cpb" onclick="cpTxt('linkMenu')">نسخ</button></div>
                     </div>
                 </div>
             </div>
 
+            <!-- RESTAURANTS LIST -->
             <div class="panel">
                 <div class="ph">
                     <div class="pt"><i class="fas fa-network-wired"></i> شبكة المطاعم</div>
@@ -973,26 +1073,38 @@
                 </div>
                 <div class="filter-row">
                     <input class="srch" id="srch" placeholder="🔍 بحث بالاسم أو المعرف..." oninput="filterList()">
-                    <button class="fb on" id="f-all" onclick="setF('all',this)">الكل</button>
-                    <button class="fb" id="f-on" onclick="setF('active',this)">نشط</button>
-                    <button class="fb" id="f-off" onclick="setF('closed',this)">موقوف</button>
+                    <button class="fb on" onclick="setF('all',this)">الكل</button>
+                    <button class="fb" onclick="setF('active',this)">نشط</button>
+                    <button class="fb" onclick="setF('closed',this)">موقوف</button>
                 </div>
                 <div class="tbl-wrap">
                     <table>
-                        <thead><tr><th>المطعم</th><th>الهاتف</th><th>العنوان</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
-                        <tbody id="resTbody"></tbody>
+                        <thead>
+                            <tr>
+                                <th>المطعم</th>
+                                <th>الهاتف</th>
+                                <th>العنوان</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resTbody">
+                            <tr><td colspan="5"><div class="empty"><i class="fas fa-spinner fa-spin"></i>جاري التحميل...</div></td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
 
+        </div><!-- /body -->
+    </div><!-- /mainApp -->
     <!-- LINKS MODAL -->
     <div class="modal-bg" id="lModal">
         <div class="modal">
             <div class="mt"><i class="fas fa-link"></i> روابط وQR Code</div>
             <div id="lContent"></div>
-            <div class="ma"><button class="btn btn-gold btn-sm" onclick="cm('lModal')">إغلاق</button></div>
+            <div class="ma">
+                <button class="btn btn-gold btn-sm" onclick="cm('lModal')">إغلاق</button>
+            </div>
         </div>
     </div>
 
@@ -1001,7 +1113,10 @@
         <div class="modal">
             <div class="mt"><i class="fas fa-key"></i> تغيير كلمة المرور</div>
             <input type="hidden" id="pResId">
-            <div class="fg" style="margin-bottom:16px"><label>كلمة المرور الجديدة</label><input class="fi" type="password" id="pVal" placeholder="••••••••"></div>
+            <div class="fg" style="margin-bottom:16px">
+                <label>كلمة المرور الجديدة</label>
+                <input class="fi" type="password" id="pVal" placeholder="••••••••">
+            </div>
             <div class="ma">
                 <button class="btn btn-gold btn-sm" onclick="doPass()">تغيير</button>
                 <button class="btn btn-outline btn-sm" onclick="cm('pModal')">إلغاء</button>
@@ -1015,60 +1130,117 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        const FC = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app", projectId: "argon-system" };
+        // ─── FIREBASE ───
+        const FC = {
+            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+            authDomain: "argon-system.firebaseapp.com",
+            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "argon-system"
+        };
         firebase.initializeApp(FC);
         const db = firebase.database();
         const ADMIN = { u: 'admin', p: 'admin2024' };
         let data = [], curF = 'all';
 
-        setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) }, 1000);
+        // ─── CLOCK ───
+        setInterval(() => {
+            const el = document.getElementById('clock');
+            if (el) el.textContent = new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }, 1000);
 
+        // ─── BASE URL (يشتغل من أي مكان) ───
+        function getBase() {
+            const href = window.location.href;
+            // يشيل اسم الملف الحالي ويبقي المسار
+            return href.substring(0, href.lastIndexOf('/') + 1);
+        }
+
+        // ─── LOGIN ───
         function doLogin() {
-            const u = document.getElementById('lu').value.trim(), p = document.getElementById('lp').value;
+            const u = document.getElementById('lu').value.trim();
+            const p = document.getElementById('lp').value;
             if (u === ADMIN.u && p === ADMIN.p) {
-                document.getElementById('loginPage').style.cssText = 'opacity:0;transition:.4s';
-                setTimeout(() => { document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
+                const lp = document.getElementById('loginPage');
+                lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
+                setTimeout(() => { lp.style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
             } else {
-                const e = document.getElementById('lerr'); e.style.display = 'block'; e.classList.add('shake');
-                setTimeout(() => { e.style.display = 'none'; e.classList.remove('shake'); }, 3000);
+                const e = document.getElementById('lerr');
+                e.style.display = 'block';
+                e.classList.add('shake');
+                setTimeout(() => { e.classList.remove('shake'); }, 400);
+                setTimeout(() => { e.style.display = 'none'; }, 3000);
             }
         }
-        function logout() { document.getElementById('mainApp').style.display = 'none'; document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1'; document.getElementById('lu').value = ''; document.getElementById('lp').value = ''; }
+        // Enter key في حقل كلمة المرور
+        document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });
 
+        function logout() {
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1';
+            document.getElementById('lu').value = '';
+            document.getElementById('lp').value = '';
+        }
+
+        // ─── LOAD DATA ───
         function loadData() {
             db.ref('restaurants').on('value', snap => {
-                data = []; snap.forEach(c => data.push({ id: c.key, ...c.val() }));
+                data = [];
+                snap.forEach(c => data.push({ id: c.key, ...c.val() }));
                 const today = new Date().toDateString();
                 document.getElementById('s-tot').textContent = data.length;
                 document.getElementById('s-on').textContent = data.filter(r => (r.settings?.status || 'active') !== 'closed').length;
                 document.getElementById('s-off').textContent = data.filter(r => r.settings?.status === 'closed').length;
-                document.getElementById('s-today').textContent = data.filter(r => r.settings?.createdAt && new Date(r.settings.createdAt).toDateString() === today).length;
+                document.getElementById('s-today').textContent = data.filter(r => {
+                    if (!r.settings?.createdAt) return false;
+                    return new Date(r.settings.createdAt).toDateString() === today;
+                }).length;
                 filterList();
             });
         }
 
         function renderList(d) {
             const tbody = document.getElementById('resTbody');
-            if (!d.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><i class="fas fa-store"></i>لا توجد مطاعم</div></td></tr>`; return; }
+            if (!d.length) {
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><i class="fas fa-store"></i>لا توجد مطاعم مطابقة</div></td></tr>`;
+                return;
+            }
+            const base = getBase();
             tbody.innerHTML = d.map(r => {
-                const s = r.settings || {}; const off = s.status === 'closed'; const c = s.color || '#d4a843';
+                const s = r.settings || {};
+                const off = s.status === 'closed';
+                const c = s.color || '#d4a843';
                 return `<tr>
-          <td><div class="rav"><div class="ra" style="background:linear-gradient(135deg,${c}88,${c})">${(s.name || '?').charAt(0)}</div><div><div class="rname">${s.name || '—'}</div><div class="rid">${r.id}</div></div></div></td>
+          <td>
+            <div class="rav">
+              <div class="ra" style="background:linear-gradient(135deg,${c}88,${c})">${(s.name || '?').charAt(0)}</div>
+              <div>
+                <div class="rname">${s.name || '—'}</div>
+                <div class="rid">${r.id}</div>
+              </div>
+            </div>
+          </td>
           <td style="direction:ltr;font-size:13px;color:var(--muted)">${s.phone || '—'}</td>
           <td style="font-size:12px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.address || '—'}</td>
           <td><span class="badge ${off ? 'boff' : 'bon'}">${off ? 'موقوف' : 'نشط'}</span></td>
-          <td><div class="acts">
-            <button class="ab ag" onclick="showLinks('${r.id}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-link"></i> روابط</button>
-            <button class="ab" onclick="window.open('dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
-            <button class="ab ${off ? 'agr' : 'ar'}" onclick="toggleStatus('${r.id}','${s.status || 'active'}')"><i class="fas fa-${off ? 'play' : 'pause'}"></i>${off ? 'تفعيل' : 'إيقاف'}</button>
-            <button class="ab" onclick="opPass('${r.id}')"><i class="fas fa-key"></i></button>
-            <button class="ab ar" onclick="delRes('${r.id}','${s.name || ''}')"><i class="fas fa-trash"></i></button>
-          </div></td>
+          <td>
+            <div class="acts">
+              <button class="ab ag" onclick="showLinks('${r.id}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-link"></i> روابط</button>
+              <button class="ab" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
+              <button class="ab ${off ? 'agr' : 'ar'}" onclick="toggleStatus('${r.id}','${s.status || 'active'}')"><i class="fas fa-${off ? 'play' : 'pause'}"></i>${off ? 'تفعيل' : 'إيقاف'}</button>
+              <button class="ab" onclick="opPass('${r.id}')"><i class="fas fa-key"></i></button>
+              <button class="ab ar" onclick="delRes('${r.id}','${(s.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
         </tr>`;
             }).join('');
         }
 
-        function setF(f, el) { curF = f; document.querySelectorAll('.fb').forEach(b => b.classList.remove('on')); el.classList.add('on'); filterList(); }
+        function setF(f, el) {
+            curF = f;
+            document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+            el.classList.add('on');
+            filterList();
+        }
         function filterList() {
             const q = document.getElementById('srch').value.toLowerCase();
             let f = data;
@@ -1078,61 +1250,128 @@
             renderList(f);
         }
 
-        function toggleAdd() { const w = document.getElementById('addWrap'), open = w.style.display !== 'none'; w.style.display = open ? 'none' : 'block'; document.getElementById('addChev').className = `fas fa-chevron-${open ? 'down' : 'up'}`; }
-        function clearAdd() { ['nId', 'nName', 'nPass', 'nPhone', 'nAddr'].forEach(id => document.getElementById(id).value = ''); }
+        // ─── ADD RESTAURANT ───
         function addRes() {
-            const id = document.getElementById('nId').value.trim(), name = document.getElementById('nName').value.trim(), pass = document.getElementById('nPass').value;
-            if (!id || !name || !pass) { toast('يرجى تعبئة المعرف والاسم وكلمة المرور', 'err'); return; }
+            const id = document.getElementById('nId').value.trim();
+            const name = document.getElementById('nName').value.trim();
+            const pass = document.getElementById('nPass').value;
+            if (!id) { toast('يرجى إدخال المعرف (ID)', 'err'); document.getElementById('nId').focus(); return; }
+            if (!name) { toast('يرجى إدخال اسم المطعم', 'err'); document.getElementById('nName').focus(); return; }
+            if (!pass) { toast('يرجى إدخال كلمة المرور', 'err'); document.getElementById('nPass').focus(); return; }
+
+            const phone = document.getElementById('nPhone').value.trim();
+            const addr = document.getElementById('nAddr').value.trim();
+            const color = document.getElementById('nColor').value;
+
+            // التحقق من عدم وجود المعرف مسبقاً
             db.ref(`restaurants/${id}`).once('value', snap => {
-                if (snap.exists()) { toast('المعرف موجود مسبقاً — اختر آخر', 'err'); return; }
-                const phone = document.getElementById('nPhone').value.trim(), addr = document.getElementById('nAddr').value.trim(), color = document.getElementById('nColor').value;
-                db.ref(`restaurants/${id}/settings`).set({ name, password: pass, phone, address: addr, color, status: 'active', createdAt: new Date().toISOString() }).then(() => {
-                    toast(`✅ "${name}" تمت الإضافة بنجاح`, 'ok'); clearAdd(); toggleAdd(); showLinks(id, name);
+                if (snap.exists()) {
+                    toast('⚠️ هذا المعرف مستخدم مسبقاً — اختر معرفاً آخر', 'err');
+                    return;
+                }
+                // حفظ البيانات
+                db.ref(`restaurants/${id}/settings`).set({
+                    name, password: pass, phone, address: addr, color,
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                }).then(() => {
+                    const base = getBase();
+                    const dashLink = `${base}dashboard.html?id=${id}`;
+                    const menuLink = `${base}index.html?id=${id}`;
+                    document.getElementById('linkDash').textContent = dashLink;
+                    document.getElementById('linkMenu').textContent = menuLink;
+                    document.getElementById('addResult').style.display = 'block';
+                    toast(`✅ "${name}" تمت الإضافة بنجاح!`, 'ok');
+                    // عرض روابط في المودال أيضاً
+                    setTimeout(() => showLinks(id, name), 400);
+                }).catch(err => {
+                    toast('حدث خطأ: ' + err.message, 'err');
                 });
             });
         }
 
+        function clearAdd() {
+            ['nId', 'nName', 'nPass', 'nPhone', 'nAddr'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('nPass').value = '123456';
+            document.getElementById('addResult').style.display = 'none';
+        }
+        function cpTxt(id) {
+            const txt = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(txt).then(() => toast('✅ تم النسخ', 'ok'));
+        }
+
+        // ─── TOGGLE STATUS ───
         function toggleStatus(id, cur) {
             const n = (cur === 'closed') ? 'active' : 'closed';
             db.ref(`restaurants/${id}/settings`).update({ status: n });
             toast(n === 'closed' ? '⏸ تم إيقاف المطعم' : '▶ تم تفعيل المطعم', n === 'closed' ? 'err' : 'ok');
         }
+
+        // ─── DELETE ───
         function delRes(id, name) {
-            if (!confirm(`⚠️ حذف "${name}" نهائياً؟\nكل البيانات والطلبات ستُحذف.`)) return;
-            db.ref(`restaurants/${id}`).remove(); toast('تم الحذف', 'err');
-        }
-        function opPass(id) { document.getElementById('pResId').value = id; document.getElementById('pVal').value = ''; document.getElementById('pModal').classList.add('open'); }
-        function doPass() {
-            const id = document.getElementById('pResId').value, p = document.getElementById('pVal').value;
-            if (!p) { toast('أدخل كلمة المرور', 'err'); return; }
-            db.ref(`restaurants/${id}/settings`).update({ password: p }); toast('✅ تم تغيير كلمة المرور', 'ok'); cm('pModal');
+            if (!confirm(`⚠️ حذف "${name}" نهائياً؟\nكل البيانات والطلبات ستُحذف ولا يمكن التراجع.`)) return;
+            db.ref(`restaurants/${id}`).remove()
+                .then(() => toast('🗑 تم الحذف', 'err'))
+                .catch(e => toast('خطأ في الحذف: ' + e.message, 'err'));
         }
 
+        // ─── CHANGE PASSWORD ───
+        function opPass(id) {
+            document.getElementById('pResId').value = id;
+            document.getElementById('pVal').value = '';
+            document.getElementById('pModal').classList.add('open');
+            setTimeout(() => document.getElementById('pVal').focus(), 200);
+        }
+        function doPass() {
+            const id = document.getElementById('pResId').value;
+            const p = document.getElementById('pVal').value;
+            if (!p) { toast('أدخل كلمة المرور الجديدة', 'err'); return; }
+            db.ref(`restaurants/${id}/settings`).update({ password: p })
+                .then(() => { toast('✅ تم تغيير كلمة المرور', 'ok'); cm('pModal'); })
+                .catch(e => toast('خطأ: ' + e.message, 'err'));
+        }
+
+        // ─── SHOW LINKS + QR ───
         function showLinks(id, name) {
-            const nm = decodeURIComponent(name);
-            const base = window.location.href.replace(/[^\/]*$/, '');
-            const dash = `${base}dashboard.html?id=${id}`, menu = `${base}index.html?id=${id}`;
+            const nm = typeof name === 'string' ? decodeURIComponent(name) : name;
+            const base = getBase();
+            const dash = `${base}dashboard.html?id=${id}`;
+            const menu = `${base}index.html?id=${id}`;
             const qid = 'qr' + Date.now();
             document.getElementById('lContent').innerHTML = `
         <div style="font-size:15px;font-weight:700;color:var(--g2);margin-bottom:16px">🍽 ${nm}</div>
-        <div class="lbox"><div class="ll"><i class="fas fa-tachometer-alt"></i> لوحة تحكم المطعم</div>
-          <div class="lv"><span>${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div></div>
-        <div class="lbox"><div class="ll"><i class="fas fa-qrcode"></i> منيو الزبائن — QR Code</div>
-          <div class="lv"><span>${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
-          <div class="qrwrap"><div class="qrbox" id="${qid}"></div>
+        <div class="lbox-m">
+          <div class="ll-m">📊 لوحة تحكم المطعم</div>
+          <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div>
+        </div>
+        <div class="lbox-m">
+          <div class="ll-m">📱 منيو الزبائن — QR Code</div>
+          <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
+          <div class="qrwrap">
+            <div class="qrbox" id="${qid}"></div>
             <div style="margin-top:10px;display:flex;gap:8px;justify-content:center">
-              <button class="cpb" onclick="printQR('${qid}','${nm}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
+              <button class="cpb" onclick="printQR('${qid}','${nm.replace(/'/g, "\\'")}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
               <button class="cpb" onclick="cp('${menu}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
             </div>
           </div>
         </div>`;
             document.getElementById('lModal').classList.add('open');
-            setTimeout(() => { new QRCode(document.getElementById(qid), { text: menu, width: 180, height: 180, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H }); }, 120);
+            setTimeout(() => {
+                try {
+                    new QRCode(document.getElementById(qid), {
+                        text: menu, width: 180, height: 180,
+                        colorDark: '#000', colorLight: '#fff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (e) { console.warn('QR error', e); }
+            }, 150);
         }
 
         function printQR(qid, name, url) {
             const cv = document.getElementById(qid)?.querySelector('canvas');
-            if (!cv) { toast('QR لم يُحمَّل بعد', 'err'); return; }
+            if (!cv) { toast('انتظر لحظة ثم حاول مجدداً', 'err'); return; }
             const w = window.open('', '_blank');
             w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR - ${name}</title>
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
@@ -1149,11 +1388,17 @@
         function cp(t) { navigator.clipboard.writeText(t).then(() => toast('✅ تم النسخ', 'ok')); }
         function cm(id) { document.getElementById(id).classList.remove('open'); }
         function toast(msg, type = 'info') {
-            const w = document.getElementById('tw'), t = document.createElement('div');
+            const w = document.getElementById('tw');
+            const t = document.createElement('div');
             t.className = `toast ${type}`; t.textContent = msg; w.appendChild(t);
             setTimeout(() => t.classList.add('show'), 10);
-            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3200);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
         }
+
+        // إغلاق المودال عند الضغط على الخلفية
+        document.querySelectorAll('.modal-bg').forEach(mb => {
+            mb.addEventListener('click', e => { if (e.target === mb) mb.classList.remove('open'); });
+        });
     </script>
 </body>
 </html>
