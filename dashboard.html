@@ -163,7 +163,10 @@
     <div class="wrapper">
         <div class="sidebar">
             <div class="argon-logo"><h4>ARGON</h4><small id="resIdDisplay">ID: --</small></div>
-            <div class="p-4 text-center"><h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5></div>
+            <div class="p-4 text-center">
+                <h5 id="sideName" class="fw-bold mb-1 text-white">تحميل...</h5>
+                <span id="statusBadge" class="badge bg-secondary">--</span>
+            </div>
             <div class="sidebar-menu flex-grow-1">
                 <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-line"></i> الجرد والمبيعات</div>
                 <div class="menu-item" onclick="showSec('liveOrders', this)"><i class="fas fa-fire"></i> الطلبات الحية <span id="newOrderBadge" class="badge bg-danger ms-2 d-none">!</span></div>
@@ -186,14 +189,9 @@
                     <div class="col-md-3"><div class="stat-card"><h6>✅ طلبات ناجحة</h6><h2 id="statCompleted">0</h2><small>عملية مكتملة</small></div></div>
                     <div class="col-md-3"><div class="stat-card"><h6>⭐ متوسط الطلب</h6><h2 id="avgOrder" class="text-info">0.00</h2><small>قيمة الفاتورة</small></div></div>
                 </div>
-
                 <div class="mt-5">
                     <h5 class="fw-bold mb-3"><i class="fas fa-star text-warning me-2"></i>تحليل مبيعات الأصناف</h5>
-                    <div class="card p-4 border-0 shadow-sm rounded-4" style="background: var(--card)">
-                        <div id="bestSellerList" class="row">
-                            <div class="text-muted small">بانتظار البيانات لتحليل الأكثر مبيعاً...</div>
-                        </div>
-                    </div>
+                    <div class="card p-4 border-0 shadow-sm rounded-4" style="background: var(--card)"><div id="bestSellerList" class="row"><div class="text-muted small">جاري التحليل...</div></div></div>
                 </div>
             </div>
 
@@ -228,130 +226,97 @@
                 <div class="card p-4 col-md-8 border-0 shadow-sm rounded-4" style="background: var(--card)">
                     <div class="mb-3"><label>اسم المطعم</label><input type="text" id="resNameInp" class="form-control"></div>
                     <div class="mb-3"><label>رقم الواتساب</label><input type="text" id="resPhoneInp" class="form-control"></div>
-                    <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ التغييرات</button>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label>حالة المطعم</label><select id="resStatusInp" class="form-select"><option value="open">مفتوح الآن ✅</option><option value="closed">مغلق مؤقتاً ❌</option></select></div>
+                        <div class="col-md-6 mb-3"><label>ساعات العمل (مثال: 9ص - 11م)</label><input type="text" id="resHoursInp" class="form-control"></div>
+                    </div>
+                    <button class="btn btn-success w-100 py-3 fw-bold rounded-pill mt-3" onclick="saveSets()">حفظ كل التغييرات</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="previewModal">
-        <div class="text-center">
-            <button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق X</button>
-            <div class="phone-frame"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
-        </div>
-    </div>
+    <div id="previewModal"><div class="text-center"><button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق X</button><div class="phone-frame"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-            authDomain: "argon-system.firebaseapp.com",
-            projectId: "argon-system",
-            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", projectId: "argon-system", databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         const urlParams = new URLSearchParams(window.location.search);
         const RES_ID = urlParams.get("id") || "99";
         document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
 
-        let initialLoadDone = false;
-        const notificationSound = document.getElementById('orderNotificationSound');
-
         function formatItemsList(itemsRaw) {
-            let itemsArray = (itemsRaw || "").split(' + ');
-            let itemsCount = {};
+            let itemsArray = (itemsRaw || "").split(' + '); let itemsCount = {};
             itemsArray.forEach(item => { item = item.trim(); if (item) itemsCount[item] = (itemsCount[item] || 0) + 1; });
             return Object.entries(itemsCount).map(([name, count]) => `<span class="badge bg-light text-dark border me-1 py-1 px-2 mb-1">${count} x ${name}</span>`).join(' ');
         }
 
         db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            const sets = data.settings || {};
-            const orders = data.orders || {};
-            const completed = data.completedOrders || {};
-            const products = data.products || {};
+            const data = snapshot.val() || {}; const sets = data.settings || {}; const orders = data.orders || {}; const completed = data.completedOrders || {}; const products = data.products || {};
 
             document.getElementById('sideName').innerText = sets.name || "مطعم أرغون";
+            document.getElementById('resNameInp').value = sets.name || "";
+            document.getElementById('resPhoneInp').value = sets.phone || "";
+            document.getElementById('resStatusInp').value = sets.status || "open";
+            document.getElementById('resHoursInp').value = sets.hours || "";
 
-            // تحديث الجرد والمبيعات
+            const sBadge = document.getElementById('statusBadge');
+            if (sets.status === 'closed') { sBadge.innerText = "مغلق"; sBadge.className = "badge bg-danger"; }
+            else { sBadge.innerText = "مفتوح"; sBadge.className = "badge bg-success"; }
+
             let totalRev = 0; let completedCount = 0; let productSalesStats = {};
             for (let k in completed) {
-                totalRev += parseFloat(completed[k].total || 0);
-                completedCount++;
-                // تتبع الأصناف الأكثر مبيعاً
+                totalRev += parseFloat(completed[k].total || 0); completedCount++;
                 let items = (completed[k].items || "").split(' + ');
                 items.forEach(i => { if (i.trim()) productSalesStats[i.trim()] = (productSalesStats[i.trim()] || 0) + 1; });
             }
-
             document.getElementById('totalRevenue').innerText = totalRev.toFixed(2);
             document.getElementById('statCompleted').innerText = completedCount;
             document.getElementById('avgOrder').innerText = completedCount > 0 ? (totalRev / completedCount).toFixed(2) : "0.00";
 
-            // عرض أكثر الأصناف مبيعاً
-            const bestSellerList = document.getElementById('bestSellerList');
-            bestSellerList.innerHTML = "";
-            let sortedProducts = Object.entries(productSalesStats).sort((a, b) => b[1] - a[1]).slice(0, 4);
-            sortedProducts.forEach(([name, count]) => {
+            const bestSellerList = document.getElementById('bestSellerList'); bestSellerList.innerHTML = "";
+            Object.entries(productSalesStats).sort((a, b) => b[1] - a[1]).slice(0, 4).forEach(([name, count]) => {
                 bestSellerList.innerHTML += `<div class="col-md-3 text-center border-start"><h6>${name}</h6><b class="text-primary">${count} طلب</b></div>`;
             });
 
-            // تحديث الطلبات الحية والانتظار
-            let pendingRev = 0; const ordersGrid = document.getElementById('ordersGrid');
-            ordersGrid.innerHTML = "";
+            let pendingRev = 0; const ordersGrid = document.getElementById('ordersGrid'); ordersGrid.innerHTML = "";
             for (let k in orders) {
                 pendingRev += parseFloat(orders[k].total || 0);
-                ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row">
-                        <div class="flex-grow-1"><b>#${orders[k].orderNo} | ${orders[k].custName}</b><br>${formatItemsList(orders[k].items)}</div>
-                        <button class="btn btn-success btn-sm" onclick="completeOrder('${k}', ${JSON.stringify(orders[k]).replace(/"/g, '&quot;')})">إكمال</button>
-                    </div></div>`;
+                const note = orders[k].notes ? `<div class="mt-2 text-warning small">📝 ملاحظة: ${orders[k].notes}</div>` : "";
+                ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row"><div class="flex-grow-1"><b>#${orders[k].orderNo} | ${orders[k].custName}</b><br>${formatItemsList(orders[k].items)}${note}</div><button class="btn btn-success btn-sm" onclick="completeOrder('${k}', ${JSON.stringify(orders[k]).replace(/"/g, '&quot;')})">إكمال</button></div></div>`;
             }
             document.getElementById('pendingRevenue').innerText = pendingRev.toFixed(2);
 
-            // سجل المبيعات
-            const completedGrid = document.getElementById('completedOrdersGrid');
-            completedGrid.innerHTML = "";
+            const completedGrid = document.getElementById('completedOrdersGrid'); completedGrid.innerHTML = "";
             for (let k in completed) {
-                completedGrid.innerHTML += `<div class="col-md-6"><div class="res-row" style="border-right-color: #10b981; opacity: 0.8;">
-                        <div><b>#${completed[k].orderNo}</b><br>${formatItemsList(completed[k].items)}</div>
-                        <div class="text-success fw-bold">${completed[k].total} د.أ</div>
-                    </div></div>`;
+                const note = completed[k].notes ? `<div class="mt-1 text-muted small">الملاحظة: ${completed[k].notes}</div>` : "";
+                completedGrid.innerHTML += `<div class="col-md-6"><div class="res-row" style="border-right-color: #10b981; opacity: 0.8;"><div><b>#${completed[k].orderNo}</b><br>${formatItemsList(completed[k].items)}${note}</div><div class="text-success fw-bold">${completed[k].total} د.أ</div></div></div>`;
             }
 
-            // المنيو
-            const menuGrid = document.getElementById('menuGrid');
-            menuGrid.innerHTML = "";
+            const menuGrid = document.getElementById('menuGrid'); menuGrid.innerHTML = "";
             for (let k in products) {
-                menuGrid.innerHTML += `<div class="col-md-3"><div class="stat-card text-center">
-                        <img src="${products[k].img}" class="w-100 rounded mb-2" style="height:100px;object-fit:cover;">
-                        <h6>${products[k].name}</h6><b class="text-primary">${products[k].price} د.أ</b>
-                        <button class="btn btn-link text-danger btn-sm w-100" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">حذف</button>
-                    </div></div>`;
+                menuGrid.innerHTML += `<div class="col-md-3"><div class="stat-card text-center"><img src="${products[k].img}" class="w-100 rounded mb-2" style="height:100px;object-fit:cover;"><h6>${products[k].name}</h6><b class="text-primary">${products[k].price} د.أ</b><button class="btn btn-link text-danger btn-sm w-100" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">حذف</button></div></div>`;
             }
         });
 
-        function completeOrder(key, orderData) {
-            db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData)
-                .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove());
+        function saveSets() {
+            db.ref('restaurants/' + RES_ID + '/settings').update({
+                name: document.getElementById('resNameInp').value,
+                phone: document.getElementById('resPhoneInp').value,
+                status: document.getElementById('resStatusInp').value,
+                hours: document.getElementById('resHoursInp').value
+            }).then(() => alert("تم حفظ الإعدادات بنجاح ✅"));
         }
 
+        function completeOrder(key, orderData) { db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData).then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove()); }
         function addItem() {
-            const name = document.getElementById('itemName').value;
-            const price = document.getElementById('itemPrice').value;
-            const img = document.getElementById('itemImg').value;
+            const name = document.getElementById('itemName').value; const price = document.getElementById('itemPrice').value; const img = document.getElementById('itemImg').value;
             if (name && price) db.ref('restaurants/' + RES_ID + '/products').push({ name, price, img });
         }
-
-        function showSec(id, btn) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
+        function showSec(id, btn) { document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active')); btn.classList.add('active'); }
         function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('previewModal').style.display = 'flex'; }
         function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
         function clearHistory() { if (confirm('هل تريد مسح سجل المبيعات؟')) db.ref('restaurants/' + RES_ID + '/completedOrders').remove(); }
