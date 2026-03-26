@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        /* التنسيقات الأساسية */
         * {
             margin: 0;
             padding: 0;
@@ -38,41 +39,6 @@
             height: 100vh
         }
 
-            body::after {
-                content: '';
-                position: fixed;
-                inset: 0;
-                background: radial-gradient(ellipse 80% 50% at 50% -20%,rgba(212,168,67,0.1),transparent);
-                z-index: -1;
-                pointer-events: none
-            }
-
-        button, input, select, textarea {
-            font-family: inherit;
-            color: inherit;
-            outline: none
-        }
-
-        button {
-            cursor: pointer;
-            border: none;
-            background: none;
-            transition: .3s
-        }
-
-        ::-webkit-scrollbar {
-            width: 5px
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg)
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 10px
-        }
-
         .app {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -84,18 +50,7 @@
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            z-index: 100
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--g1);
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            gap: 10px
+            padding: 20px
         }
 
         .nav-btn {
@@ -107,25 +62,21 @@
             gap: 15px;
             color: var(--muted);
             font-weight: 600;
-            margin-bottom: 8px
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: .3s
         }
 
             .nav-btn.active {
                 background: linear-gradient(45deg,var(--g3),var(--g1));
-                color: var(--bg);
-                box-shadow: 0 8px 20px rgba(212,168,67,0.2)
+                color: var(--bg)
             }
 
         main {
             padding: 30px;
             overflow-y: auto
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px
         }
 
         .stats-grid {
@@ -143,34 +94,11 @@
             position: relative
         }
 
-            .stat-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 4px;
-                height: 100%;
-                background: var(--accent)
-            }
-
         .stat-val {
             font-size: 28px;
             font-weight: 800;
             margin: 10px 0
         }
-
-        .stat-label {
-            color: var(--muted);
-            font-size: 14px
-        }
-
-        .section {
-            display: none
-        }
-
-            .section.active {
-                display: block
-            }
 
         .card-table {
             background: var(--card);
@@ -214,249 +142,103 @@
             background: rgba(40,192,112,0.1);
             color: var(--green)
         }
-
-        .st-cancel {
-            background: rgba(232,64,80,0.1);
-            color: var(--red)
-        }
-
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px
-        }
-
-            .modal.open {
-                display: flex
-            }
-
-        .modal-content {
-            background: var(--card);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            padding: 30px
-        }
-
-        .form-control {
-            width: 100%;
-            background: var(--card2);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            color: #fff
-        }
-
-        .btn-gold {
-            background: linear-gradient(45deg,var(--g3),var(--g1));
-            color: var(--bg);
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 700;
-            width: 100%
-        }
     </style>
 </head>
 <body>
 
     <div class="app">
         <aside>
-            <div class="logo"><i class="fas fa-crown"></i> <span>ARGON</span></div>
+            <div style="font-size:24px;font-weight:900;color:var(--g1);margin-bottom:40px"><i class="fas fa-crown"></i> ARGON</div>
             <nav>
-                <button class="nav-btn active" onclick="showSec('orders',this)"><i class="fas fa-shopping-bag"></i> <span>الطلبات</span></button>
-                <button class="nav-btn" onclick="showSec('menu',this)"><i class="fas fa-utensils"></i> <span>المنيو</span></button>
-                <button class="nav-btn" onclick="showSec('settings',this)"><i class="fas fa-cog"></i> <span>الإعدادات</span></button>
+                <button class="nav-btn active"><i class="fas fa-shopping-bag"></i> الطلبات</button>
             </nav>
         </aside>
 
         <main>
-            <header>
-                <div><h1 id="sec-title">إدارة الطلبات</h1><p id="conn-status" style="color:var(--muted)">جاري الاتصال بـ Firebase...</p></div>
+            <header style="display:flex;justify-content:space-between;margin-bottom:30px">
+                <div><h1>إدارة الطلبات</h1><p id="conn-status" style="color:var(--red)">جاري الاتصال...</p></div>
             </header>
 
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-label">إجمالي الطلبات</div><div class="stat-val" id="stat-total-orders">0</div></div>
-                <div class="stat-card" style="--accent:var(--green)"><div class="stat-label">ناجحة</div><div class="stat-val" id="stat-success-orders">0</div></div>
-                <div class="stat-card" style="--accent:var(--blue)"><div class="stat-label">المبيعات</div><div class="stat-val" id="stat-sales">0.00</div></div>
-                <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">الأصناف</div><div class="stat-val" id="stat-menu-items">0</div></div>
+                <div class="stat-card"><div>إجمالي الطلبات</div><div class="stat-val" id="stat-total">0</div></div>
+                <div class="stat-card"><div>المبيعات</div><div class="stat-val" id="stat-sales">0.00</div></div>
             </div>
 
-            <div id="sec-orders" class="section active">
-                <div class="card-table">
-                    <table>
-                        <thead><tr><th>رقم الطلب</th><th>التاريخ</th><th>الطاولة</th><th>المبلغ</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-                        <tbody id="orders-list"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="sec-menu" class="section">
-                <div style="display:flex;justify-content:space-between;margin-bottom:20px">
-                    <select id="menu-cat-filter" class="form-control" style="width:150px" onchange="loadMenu()"><option value="all">الكل</option></select>
-                    <button class="btn-gold" style="width:auto" onclick="openMenuModal()">+ إضافة صنف</button>
-                </div>
-                <div class="card-table">
-                    <table>
-                        <thead><tr><th>الصورة</th><th>الاسم</th><th>التصنيف</th><th>السعر</th><th>إجراءات</th></tr></thead>
-                        <tbody id="menu-list"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="sec-settings" class="section">
-                <div class="stat-card" style="max-width:500px;margin:auto">
-                    <input type="text" id="s-name" class="form-control" placeholder="اسم المطعم">
-                    <input type="text" id="s-cur" class="form-control" placeholder="العملة">
-                    <button class="btn-gold" onclick="saveSettings()">حفظ الإعدادات</button>
-                </div>
+            <div class="card-table">
+                <table>
+                    <thead><tr><th>رقم الطلب</th><th>الوقت</th><th>التفاصيل</th><th>المبلغ</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                    <tbody id="orders-list"></tbody>
+                </table>
             </div>
         </main>
-    </div>
-
-    <div id="order-modal" class="modal"><div class="modal-content"><div id="order-detail-content"></div><button class="btn-gold" onclick="cm('order-modal')" style="margin-top:20px;background:var(--border);color:#fff">إغلاق</button><div id="order-actions" style="margin-top:10px;display:flex;gap:10px"></div></div></div>
-
-    <div id="menu-modal" class="modal">
-        <div class="modal-content">
-            <input type="hidden" id="m-id">
-            <input type="text" id="m-name" class="form-control" placeholder="الاسم">
-            <input type="text" id="m-cat" class="form-control" placeholder="التصنيف">
-            <input type="number" id="m-price" class="form-control" placeholder="السعر">
-            <input type="text" id="m-img" class="form-control" placeholder="رابط الصورة">
-            <button class="btn-gold" onclick="saveMenuItem()">حفظ الصنف</button>
-            <button onclick="cm('menu-modal')" style="width:100%;margin-top:10px;color:var(--muted)">إلغاء</button>
-        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const RID = params.get('id');
-
-        // التأكد من أن الرابط ينتهي بـ /
-        const firebaseConfig = { databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/" };
+        // 1. استخدام الرابط الصحيح من الصورة الثانية
+        const firebaseConfig = {
+            databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let RSettings = { currency: 'JOD' };
-        let AllOrders = [];
+        // 2. استخراج ID المطعم من الرابط (dashboard.html?id=1)
+        const params = new URLSearchParams(window.location.search);
+        const RID = params.get('id') || "1";
 
-        function fixNum(n) { return (parseFloat(n) || 0).toFixed(2); }
-
-        // فحص الاتصال
+        // مراقبة حالة الاتصال
         db.ref(".info/connected").on("value", (snap) => {
             const status = document.getElementById('conn-status');
             if (snap.val() === true) {
-                status.innerText = "● متصل بـ Firebase"; status.style.color = "var(--green)";
+                status.innerText = "● متصل"; status.style.color = "#28c070";
             } else {
-                status.innerText = "○ فصل الاتصال - جاري المحاولة..."; status.style.color = "var(--red)";
+                status.innerText = "○ فصل الاتصال - جاري المحاولة..."; status.style.color = "#e84050";
             }
         });
 
-        function showSec(id, btn) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById('sec-' + id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        // تحميل الإعدادات
-        db.ref(`restaurants/${RID}/settings`).on('value', s => {
-            RSettings = s.val() || { currency: 'JOD' };
-            document.getElementById('s-name').value = RSettings.name || '';
-            document.getElementById('s-cur').value = RSettings.currency || 'JOD';
-        }, err => { console.error("Permission Error:", err); });
-
-        // تحميل الطلبات
+        // 3. دالة جلب الطلبات ومعالجة بيانات undefined
         function loadOrders() {
-            db.ref(`restaurants/${RID}/orders`).on('value', s => {
-                const data = s.val() || {};
-                AllOrders = Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse();
-                renderOrders();
-                updateStats();
-            }, err => {
-                alert("خطأ في الصلاحيات: تأكد من أن قواعد البيانات (Rules) تسمح بالقراءة.");
+            db.ref(`restaurants/${RID}/orders`).on('value', snap => {
+                const data = snap.val() || {};
+                const list = document.getElementById('orders-list');
+                let html = '';
+                let totalSales = 0;
+                let count = 0;
+
+                Object.keys(data).reverse().forEach(id => {
+                    const o = data[id];
+                    count++;
+                    totalSales += (parseFloat(o.total) || 0);
+
+                    // معالجة العناصر داخل الطلب لمنع ظهور undefined
+                    const itemsSummary = o.items ? Object.values(o.items).map(i => `${i.name || 'صنف'} x ${i.qty || 1}`).join(', ') : 'لا توجد تفاصيل';
+
+                    html += `
+                <tr>
+                    <td>#${id.slice(-4)}</td>
+                    <td>${o.createdAt ? new Date(o.createdAt).toLocaleTimeString('ar-JO') : '---'}</td>
+                    <td style="max-width:250px;font-size:12px;color:var(--muted)">${itemsSummary}</td>
+                    <td style="color:var(--g1);font-weight:bold">${(parseFloat(o.total) || 0).toFixed(2)} JOD</td>
+                    <td><span class="status-pill ${o.status === 'done' ? 'st-done' : 'st-new'}">${o.status === 'done' ? 'مكتمل' : 'جديد'}</span></td>
+                    <td>
+                        ${o.status !== 'done' ? `<button onclick="doneOrder('${id}')" style="background:var(--g1);border:none;padding:5px 10px;border-radius:5px;cursor:pointer">إتمام</button>` : '✅'}
+                    </td>
+                </tr>`;
+                });
+
+                list.innerHTML = html || '<tr><td colspan="6" style="text-align:center">لا توجد طلبات حالياً</td></tr>';
+                document.getElementById('stat-total').innerText = count;
+                document.getElementById('stat-sales').innerText = totalSales.toFixed(2);
             });
         }
 
-        function renderOrders() {
-            const list = document.getElementById('orders-list');
-            list.innerHTML = AllOrders.map(o => `
-        <tr>
-          <td>#${o.id.slice(-5)}</td>
-          <td>${o.time ? new Date(o.time).toLocaleTimeString('ar-EG') : '-'}</td>
-          <td>${o.table || 'سفري'}</td>
-          <td style="color:var(--g1)">${fixNum(o.total)} ${RSettings.currency}</td>
-          <td><span class="status-pill ${o.status === 'done' ? 'st-done' : o.status === 'cancel' ? 'st-cancel' : 'st-new'}">${o.status === 'done' ? 'مكتمل' : o.status === 'cancel' ? 'ملغي' : 'جديد'}</span></td>
-          <td><button onclick="viewOrder('${o.id}')"><i class="fas fa-eye"></i></button></td>
-        </tr>`).join('');
+        function doneOrder(id) {
+            db.ref(`restaurants/${RID}/orders/${id}`).update({ status: 'done' });
         }
 
-        function viewOrder(id) {
-            const o = AllOrders.find(x => x.id === id);
-            const itemsHtml = (o.items || []).map(i => `<div style="display:flex;justify-content:space-between"><span>${i.n} × ${i.q}</span><span>${fixNum(i.p * i.q)}</span></div>`).join('');
-            document.getElementById('order-detail-content').innerHTML = itemsHtml + `<hr style="margin:10px 0;border-color:var(--border)"><h3>الإجمالي: ${fixNum(o.total)}</h3>`;
-            document.getElementById('order-actions').innerHTML = o.status === 'new' ? `<button class="btn-gold" onclick="updateStatus('${id}','done')">إتمام</button>` : '';
-            document.getElementById('order-modal').classList.add('open');
-        }
-
-        function updateStatus(id, st) { db.ref(`restaurants/${RID}/orders/${id}/status`).set(st).then(() => cm('order-modal')); }
-
-        function loadMenu() {
-            db.ref(`restaurants/${RID}/menu`).on('value', s => {
-                const data = s.val() || {};
-                const items = Object.keys(data).map(k => ({ id: k, ...data[k] }));
-                document.getElementById('menu-list').innerHTML = items.map(i => `
-          <tr>
-            <td><img src="${i.image}" width="40" height="40" style="border-radius:5px"></td>
-            <td>${i.name}</td>
-            <td>${i.category}</td>
-            <td>${fixNum(i.price)}</td>
-            <td><button onclick="delMenu('${i.id}')" style="color:var(--red)"><i class="fas fa-trash"></i></button></td>
-          </tr>`).join('');
-                document.getElementById('stat-menu-items').innerText = items.length;
-            });
-        }
-
-        function saveMenuItem() {
-            const id = document.getElementById('m-id').value || db.ref(`restaurants/${RID}/menu`).push().key;
-            db.ref(`restaurants/${RID}/menu/${id}`).set({
-                name: document.getElementById('m-name').value,
-                category: document.getElementById('m-cat').value,
-                price: parseFloat(document.getElementById('m-price').value) || 0,
-                image: document.getElementById('m-img').value
-            }).then(() => cm('menu-modal'));
-        }
-
-        function delMenu(id) { if (confirm('حذف؟')) db.ref(`restaurants/${RID}/menu/${id}`).remove(); }
-
-        function saveSettings() {
-            db.ref(`restaurants/${RID}/settings`).update({
-                name: document.getElementById('s-name').value,
-                currency: document.getElementById('s-cur').value
-            }).then(() => alert('تم الحفظ'));
-        }
-
-        function updateStats() {
-            const success = AllOrders.filter(o => o.status === 'done');
-            const sales = success.reduce((a, b) => a + (parseFloat(b.total) || 0), 0);
-            document.getElementById('stat-total-orders').innerText = AllOrders.length;
-            document.getElementById('stat-success-orders').innerText = success.length;
-            document.getElementById('stat-sales').innerText = fixNum(sales);
-        }
-
-        function cm(id) { document.getElementById(id).classList.remove('open'); }
-
-        loadOrders(); loadMenu();
+        loadOrders();
     </script>
 </body>
 </html>
