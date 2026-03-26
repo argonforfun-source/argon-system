@@ -1034,7 +1034,6 @@
 </head>
 <body>
 
-    <!-- LOGIN -->
     <div id="lp">
         <div class="lbg"></div>
         <div class="lcard">
@@ -1048,7 +1047,6 @@
         </div>
     </div>
 
-    <!-- APP -->
     <div id="app">
         <header class="hdr">
             <div class="hdr-l">
@@ -1082,7 +1080,6 @@
 
             <div class="content">
 
-                <!-- ═══ ORDERS ═══ -->
                 <div class="page on" id="page-orders">
                     <div class="pg-title"><i class="fas fa-receipt"></i> الطلبات الواردة</div>
                     <div class="srow">
@@ -1104,7 +1101,6 @@
                     <div class="ord-grid" id="ordList"><div class="empty"><i class="fas fa-receipt"></i>جاري التحميل...</div></div>
                 </div>
 
-                <!-- ═══ MENU ═══ -->
                 <div class="page" id="page-menu">
                     <div class="pg-title"><i class="fas fa-utensils"></i> قائمة الطعام</div>
                     <div class="panel">
@@ -1132,7 +1128,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ TABLES ═══ -->
                 <div class="page" id="page-tables">
                     <div class="pg-title"><i class="fas fa-chair"></i> الطاولات</div>
                     <div class="panel">
@@ -1154,7 +1149,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ RESERVATIONS ═══ -->
                 <div class="page" id="page-reserv">
                     <div class="pg-title"><i class="fas fa-calendar-alt"></i> الحجوزات</div>
                     <div class="panel">
@@ -1183,7 +1177,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ CUSTOMERS ═══ -->
                 <div class="page" id="page-cust">
                     <div class="pg-title"><i class="fas fa-users"></i> الزبائن</div>
                     <div class="panel">
@@ -1206,7 +1199,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ SETTINGS ═══ -->
                 <div class="page" id="page-set">
                     <div class="pg-title"><i class="fas fa-cog"></i> إعدادات المطعم</div>
                     <div class="panel">
@@ -1231,7 +1223,6 @@
         </div>
     </div>
 
-    <!-- INVOICE MODAL -->
     <div class="modal-bg" id="invModal">
         <div class="modal">
             <div class="mt"><i class="fas fa-receipt"></i> الفاتورة</div>
@@ -1324,7 +1315,7 @@
                 const todayOrds = orders.filter(o => new Date(o.createdAt).toDateString() === today);
                 document.getElementById('os-today').textContent = todayOrds.length;
                 document.getElementById('os-pend').textContent = orders.filter(o => o.status === 'pending').length;
-                const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
+                const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
                 document.getElementById('os-rev').textContent = rev.toFixed(2) + ' JOD';
                 if (filter) orders = orders.filter(o => o.status === filter);
                 const el = document.getElementById('ordList');
@@ -1338,13 +1329,13 @@
             <div class="ometa">
               <span class="ometaitem"><i class="fas fa-user"></i> ${o.customerName || 'زيارة'}</span>
               ${o.tableNum ? `<span class="ometaitem"><i class="fas fa-chair"></i> طاولة ${o.tableNum}</span>` : ''}
-              <span class="ometaitem"><i class="fas fa-clock"></i> ${new Date(o.createdAt).toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span class="ometaitem"><i class="fas fa-clock"></i> ${o.createdAt ? new Date(o.createdAt).toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
               <span class="ometaitem"><i class="fas fa-tag"></i> ${OTYPE[o.orderType] || '—'}</span>
             </div>
-            <div class="oitems">${items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(i.price * i.qty).toFixed(2)} JOD</span>`).join('<br>')}</div>
+            <div class="oitems">${items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(parseFloat(i.price || 0) * i.qty).toFixed(2)} JOD</span>`).join('<br>')}</div>
             ${o.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:6px"><i class="fas fa-sticky-note"></i> ${o.notes}</div>` : ''}
             <div class="ofoot">
-              <span class="ototal">الإجمالي: ${(o.total || 0).toFixed(2)} JOD</span>
+              <span class="ototal">الإجمالي: ${parseFloat(o.total || 0).toFixed(2)} JOD</span>
               <div class="acts">
                 ${nxt ? `<button class="ab ag" onclick="updOrdStatus('${o.id}','${nxt.next}')">${nxt.lbl}</button>` : ''}
                 ${o.status !== 'cancelled' && o.status !== 'delivered' ? `<button class="ab ar" onclick="updOrdStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
@@ -1389,16 +1380,16 @@
             </div>
             <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px">
               <span>رقم الطلب: #${id.slice(-4)}</span>
-              <span>${new Date(o.createdAt).toLocaleString('ar-JO')}</span>
+              <span>${o.createdAt ? new Date(o.createdAt).toLocaleString('ar-JO') : ''}</span>
             </div>
             ${o.customerName ? `<div style="margin-bottom:10px;font-size:13px">الزبون: <strong>${o.customerName}</strong></div>` : ''}
             ${o.tableNum ? `<div style="margin-bottom:10px;font-size:13px">الطاولة: <strong>${o.tableNum}</strong></div>` : ''}
             <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
               <thead><tr style="border-bottom:1px solid #ddd"><th style="text-align:right;padding:6px 4px;font-size:12px">الصنف</th><th style="font-size:12px;padding:6px 4px">الكمية</th><th style="text-align:left;font-size:12px;padding:6px 4px">السعر</th></tr></thead>
-              <tbody>${items.map(i => `<tr><td style="padding:6px 4px;font-size:13px">${i.name}</td><td style="text-align:center;font-size:13px">${i.qty}</td><td style="text-align:left;font-size:13px">${(i.price * i.qty).toFixed(2)}</td></tr>`).join('')}</tbody>
+              <tbody>${items.map(i => `<tr><td style="padding:6px 4px;font-size:13px">${i.name}</td><td style="text-align:center;font-size:13px">${i.qty}</td><td style="text-align:left;font-size:13px">${(parseFloat(i.price || 0) * i.qty).toFixed(2)}</td></tr>`).join('')}</tbody>
             </table>
             <div style="border-top:2px dashed #ccc;padding-top:12px;display:flex;justify-content:space-between;font-size:16px;font-weight:900">
-              <span>الإجمالي</span><span>${(o.total || 0).toFixed(2)} ${s.currency || 'JOD'}</span>
+              <span>الإجمالي</span><span>${parseFloat(o.total || 0).toFixed(2)} ${s.currency || 'JOD'}</span>
             </div>
             ${o.notes ? `<div style="margin-top:10px;font-size:12px;color:#888">ملاحظات: ${o.notes}</div>` : ''}
             <div style="text-align:center;margin-top:20px;font-size:12px;color:#aaa">شكراً لزيارتكم 🙏</div>
@@ -1417,7 +1408,7 @@
                 tbody.innerHTML = items.map(([k, i]) => `<tr>
           <td><strong>${i.name}</strong>${i.description ? `<div style="font-size:11px;color:var(--muted)">${i.description}</div>` : ''}</td>
           <td style="font-size:12px;color:var(--muted)">${i.category || '—'}</td>
-          <td style="color:var(--green);font-weight:700">${(i.price || 0).toFixed(2)} JOD</td>
+          <td style="color:var(--green);font-weight:700">${parseFloat(i.price || 0).toFixed(2)} JOD</td>
           <td><span class="badge ${i.available !== false ? 'bon' : 'boff'}">${i.available !== false ? 'متاح' : 'مخفي'}</span></td>
           <td><div class="acts">
             <button class="ab ${i.available !== false ? 'ar' : 'agr'}" onclick="togItem('${k}',${i.available !== false})">${i.available !== false ? 'إخفاء' : 'إظهار'}</button>
