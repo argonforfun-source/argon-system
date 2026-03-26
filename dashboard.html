@@ -98,21 +98,19 @@
                 animation: slideIn 0.4s ease-out;
             }
 
-        input, select, textarea {
-            background: var(--card) !important;
-            color: var(--text) !important;
-            border: 2px solid var(--border) !important;
-            border-radius: 12px !important;
-            padding: 12px !important;
-        }
-
         .stat-card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.3s;
         }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            }
 
         .res-row {
             background: var(--card);
@@ -162,32 +160,40 @@
 <body>
     <audio id="orderNotificationSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-    <div class="wrapper" id="appWrapper">
+    <div class="wrapper">
         <div class="sidebar">
             <div class="argon-logo"><h4>ARGON</h4><small id="resIdDisplay">ID: --</small></div>
             <div class="p-4 text-center"><h5 id="sideName" class="fw-bold mb-2 text-white">تحميل...</h5></div>
             <div class="sidebar-menu flex-grow-1">
-                <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-pie"></i> الجرد العام</div>
-                <div class="menu-item" onclick="showSec('liveOrders', this)"><i class="fas fa-bolt"></i> الطلبات الحية <span id="newOrderBadge" class="badge bg-danger ms-2 d-none">!</span></div>
-                <div class="menu-item" onclick="showSec('completedOrdersSec', this)"><i class="fas fa-check-double"></i> طلبات مكتملة</div>
-                <div class="menu-item" onclick="showSec('reservations', this)"><i class="fas fa-calendar-check"></i> الحجوزات</div>
-                <div class="menu-item" onclick="showSec('menu', this)"><i class="fas fa-list-ul"></i> المنيو</div>
-                <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-sliders"></i> الإعدادات</div>
+                <div class="menu-item active" onclick="showSec('dash', this)"><i class="fas fa-chart-line"></i> الجرد والمبيعات</div>
+                <div class="menu-item" onclick="showSec('liveOrders', this)"><i class="fas fa-fire"></i> الطلبات الحية <span id="newOrderBadge" class="badge bg-danger ms-2 d-none">!</span></div>
+                <div class="menu-item" onclick="showSec('completedOrdersSec', this)"><i class="fas fa-history"></i> سجل المبيعات</div>
+                <div class="menu-item" onclick="showSec('menu', this)"><i class="fas fa-utensils"></i> المنيو</div>
+                <div class="menu-item" onclick="showSec('settings', this)"><i class="fas fa-cog"></i> الإعدادات</div>
             </div>
             <div class="p-4 pt-0">
                 <button class="btn btn-outline-info w-100 mb-3 btn-sm rounded-3 fw-bold" onclick="document.body.classList.toggle('dark-mode')">🌓 تبديل المظهر</button>
                 <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" onclick="openPreview()">👀 معاينة المباشر</button>
-                <button class="btn btn-link text-danger w-100 mt-2 btn-sm text-decoration-none" onclick="logout()">تسجيل الخروج</button>
             </div>
         </div>
 
         <div class="main-content">
             <div id="dash" class="page-section active">
-                <h3 class="fw-bold mb-4">📊 ملخص النشاط</h3>
+                <h3 class="fw-bold mb-4">📊 التقارير المالية والجرد</h3>
                 <div class="row g-4">
-                    <div class="col-md-4"><div class="stat-card"><h6>💰 المبيعات التقريبية</h6><h2 id="statSales">0.00</h2><small>بالدينار</small></div></div>
-                    <div class="col-md-4"><div class="stat-card"><h6>✅ طلبات نشطة</h6><h2 id="statActive" class="text-primary">0</h2></div></div>
-                    <div class="col-md-4"><div class="stat-card"><h6>🍴 أصناف المنيو</h6><h2 id="statItems" class="text-warning">0</h2></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h6>💰 إجمالي الدخل</h6><h2 id="totalRevenue" class="text-success">0.00</h2><small>د.أ (المكتملة)</small></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h6>📦 مبيعات متوقعة</h6><h2 id="pendingRevenue" class="text-primary">0.00</h2><small>د.أ (بالانتظار)</small></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h6>✅ طلبات ناجحة</h6><h2 id="statCompleted">0</h2><small>عملية مكتملة</small></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h6>⭐ متوسط الطلب</h6><h2 id="avgOrder" class="text-info">0.00</h2><small>قيمة الفاتورة</small></div></div>
+                </div>
+
+                <div class="mt-5">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-star text-warning me-2"></i>تحليل مبيعات الأصناف</h5>
+                    <div class="card p-4 border-0 shadow-sm rounded-4" style="background: var(--card)">
+                        <div id="bestSellerList" class="row">
+                            <div class="text-muted small">بانتظار البيانات لتحليل الأكثر مبيعاً...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -198,39 +204,31 @@
 
             <div id="completedOrdersSec" class="page-section">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold text-success">✅ الطلبات المكتملة</h3>
-                    <button class="btn btn-outline-danger btn-sm" onclick="if(confirm('مسح السجل بالكامل؟')) db.ref('restaurants/'+RES_ID+'/completedOrders').remove()">مسح السجل</button>
+                    <h3 class="fw-bold text-success">📜 سجل المبيعات الكامل</h3>
+                    <button class="btn btn-outline-danger btn-sm" onclick="clearHistory()">تصفير السجل</button>
                 </div>
                 <div id="completedOrdersGrid" class="row g-3"></div>
             </div>
 
-            <div id="reservations" class="page-section">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold">📅 مواعيد الحجوزات</h3>
-                    <button class="btn btn-success rounded-pill px-4 fw-bold" onclick="addManualRes()">+ إضافة حجز يدوي</button>
-                </div>
-                <div id="resList"></div>
-            </div>
-
             <div id="menu" class="page-section">
-                <h3 class="fw-bold mb-4">🍴 إدارة قائمة الطعام</h3>
+                <h3 class="fw-bold mb-4">🍴 المنيو</h3>
                 <div class="card p-4 border-0 shadow-sm mb-4 rounded-4" style="background: var(--card)">
                     <div class="row g-3">
-                        <div class="col-md-3"><label>اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثلاً: وجبة سوبر"></div>
-                        <div class="col-md-2"><label>السعر</label><input type="number" id="itemPrice" class="form-control" placeholder="0.00"></div>
-                        <div class="col-md-4"><label>رابط الصورة</label><input type="text" id="itemImg" class="form-control" placeholder="رابط مباشر للصورة"></div>
-                        <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="addItem()">إضافة الصنف الآن</button></div>
+                        <div class="col-md-3"><input type="text" id="itemName" class="form-control" placeholder="اسم الصنف"></div>
+                        <div class="col-md-2"><input type="number" id="itemPrice" class="form-control" placeholder="السعر"></div>
+                        <div class="col-md-4"><input type="text" id="itemImg" class="form-control" placeholder="رابط الصورة"></div>
+                        <div class="col-md-3"><button class="btn btn-primary w-100 fw-bold" onclick="addItem()">إضافة صنف +</button></div>
                     </div>
                 </div>
                 <div id="menuGrid" class="row g-4"></div>
             </div>
 
             <div id="settings" class="page-section">
-                <h3 class="fw-bold mb-4">⚙️ الإعدادات العامة</h3>
+                <h3 class="fw-bold mb-4">⚙️ الإعدادات</h3>
                 <div class="card p-4 col-md-8 border-0 shadow-sm rounded-4" style="background: var(--card)">
                     <div class="mb-3"><label>اسم المطعم</label><input type="text" id="resNameInp" class="form-control"></div>
                     <div class="mb-3"><label>رقم الواتساب</label><input type="text" id="resPhoneInp" class="form-control"></div>
-                    <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ كل التغييرات</button>
+                    <button class="btn btn-success w-100 py-3 fw-bold rounded-pill" onclick="saveSets()">حفظ التغييرات</button>
                 </div>
             </div>
         </div>
@@ -238,7 +236,7 @@
 
     <div id="previewModal">
         <div class="text-center">
-            <button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق المعاينة X</button>
+            <button class="btn btn-danger mb-2 fw-bold" onclick="closePreview()">إغلاق X</button>
             <div class="phone-frame"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
         </div>
     </div>
@@ -251,154 +249,100 @@
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             projectId: "argon-system",
-            storageBucket: "argon-system.firebasestorage.app",
-            messagingSenderId: "858120444233",
-            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const urlParams = new URLSearchParams(window.location.search);
-        let RES_ID = urlParams.get("id");
-
-        if (!RES_ID) {
-            const session = JSON.parse(localStorage.getItem('argon_session'));
-            if (session) { RES_ID = session.restaurantId; }
-            else { window.location.href = 'login.html'; }
-        }
-
+        const RES_ID = urlParams.get("id") || "99";
         document.getElementById('resIdDisplay').innerText = "ID: " + RES_ID;
-
-        function logout() { localStorage.removeItem('argon_session'); window.location.href = 'login.html'; }
 
         let initialLoadDone = false;
         const notificationSound = document.getElementById('orderNotificationSound');
 
-        db.ref(`restaurants/${RES_ID}/orders`).on('child_added', (snapshot) => {
-            if (initialLoadDone) {
-                notificationSound.play().catch(e => console.log("Audio play blocked"));
-                document.getElementById('newOrderBadge').classList.remove('d-none');
-            }
-        });
-
-        // دالة المساعدة لتجميع الأصناف
         function formatItemsList(itemsRaw) {
             let itemsArray = (itemsRaw || "").split(' + ');
             let itemsCount = {};
-            itemsArray.forEach(item => {
-                item = item.trim();
-                if (item) { itemsCount[item] = (itemsCount[item] || 0) + 1; }
-            });
-            return Object.entries(itemsCount)
-                .map(([name, count]) => `<span class="badge bg-light text-dark border me-1 py-1 px-2 mb-1">${count} x ${name}</span>`)
-                .join(' ');
+            itemsArray.forEach(item => { item = item.trim(); if (item) itemsCount[item] = (itemsCount[item] || 0) + 1; });
+            return Object.entries(itemsCount).map(([name, count]) => `<span class="badge bg-light text-dark border me-1 py-1 px-2 mb-1">${count} x ${name}</span>`).join(' ');
         }
 
-        // الوظيفة الأساسية لتحديث البيانات
         db.ref('restaurants/' + RES_ID).on('value', (snapshot) => {
             const data = snapshot.val() || {};
             const sets = data.settings || {};
-            const prods = data.products || {};
             const orders = data.orders || {};
             const completed = data.completedOrders || {};
-            const resv = data.reservations || {};
+            const products = data.products || {};
 
-            document.getElementById('sideName').innerText = sets.name || "أرغون";
-            document.getElementById('resNameInp').value = sets.name || "";
-            document.getElementById('resPhoneInp').value = sets.phone || "";
+            document.getElementById('sideName').innerText = sets.name || "مطعم أرغون";
 
-            // 1. تحديث المنيو
-            const menuGrid = document.getElementById('menuGrid');
-            menuGrid.innerHTML = "";
-            let pCount = 0;
-            for (let key in prods) {
-                pCount++;
-                menuGrid.innerHTML += `<div class="col-md-3"><div class="stat-card p-2 text-center">
-                                <img src="${prods[key].img || 'https://via.placeholder.com/150'}" height="100" class="w-100 mb-2" style="object-fit:cover;border-radius:15px">
-                                <h6>${prods[key].name}</h6><div class="text-primary fw-bold">${prods[key].price} د.أ</div>
-                                <button class="btn btn-outline-danger btn-sm w-100 mt-2" onclick="db.ref('restaurants/${RES_ID}/products/${key}').remove()">حذف</button>
-                            </div></div>`;
+            // تحديث الجرد والمبيعات
+            let totalRev = 0; let completedCount = 0; let productSalesStats = {};
+            for (let k in completed) {
+                totalRev += parseFloat(completed[k].total || 0);
+                completedCount++;
+                // تتبع الأصناف الأكثر مبيعاً
+                let items = (completed[k].items || "").split(' + ');
+                items.forEach(i => { if (i.trim()) productSalesStats[i.trim()] = (productSalesStats[i.trim()] || 0) + 1; });
             }
-            document.getElementById('statItems').innerText = pCount;
 
-            // 2. تحديث الطلبات الحية
-            const ordersGrid = document.getElementById('ordersGrid');
+            document.getElementById('totalRevenue').innerText = totalRev.toFixed(2);
+            document.getElementById('statCompleted').innerText = completedCount;
+            document.getElementById('avgOrder').innerText = completedCount > 0 ? (totalRev / completedCount).toFixed(2) : "0.00";
+
+            // عرض أكثر الأصناف مبيعاً
+            const bestSellerList = document.getElementById('bestSellerList');
+            bestSellerList.innerHTML = "";
+            let sortedProducts = Object.entries(productSalesStats).sort((a, b) => b[1] - a[1]).slice(0, 4);
+            sortedProducts.forEach(([name, count]) => {
+                bestSellerList.innerHTML += `<div class="col-md-3 text-center border-start"><h6>${name}</h6><b class="text-primary">${count} طلب</b></div>`;
+            });
+
+            // تحديث الطلبات الحية والانتظار
+            let pendingRev = 0; const ordersGrid = document.getElementById('ordersGrid');
             ordersGrid.innerHTML = "";
-            let oCount = 0; let sales = 0;
-            for (let key in orders) {
-                oCount++; sales += parseFloat(orders[key].total || 0);
-                const itemsHtml = formatItemsList(orders[key].items);
-                const note = orders[key].notes ? `<div class="mt-2 text-warning small">ملاحظة: ${orders[key].notes}</div>` : "";
-                const phone = orders[key].custPhone ? `<span class="ms-2 text-primary small"><i class="fas fa-phone"></i> ${orders[key].custPhone}</span>` : "";
-
+            for (let k in orders) {
+                pendingRev += parseFloat(orders[k].total || 0);
                 ordersGrid.innerHTML += `<div class="col-md-6"><div class="res-row">
-                                <div class="flex-grow-1">
-                                    <span class="badge bg-primary">#${orders[key].orderNo}</span>
-                                    <h6 class="mb-0 mt-1 fw-bold">${orders[key].custName} ${phone}</h6>
-                                    <div class="mt-2">${itemsHtml}</div>${note}
-                                </div>
-                                <button class="btn btn-success btn-sm ms-2" onclick="completeOrder('${key}', ${JSON.stringify(orders[key]).replace(/"/g, '&quot;')})">إكمال</button>
-                            </div></div>`;
+                        <div class="flex-grow-1"><b>#${orders[k].orderNo} | ${orders[k].custName}</b><br>${formatItemsList(orders[k].items)}</div>
+                        <button class="btn btn-success btn-sm" onclick="completeOrder('${k}', ${JSON.stringify(orders[k]).replace(/"/g, '&quot;')})">إكمال</button>
+                    </div></div>`;
             }
-            document.getElementById('statActive').innerText = oCount;
-            document.getElementById('statSales').innerText = sales.toFixed(2);
-            if (oCount === 0) document.getElementById('newOrderBadge').classList.add('d-none');
+            document.getElementById('pendingRevenue').innerText = pendingRev.toFixed(2);
 
-            // 3. تحديث الطلبات المكتملة
+            // سجل المبيعات
             const completedGrid = document.getElementById('completedOrdersGrid');
             completedGrid.innerHTML = "";
-            for (let key in completed) {
-                const itemsHtml = formatItemsList(completed[key].items);
-                completedGrid.innerHTML += `<div class="col-md-6"><div class="res-row" style="border-right-color: #10b981; opacity: 0.85;">
-                                <div class="flex-grow-1">
-                                    <span class="badge bg-secondary">#${completed[key].orderNo}</span>
-                                    <h6 class="mb-0 mt-1 fw-bold text-muted">${completed[key].custName}</h6>
-                                    <div class="mt-2">${itemsHtml}</div>
-                                </div>
-                                <i class="fas fa-check-circle text-success fs-4"></i>
-                            </div></div>`;
+            for (let k in completed) {
+                completedGrid.innerHTML += `<div class="col-md-6"><div class="res-row" style="border-right-color: #10b981; opacity: 0.8;">
+                        <div><b>#${completed[k].orderNo}</b><br>${formatItemsList(completed[k].items)}</div>
+                        <div class="text-success fw-bold">${completed[k].total} د.أ</div>
+                    </div></div>`;
             }
 
-            // 4. تحديث الحجوزات
-            const resList = document.getElementById('resList');
-            resList.innerHTML = "";
-            for (let key in resv) {
-                resList.innerHTML += `<div class="res-row"><div><strong>${resv[key].name}</strong> - ${resv[key].time}</div>
-                                <button class="btn btn-danger btn-sm" onclick="db.ref('restaurants/${RES_ID}/reservations/${key}').remove()">إلغاء</button></div>`;
+            // المنيو
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = "";
+            for (let k in products) {
+                menuGrid.innerHTML += `<div class="col-md-3"><div class="stat-card text-center">
+                        <img src="${products[k].img}" class="w-100 rounded mb-2" style="height:100px;object-fit:cover;">
+                        <h6>${products[k].name}</h6><b class="text-primary">${products[k].price} د.أ</b>
+                        <button class="btn btn-link text-danger btn-sm w-100" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">حذف</button>
+                    </div></div>`;
             }
-            initialLoadDone = true;
         });
 
-        // دالة إكمال الطلب (نقل البيانات بدلاً من الحذف فقط)
         function completeOrder(key, orderData) {
             db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData)
-                .then(() => {
-                    db.ref(`restaurants/${RES_ID}/orders/${key}`).remove();
-                });
+                .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove());
         }
 
         function addItem() {
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
             const img = document.getElementById('itemImg').value;
-            if (name && price) {
-                db.ref('restaurants/' + RES_ID + '/products').push({ name, price, img });
-                document.getElementById('itemName').value = ""; document.getElementById('itemPrice').value = ""; document.getElementById('itemImg').value = "";
-            } else { alert("أدخل البيانات"); }
-        }
-
-        function addManualRes() {
-            const name = prompt("اسم صاحب الحجز:");
-            const time = prompt("الوقت (مثلاً 8:00 مساءً):");
-            if (name && time) { db.ref('restaurants/' + RES_ID + '/reservations').push({ name, time }); }
-        }
-
-        function saveSets() {
-            db.ref('restaurants/' + RES_ID + '/settings').update({
-                name: document.getElementById('resNameInp').value,
-                phone: document.getElementById('resPhoneInp').value
-            }).then(() => alert("تم الحفظ"));
+            if (name && price) db.ref('restaurants/' + RES_ID + '/products').push({ name, price, img });
         }
 
         function showSec(id, btn) {
@@ -406,11 +350,11 @@
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             btn.classList.add('active');
-            if (id === 'liveOrders') document.getElementById('newOrderBadge').classList.add('d-none');
         }
 
         function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('previewModal').style.display = 'flex'; }
         function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+        function clearHistory() { if (confirm('هل تريد مسح سجل المبيعات؟')) db.ref('restaurants/' + RES_ID + '/completedOrders').remove(); }
     </script>
 </body>
 </html>
