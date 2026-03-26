@@ -7,9 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
     <style>
-        /* حافظت على كامل تصميمك الرهيب والألوان والتحريك */
         * {
             margin: 0;
             padding: 0;
@@ -66,10 +64,9 @@
                 margin-bottom: 10px
             }
 
-        /* التنسيقات الأخرى التي في ملفك الأصلي بقيت كما هي */
         .grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
+            grid-template-columns: 380px 1fr;
             gap: 30px
         }
 
@@ -137,27 +134,16 @@
             margin-top: 10px
         }
 
-            .btn-main:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.4)
-            }
-
         .res-card {
             background: var(--card2);
             border: 1px solid var(--border2);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
-            transition: 0.3s;
             display: flex;
             flex-direction: column;
             gap: 15px
         }
-
-            .res-card:hover {
-                border-color: var(--muted2);
-                transform: scale(1.01)
-            }
 
         .res-info {
             display: flex;
@@ -171,9 +157,6 @@
             border-radius: 15px;
             background: var(--card3);
             border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden
         }
 
@@ -187,11 +170,6 @@
             font-size: 18px;
             font-weight: 800;
             margin-bottom: 4px
-        }
-
-        .res-details p {
-            color: var(--muted);
-            font-size: 12px
         }
 
         .actions {
@@ -209,8 +187,7 @@
             border: 1px solid transparent;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: 0.2s
+            gap: 8px
         }
 
         .btn-copy {
@@ -219,21 +196,11 @@
             border-color: var(--border2)
         }
 
-            .btn-copy:hover {
-                background: var(--g1);
-                color: #000
-            }
-
         .btn-dash {
             background: rgba(72,136,240,0.1);
             color: var(--blue);
             border-color: rgba(72,136,240,0.2)
         }
-
-            .btn-dash:hover {
-                background: var(--blue);
-                color: #fff
-            }
 
         .btn-del {
             background: rgba(232,64,80,0.1);
@@ -241,11 +208,6 @@
             border-color: rgba(232,64,80,0.2);
             margin-right: auto
         }
-
-            .btn-del:hover {
-                background: var(--red);
-                color: #fff
-            }
 
         #toast {
             position: fixed;
@@ -271,31 +233,19 @@
             <h1>ARGON SYSTEM</h1>
             <p>لوحة التحكم المركزية بالسوبر أدمن</p>
         </header>
-
         <div class="grid">
             <div class="card">
-                <div class="form-group">
-                    <label>رقم المطعم (ID)</label>
-                    <input type="text" id="resId" placeholder="مثال: 101">
-                </div>
-                <div class="form-group">
-                    <label>اسم المطعم</label>
-                    <input type="text" id="resName" placeholder="أدخل اسم المطعم">
-                </div>
-                <div class="form-group">
-                    <label>رابط الشعار</label>
-                    <input type="text" id="resLogo" placeholder="https://...">
-                </div>
+                <div class="form-group"><label>رقم المطعم (ID)</label><input type="text" id="resId" placeholder="مثال: 101"></div>
+                <div class="form-group"><label>اسم المطعم</label><input type="text" id="resName" placeholder="أدخل اسم المطعم"></div>
+                <div class="form-group"><label>رابط الشعار</label><input type="text" id="resLogo" placeholder="https://..."></div>
                 <button class="btn-main" onclick="addRes()">حفظ وتثبيت المطعم <i class="fas fa-check-circle"></i></button>
             </div>
-
             <div class="main-list">
                 <h2 style="margin-bottom:25px;font-size:22px">المطاعم النشطة</h2>
                 <div id="list"></div>
             </div>
         </div>
     </div>
-
     <div id="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -305,134 +255,65 @@
         const firebaseConfig = { databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // تحديد رابط الاستضافة تلقائياً
         const host = window.location.origin;
 
-        // وظيفة التثبيت والحفظ لضمان ظهور المطعم فوراً
         function addRes() {
             const id = document.getElementById('resId').value.trim();
             const name = document.getElementById('resName').value.trim();
             const logo = document.getElementById('resLogo').value.trim() || 'https://via.placeholder.com/100';
+            if (!id || !name) { toast('❌ يرجى تعبئة كافة الحقول', 'err'); return; }
 
-            if (!id || !name) {
-                toast('❌ يرجى تعبئة كافة الحقول', 'err');
-                return;
-            }
-
-            // الإصلاح: الحفظ في مسار settings داخل الـ ID لضمان ثبات البيانات لكل مطعم
-            db.ref('restaurants/' + id + '/settings').update({
-                id: id,
-                name: name,
-                logo: logo,
-                status: 'open',
-                currency: 'JOD',
-                joinDate: new Date().toLocaleDateString()
+            // التعديل الضروري: الحفظ داخل مسار id لضمان ثبات بيانات كل مطعم على حدة
+            db.ref('restaurants/' + id + '/settings').set({
+                id: id, name: name, logo: logo, status: 'open', joinDate: new Date().toLocaleDateString()
             }).then(() => {
-                toast('✅ تم تثبيت المطعم بنجاح', 'ok');
-                document.getElementById('resId').value = '';
-                document.getElementById('resName').value = '';
-                document.getElementById('resLogo').value = '';
-            }).catch(e => toast('Error: ' + e.message, 'err'));
+                toast('✅ تم التثبيت', 'ok');
+                document.getElementById('resId').value = ''; document.getElementById('resName').value = ''; document.getElementById('resLogo').value = '';
+            });
         }
 
-        // عرض المطاعم بشكل مباشر وثابت
         db.ref('restaurants').on('value', (snap) => {
             const list = document.getElementById('list');
             list.innerHTML = '';
             const data = snap.val();
-
-            if (!data) {
-                list.innerHTML = '<p style="text-align:center;color:var(--muted)">لا يوجد مطاعم مضافة</p>';
-                return;
-            }
+            if (!data) return;
 
             for (let id in data) {
                 const res = data[id].settings;
-                if (!res) continue; // تخطي أي بيانات تالفة لا تحتوي على إعدادات
-
-                const menuUrl = host + '/index.html?id=' + id;
-                const dashUrl = host + '/dashboard.html?id=' + id;
-
+                if (!res) continue;
+                const mUrl = host + '/index.html?id=' + id;
+                const dUrl = host + '/dashboard.html?id=' + id;
                 list.innerHTML += `
           <div class="res-card">
             <div class="res-info">
               <div class="res-logo"><img src="${res.logo}"></div>
-              <div class="res-details">
-                <h3>${res.name}</h3>
-                <p>ID: ${id} | تاريخ الانضمام: ${res.joinDate || 'غير متوفر'}</p>
-              </div>
+              <div class="res-details"><h3>${res.name}</h3><p>ID: ${id} | ${res.joinDate}</p></div>
             </div>
             <div class="actions">
-              <button class="btn-sm btn-copy" onclick="cp('${menuUrl}')"><i class="fas fa-link"></i> المنيو</button>
-              <button class="btn-sm btn-dash" onclick="window.open('${dashUrl}')"><i class="fas fa-external-link-alt"></i> اللوحة</button>
-              <button class="btn-sm btn-copy" onclick="printQR('${id}', '${res.name}', '${menuUrl}')"><i class="fas fa-qrcode"></i> QR</button>
+              <button class="btn-sm btn-copy" onclick="cp('${mUrl}')"><i class="fas fa-link"></i> منيو</button>
+              <button class="btn-sm btn-dash" onclick="window.open('${dUrl}')"><i class="fas fa-external-link-alt"></i> لوحة</button>
+              <button class="btn-sm btn-copy" onclick="printQR('${res.name}','${mUrl}')"><i class="fas fa-qrcode"></i> QR</button>
               <button class="btn-sm btn-del" onclick="delRes('${id}')"><i class="fas fa-trash"></i></button>
             </div>
-          </div>
-        `;
+          </div>`;
             }
         });
 
-        function delRes(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المطعم وكافة بياناته؟')) {
-                db.ref('restaurants/' + id).remove().then(() => toast('🗑️ تم الحذف', 'ok'));
-            }
-        }
-
-        function cp(t) {
-            navigator.clipboard.writeText(t).then(() => toast('✅ تم نسخ الرابط', 'ok'));
-        }
-
+        function delRes(id) { if (confirm('حذف المطعم؟')) db.ref('restaurants/' + id).remove(); }
+        function cp(t) { navigator.clipboard.writeText(t).then(() => toast('✅ تم النسخ', 'ok')); }
         function toast(m, t) {
-            const s = document.getElementById('toast');
-            s.innerText = m;
-            s.style.borderColor = t === 'ok' ? 'var(--green)' : 'var(--red)';
-            s.style.display = 'block';
+            const s = document.getElementById('toast'); s.innerText = m; s.style.display = 'block';
+            s.style.borderColor = t === 'ok' ? '#28c070' : '#e84050';
             setTimeout(() => s.style.display = 'none', 3000);
         }
 
-        // وظيفة طباعة الـ QR Code الفاخرة التي كانت في ملفك
-        function printQR(id, name, url) {
-            const container = document.createElement('div');
-            const qrcode = new QRCode(container, {
-                text: url,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
+        function printQR(name, url) {
+            const v = document.createElement('div');
+            new QRCode(v, { text: url, width: 200, height: 200 });
             setTimeout(() => {
-                const canvas = container.querySelector('canvas');
-                const imgData = canvas.toDataURL("image/png");
+                const cv = v.querySelector('canvas');
                 const w = window.open('', '_blank');
-                w.document.write(`
-          <html>
-          <head>
-            <title>Print QR - ${name}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
-            <style>
-              body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-              .qr-box{text-align:center;padding:40px;border:2px solid #f0f0f0;border-radius:30px;max-width:350px}
-              h1{margin:0 0 10px;font-size:28px}
-              p{color:#666;margin-bottom:20px}
-              img{width:250px;height:250px}
-              .url{font-size:10px;color:#ccc;margin-top:15px;word-break:break-all}
-            </style>
-          </head>
-          <body>
-            <div class="qr-box">
-              <h1>${name}</h1>
-              <p>امسح الكود لفتح المنيو</p>
-              <img src="${imgData}">
-              <div class="url">${url}</div>
-            </div>
-            <script>window.onload=()=> { window.print(); window.close(); }<\/script>
-          </body>
-          </html>
-        `);
+                w.document.write(`<html><head><title>Print QR</title><style>body{text-align:center;padding:50px;font-family:Cairo}</style></head><body><h1>${name}</h1><img src="${cv.toDataURL()}"><p>${url}</p><script>window.onload=()=>window.print()<\/script></body></html>`);
                 w.document.close();
             }, 500);
         }
