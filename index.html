@@ -878,19 +878,22 @@
 </head>
 <body>
 
+    <!-- LOADING -->
     <div id="loadScreen">
         <div class="load-logo">🍽️</div>
         <div class="load-text">جاري تحميل القائمة...</div>
         <div class="load-dots"><div class="load-dot"></div><div class="load-dot"></div><div class="load-dot"></div></div>
     </div>
 
-    <div id="closedScreen">
+    <!-- CLOSED -->
+    <div id="closedScreen" style="display:none;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
         <div class="closed-icon">🔒</div>
         <div class="closed-title">المطعم مغلق حالياً</div>
         <div class="closed-sub" id="closed-msg">يرجى المحاولة لاحقاً</div>
     </div>
 
-    <div id="successScreen">
+    <!-- SUCCESS -->
+    <div id="successScreen" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
         <div class="suc-ring">✓</div>
         <div class="suc-title">تم استلام طلبك!</div>
         <div class="suc-sub">سيتم تحضير طلبك في أقرب وقت 🙏</div>
@@ -899,6 +902,7 @@
         <button class="new-btn" onclick="resetPage()">⬅️ طلب جديد</button>
     </div>
 
+    <!-- MAIN -->
     <div id="mainContent">
         <header>
             <div class="hdr-inner">
@@ -925,6 +929,7 @@
         </div>
 
         <div class="container">
+            <!-- ORDER INFO -->
             <div class="order-info-box">
                 <div class="oib-title"><i class="fas fa-user-circle"></i> بياناتك</div>
                 <div class="oib-grid">
@@ -943,12 +948,15 @@
                 <div class="fg" style="margin-top:12px"><label><i class="fas fa-sticky-note"></i> ملاحظات</label><input class="fi" id="order-notes" placeholder="أي طلبات خاصة..."></div>
             </div>
 
+            <!-- CATEGORIES -->
             <div class="cats" id="cats-row"></div>
 
+            <!-- MENU -->
             <div id="menu-content"></div>
         </div>
     </div>
 
+    <!-- CART -->
     <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
     <div class="cart-panel" id="cart-panel">
         <div class="cart-hdr">
@@ -967,26 +975,51 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script>
-        const FC = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app", projectId: "argon-system" };
+        // ─── Firebase config ───
+        const FC = {
+            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
+            authDomain: "argon-system.firebaseapp.com",
+            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298"
+        };
         firebase.initializeApp(FC);
         const db = firebase.database();
+
+        // قراءة الـ ID من الرابط — يدعم ?id= و ?restaurantId= و ?r=
         const params = new URLSearchParams(location.search);
-        const RID = params.get('id') || params.get('restaurantId');
+        const RID = params.get('id') || params.get('restaurantId') || params.get('r');
         let cart = [], menu = {}, settings = {}, allCategories = [];
 
+        function showLoadError(msg, sub) {
+            document.getElementById('loadScreen').innerHTML = `
+        <div style="text-align:center;padding:60px 30px;font-family:'Cairo',sans-serif">
+          <div style="font-size:52px;margin-bottom:16px">⚠️</div>
+          <div style="font-size:18px;font-weight:700;color:#c00;margin-bottom:8px">${msg}</div>
+          <div style="font-size:13px;color:#888">${sub || 'تأكد من صحة الرابط أو تواصل مع المطعم'}</div>
+        </div>`;
+        }
+
         async function init() {
-            if (!RID) { document.getElementById('loadScreen').innerHTML = '<div style="text-align:center;padding:60px;font-family:Cairo,sans-serif"><div style="font-size:40px">⚠️</div><div style="margin-top:12px">رابط غير صحيح — يرجى استخدام الرابط الكامل</div></div>'; return; }
+            if (!RID) { showLoadError('رابط غير صحيح', 'معرّف المطعم مفقود من الرابط'); return; }
             try {
-                const [setSnap, menuSnap] = await Promise.all([
+                // timeout 12 ثانية
+                const withTimeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
+                const [setSnap, menuSnap] = await withTimeout(Promise.all([
                     db.ref(`restaurants/${RID}/settings`).once('value'),
                     db.ref(`restaurants/${RID}/menu`).once('value')
-                ]);
+                ]), 12000);
+
+                if (!setSnap.exists()) { showLoadError('المطعم غير موجود', 'تأكد أن الرابط صحيح'); return; }
                 settings = setSnap.val() || {};
                 menu = {}; menuSnap.forEach(c => { menu[c.key] = c.val(); });
 
-                document.getElementById('loadScreen').style.opacity = '0';
-                document.getElementById('loadScreen').style.transition = '.4s';
-                setTimeout(() => { document.getElementById('loadScreen').style.display = 'none'; }, 420);
+                // إخفاء شاشة التحميل
+                const ls = document.getElementById('loadScreen');
+                ls.style.opacity = '0'; ls.style.transition = '.4s';
+                setTimeout(() => { ls.style.display = 'none'; }, 420);
 
                 if (settings.status === 'closed') {
                     const cs = document.getElementById('closedScreen'); cs.style.display = 'flex';
@@ -995,16 +1028,22 @@
                 }
 
                 document.getElementById('mainContent').style.display = 'block';
+                const c = settings.color || '#d42818';
+                // تطبيق لون المطعم
+                document.documentElement.style.setProperty('--red', c);
+                document.documentElement.style.setProperty('--red2', c);
                 document.getElementById('hdr-icon').textContent = (settings.name || '🍽️').charAt(0);
                 document.getElementById('hdr-name').textContent = settings.name || 'المطعم';
                 document.getElementById('hero-title').textContent = settings.name || 'أهلاً وسهلاً';
                 document.getElementById('hero-msg').textContent = settings.welcomeMsg || 'اطلب من قائمتنا الشهية';
                 document.getElementById('hero-hours').innerHTML = `<i class="fas fa-clock"></i> ${settings.openTime || '08:00'} — ${settings.closeTime || '23:00'}`;
-                document.getElementById('hero-status').innerHTML = settings.acceptOrders !== false ? '<i class="fas fa-check-circle"></i> نقبل الطلبات' : '<i class="fas fa-times-circle" style="color:#ffaaaa"></i> مغلق';
+                document.getElementById('hero-status').innerHTML = settings.acceptOrders !== false ? '<i class="fas fa-check-circle"></i> نقبل الطلبات' : '<i class="fas fa-times-circle" style="color:#ffaaaa"></i> مغلق مؤقتاً';
                 document.title = (settings.name || 'المطعم') + ' — اطلب الآن';
                 buildMenu();
             } catch (e) {
-                document.getElementById('loadScreen').innerHTML = `<div style="text-align:center;padding:60px;font-family:Cairo,sans-serif"><div style="font-size:40px">⚠️</div><div style="margin-top:12px;color:#c00">خطأ في الاتصال</div></div>`;
+                const msg = e.message === 'timeout' ? 'انتهت مهلة الاتصال' : 'خطأ في الاتصال بالنظام';
+                const sub = e.message === 'timeout' ? 'تحقق من اتصالك بالإنترنت وأعد تحميل الصفحة' : e.message;
+                showLoadError(msg, sub);
             }
         }
 
@@ -1013,6 +1052,7 @@
             const cats = [...new Set(items.map(([, i]) => i.category || 'أخرى').filter(Boolean))];
             allCategories = cats;
 
+            // cats row
             const catsEl = document.getElementById('cats-row');
             catsEl.innerHTML = `<button class="cat ${!filterCat ? 'on' : ''}" onclick="buildMenu(null)">🍽️ الكل</button>` +
                 cats.map(c => `<button class="cat ${filterCat === c ? 'on' : ''}" onclick="buildMenu('${c}')">${c}</button>`).join('');
@@ -1026,130 +1066,123 @@
                 if (!catItems.length) return;
                 const sec = document.createElement('div'); sec.className = 'cat-section';
                 sec.innerHTML = `<div class="cat-head"><i class="fas fa-tag"></i> ${cat}</div>
-              <div class="menu-grid">${catItems.map(([k, i]) => {
+          <div class="menu-grid">${catItems.map(([k, i]) => {
                     const inCart = cart.find(c => c.id === k);
                     return `<div class="mcard" onclick="addToCart('${k}')">
-                  <div class="mimg">${i.image ? `<img src="${i.image}" alt="${i.name}" onerror="this.style.display='none'">` : '🍽️'}</div>
-                  <div class="mbody">
-                    <div class="mname">${i.name}</div>
-                    ${i.description ? `<div class="mdesc">${i.description}</div>` : ''}
-                    <div class="mfooter">
-                      <div class="mprice">${(i.price || 0).toFixed(2)} JOD</div>
-                      <button class="madd-btn ${inCart ? 'in-cart' : ''}" onclick="event.stopPropagation();addToCart('${k}')">
-                        ${inCart ? `✓ في السلة (${inCart.qty})` : '+  أضف'}
-                      </button>
-                    </div>
-                  </div>
-                </div>`;
+              <div class="mimg">${i.image ? `<img src="${i.image}" alt="${i.name}" onerror="this.style.display='none'">` : '🍽️'}</div>
+              <div class="mbody">
+                <div class="mname">${i.name}</div>
+                ${i.description ? `<div class="mdesc">${i.description}</div>` : ''}
+                <div class="mfooter">
+                  <div class="mprice">${(i.price || 0).toFixed(2)} JOD</div>
+                  <button class="madd-btn ${inCart ? 'in-cart' : ''}" onclick="event.stopPropagation();addToCart('${k}')">
+                    ${inCart ? `✓ في السلة (${inCart.qty})` : '+  أضف'}
+                  </button>
+                </div>
+              </div>
+            </div>`;
                 }).join('')}</div>`;
                 content.appendChild(sec);
             });
-            if (!items.length) { content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد أصناف متاحة حالياً</div>'; }
+
+            if (!items.length) { content.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><i class="fas fa-utensils" style="font-size:44px;opacity:.3;display:block;margin-bottom:14px"></i>القائمة فارغة حالياً</div>'; }
         }
 
-        // --- التكملة لإصلاح مشكلة وصول الطلبات ---
+        function addToCart(id) {
+            const item = menu[id]; if (!item) return;
+            const ex = cart.find(c => c.id === id);
+            if (ex) ex.qty++;
+            else cart.push({ id, name: item.name, price: item.price || 0, qty: 1 });
+            updateCart(); toast(`✓ "${item.name}" أُضيف للسلة`);
+            const cat = document.querySelector('.cat.on')?.textContent;
+            const fc = allCategories.includes(cat) ? cat : null;
+            buildMenu(fc || null);
+        }
 
-        window.toggleCart = () => {
-            document.getElementById('cart-overlay').classList.toggle('open');
-            document.getElementById('cart-panel').classList.toggle('open');
-        };
+        function changeQty(id, delta) {
+            const item = cart.find(c => c.id === id); if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
+            updateCart();
+            const cat = document.querySelector('.cat.on')?.textContent;
+            const fc = allCategories.includes(cat) ? cat : null;
+            buildMenu(fc || null);
+        }
 
-        window.addToCart = (id) => {
-            const item = menu[id];
-            const existing = cart.find(c => c.id === id);
-            if (existing) { existing.qty++; }
-            else { cart.push({ id, name: item.name, price: item.price, qty: 1 }); }
-            updateUI();
-            showToast(`تم إضافة ${item.name}`);
-        };
-
-        function updateUI() {
-            const list = document.getElementById('cart-items');
-            const count = cart.reduce((a, b) => a + b.qty, 0);
-            const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+        function updateCart() {
+            const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+            const count = cart.reduce((s, c) => s + c.qty, 0);
             document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-count').classList.add('bump');
-            setTimeout(() => document.getElementById('cart-count').classList.remove('bump'), 300);
-
-            if (cart.length === 0) {
-                list.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>السلة فارغة</p></div>';
-                document.getElementById('checkout-btn').disabled = true;
-            } else {
-                list.innerHTML = cart.map((item, idx) => `
-                        <div class="ci">
-                            <div class="ci-info">
-                                <div class="ci-name">${item.name}</div>
-                                <div class="ci-price">${(item.price * item.qty).toFixed(2)} JOD</div>
-                            </div>
-                            <div class="qty-ctrl">
-                                <button class="qb" onclick="changeQty(${idx}, -1)">-</button>
-                                <span class="qn">${item.qty}</span>
-                                <button class="qb" onclick="changeQty(${idx}, 1)">+</button>
-                            </div>
-                        </div>
-                    `).join('');
-                document.getElementById('checkout-btn').disabled = false;
-            }
-            document.getElementById('cart-total').textContent = total.toFixed(2) + " JOD";
-            buildMenu();
+            const cc = document.getElementById('cart-count'); cc.classList.remove('bump'); void cc.offsetWidth; cc.classList.add('bump');
+            document.getElementById('cart-total').textContent = total.toFixed(2) + ' JOD';
+            document.getElementById('checkout-btn').disabled = cart.length === 0 || settings.acceptOrders === false;
+            const el = document.getElementById('cart-items');
+            if (!cart.length) { el.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-basket"></i>السلة فارغة<br><small style="font-size:12px;opacity:.6">أضف أصناف من القائمة</small></div>'; return; }
+            el.innerHTML = cart.map(c => `
+        <div class="ci">
+          <div class="ci-info"><div class="ci-name">${c.name}</div><div class="ci-price">${(c.price * c.qty).toFixed(2)} JOD</div></div>
+          <div class="qty-ctrl">
+            <button class="qb" onclick="changeQty('${c.id}',-1)">−</button>
+            <span class="qn">${c.qty}</span>
+            <button class="qb" onclick="changeQty('${c.id}',1)">+</button>
+          </div>
+        </div>`).join('');
         }
 
-        window.changeQty = (idx, delta) => {
-            cart[idx].qty += delta;
-            if (cart[idx].qty <= 0) cart.splice(idx, 1);
-            updateUI();
-        };
+        function toggleCart() {
+            document.getElementById('cart-panel').classList.toggle('open');
+            document.getElementById('cart-overlay').classList.toggle('open');
+        }
 
-        window.doCheckout = async () => {
+        async function doCheckout() {
+            if (!cart.length) return;
+            const btn = document.getElementById('checkout-btn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
-            if (!name || !phone) { alert("يرجى إدخال الاسم ورقم الهاتف"); return; }
-
-            const btn = document.getElementById('checkout-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-
-            const orderID = Math.floor(1000 + Math.random() * 9000);
-            const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
-
-            const orderData = {
-                orderID,
-                customer: {
-                    name, phone,
-                    table: document.getElementById('table-num').value,
-                    type: document.getElementById('order-type').value,
-                    notes: document.getElementById('order-notes').value
-                },
-                items: cart,
-                total: total,
-                status: 'pending',
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            };
-
+            const type = document.getElementById('order-type').value;
+            const tableNum = document.getElementById('table-num').value.trim();
+            const notes = document.getElementById('order-notes').value.trim();
+            const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+            const itemsObj = {}; cart.forEach(c => { itemsObj['item_' + c.id] = { id: c.id, name: c.name, price: c.price, qty: c.qty }; });
+            const orderId = 'ord_' + Date.now();
             try {
-                await db.ref(`restaurants/${RID}/orders`).push(orderData);
+                await db.ref(`restaurants/${RID}/orders/${orderId}`).set({ customerName: name || 'زبون', customerPhone: phone, orderType: type, tableNum: tableNum || '', notes, items: itemsObj, total, status: 'pending', createdAt: new Date().toISOString() });
+                if (name && phone) {
+                    const custKey = 'cust_' + phone.replace(/\D/g, '');
+                    const existing = await db.ref(`restaurants/${RID}/customers/${custKey}`).once('value');
+                    if (existing.exists()) { db.ref(`restaurants/${RID}/customers/${custKey}`).update({ orderCount: (existing.val().orderCount || 0) + 1 }); }
+                    else { db.ref(`restaurants/${RID}/customers/${custKey}`).set({ name, phone, orderCount: 1, createdAt: Date.now() }); }
+                }
                 document.getElementById('mainContent').style.display = 'none';
-                document.getElementById('cart-panel').classList.remove('open');
-                document.getElementById('cart-overlay').classList.remove('open');
-                document.getElementById('successScreen').style.display = 'flex';
-                document.getElementById('suc-id').textContent = `طلب #${orderID}`;
+                document.getElementById('suc-id').textContent = `طلب #${orderId.slice(-6).toUpperCase()}`;
                 document.getElementById('suc-total').textContent = `الإجمالي: ${total.toFixed(2)} JOD`;
+                document.getElementById('successScreen').style.display = 'flex';
+                cart = []; updateCart();
             } catch (e) {
-                alert("فشل الإرسال، حاول ثانية");
-                btn.disabled = false;
-                btn.innerHTML = 'إرسال الطلب';
+                toast('❌ خطأ في إرسال الطلب');
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الطلب';
             }
-        };
-
-        function showToast(msg) {
-            const t = document.createElement('div');
-            t.className = 'toast'; t.textContent = msg;
-            document.getElementById('tw').appendChild(t);
-            setTimeout(() => t.classList.add('show'), 100);
-            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
         }
 
-        window.resetPage = () => { location.reload(); };
+        function resetPage() {
+            document.getElementById('successScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('order-notes').value = '';
+            document.getElementById('table-num').value = '';
+            buildMenu();
+            window.scrollTo(0, 0);
+        }
+
+        function toast(msg) {
+            const w = document.getElementById('tw'), t = document.createElement('div');
+            t.className = 'toast'; t.textContent = msg; w.appendChild(t);
+            setTimeout(() => t.classList.add('show'), 10);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2600);
+        }
+
         init();
     </script>
 </body>

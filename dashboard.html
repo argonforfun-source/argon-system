@@ -1064,7 +1064,7 @@
                     <span style="font-size:12px;color:var(--muted)">قبول الطلبات</span>
                     <label class="tog"><input type="checkbox" id="statusTog" onchange="toggleOpen(this.checked)"><span class="tslider"></span></label>
                 </div>
-                <a href="superadmin.html" id="back-btn" class="btn-x bback"><i class="fas fa-arrow-right"></i></a>
+
                 <button class="btn-x bdanger" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </header>
@@ -1266,7 +1266,6 @@
 
         // رابط العودة الديناميكي
         function getBase() { return window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1); }
-        document.getElementById('back-btn').href = getBase() + 'superadmin.html';
 
         setInterval(() => { const el = document.getElementById('clock'); if (el) el.textContent = new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); }, 1000);
 
