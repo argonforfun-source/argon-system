@@ -2,17 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>أرغون OS | نظام الإدارة العليا المدمج</title>
+    <title>أرغون OS | نظام الإدارة العليا</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #3b82f6;
-            --bg: #f1f5f9; /* ثيم فاتح واحترافي */
-            --card: #ffffff;
-            --text: #1e293b;
-            --sidebar: #0f172a;
+            --bg: #f8fafc; /* خلفية فاتحة */
+            --card: #ffffff; /* بطاقات بيضاء */
+            --text: #1e293b; /* نصوص داكنة */
+            --sidebar: #0f172a; /* بقاء السايدبار داكن للأناقة */
         }
 
         body {
@@ -23,26 +23,26 @@
             overflow: hidden;
         }
 
-        /* شاشة الدخول */
+        /* شاشة الدخول المعدلة للثيم الفاتح */
         #superLoginPage {
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            background: #f1f5f9;
         }
 
         .login-box {
-            background: #ffffff;
+            background: var(--card);
             padding: 40px;
             border-radius: 30px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
             text-align: center;
         }
 
-        /* الهيكل الرئيسي */
         #superWrapper {
             display: none;
             height: 100vh;
@@ -81,52 +81,36 @@
                 color: var(--primary);
             }
 
-        /* بطاقة المطعم المحدثة */
+        /* بطاقة المطعم بالثيم الأبيض */
         .restaurant-card {
             background: var(--card);
             padding: 20px;
             border-radius: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border-right: 5px solid var(--primary);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            border-left: 1px solid #f1f5f9;
+            transition: 0.3s;
         }
 
-        .stat-badge {
-            background: #f8fafc;
-            padding: 4px 10px;
-            border-radius: 8px;
+        .status-btn {
             font-size: 0.8rem;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-            margin-left: 5px;
-        }
-
-        .link-box {
-            background: #f8fafc;
-            padding: 8px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: #2563eb;
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-            border: 1px dashed #cbd5e1;
-        }
-
-        .status-toggle {
-            cursor: pointer;
-            padding: 2px 10px;
+            padding: 3px 14px;
             border-radius: 20px;
-            font-size: 0.75rem;
             font-weight: bold;
             border: none;
+            margin-right: 10px;
         }
 
+        /* حقول الإدخال للثيم الأبيض */
         .form-control {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #1e293b !important;
             border-radius: 10px;
             padding: 12px;
-            border: 1px solid #cbd5e1 !important;
         }
 
         .section {
@@ -136,17 +120,20 @@
             .section.active {
                 display: block;
             }
+
+        .text-muted {
+            color: #64748b !important;
+        }
     </style>
 </head>
 <body>
 
     <div id="superLoginPage">
         <div class="login-box">
-            <h2 class="fw-black text-primary mb-2">ARGON OS</h2>
-            <p class="text-muted mb-4 small">مركز التحكم في النظام</p>
-            <input type="text" id="adminUser" class="form-control mb-3" placeholder="اسم المستخدم">
-            <input type="password" id="adminPass" class="form-control mb-4" placeholder="كلمة المرور">
-            <button class="btn btn-primary w-100 py-2 fw-bold rounded-pill" onclick="accessSuperAdmin()">دخول النظام</button>
+            <h2 class="fw-black text-primary mb-4">ARGON OS</h2>
+            <input type="text" id="adminUser" class="form-control mb-3" placeholder="اسم المستخدم (admin)">
+            <input type="password" id="adminPass" class="form-control mb-4" placeholder="كلمة المرور (123456)">
+            <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm" onclick="accessSuperAdmin()">دخول النظام</button>
         </div>
     </div>
 
@@ -154,35 +141,30 @@
         <div class="sidebar">
             <h3 class="text-primary fw-black text-center mb-5">ARGON</h3>
             <div class="nav-link active" onclick="showSection('active-sec', this)"><i class="fas fa-store me-2"></i> المطاعم النشطة</div>
-            <div class="nav-link" onclick="showSection('add-sec', this)"><i class="fas fa-plus me-2"></i> إضافة مطعم جديد</div>
+            <div class="nav-link" onclick="showSection('add-sec', this)"><i class="fas fa-plus me-2"></i> إضافة مطعم</div>
             <div class="nav-link text-danger mt-auto" onclick="location.reload()"><i class="fas fa-sign-out-alt me-2"></i> تسجيل خروج</div>
         </div>
-
         <div class="main-content">
             <div id="active-sec" class="section active">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold">إدارة الشبكة</h3>
-                    <span id="resCount" class="badge bg-primary rounded-pill">0 مطاعم</span>
-                </div>
+                <h3 class="fw-bold mb-4">إدارة الشبكة</h3>
                 <div id="activeList"></div>
             </div>
-
             <div id="add-sec" class="section">
-                <h3 class="fw-bold mb-4">تجهيز مطعم جديد</h3>
+                <h3 class="fw-bold mb-4">إضافة مطعم جديد</h3>
                 <div class="card border-0 shadow-sm p-4" style="max-width: 450px; border-radius: 20px;">
                     <div class="mb-3">
-                        <label class="small fw-bold">ID المطعم (رقمي)</label>
-                        <input type="text" id="newId" class="form-control" placeholder="مثلاً: 105">
+                        <label class="small fw-bold mb-1">ID المطعم</label>
+                        <input type="text" id="newId" class="form-control" placeholder="أدخل الرقم التعريفي">
                     </div>
                     <div class="mb-3">
-                        <label class="small fw-bold">اسم المطعم</label>
-                        <input type="text" id="newName" class="form-control" placeholder="أدخل الاسم التجاري">
+                        <label class="small fw-bold mb-1">اسم المطعم</label>
+                        <input type="text" id="newName" class="form-control" placeholder="اسم المنشأة">
                     </div>
                     <div class="mb-4">
-                        <label class="small fw-bold">كلمة مرور اللوحة</label>
+                        <label class="small fw-bold mb-1">كلمة المرور الافتراضية</label>
                         <input type="text" id="newPass" class="form-control" value="123456">
                     </div>
-                    <button class="btn btn-primary w-100 py-2 fw-bold shadow" onclick="createNewRestaurant()">حفظ وإنشاء النظام</button>
+                    <button class="btn btn-primary w-100 py-2 fw-bold" onclick="createNewRestaurant()">حفظ البيانات</button>
                 </div>
             </div>
         </div>
@@ -196,11 +178,13 @@
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const GITHUB_BASE = "https://argonforfun-source.github.io/argon-system/";
 
         function accessSuperAdmin() {
             const u = document.getElementById('adminUser').value;
@@ -209,68 +193,53 @@
                 document.getElementById('superLoginPage').style.display = "none";
                 document.getElementById('superWrapper').style.display = "flex";
                 loadData();
-            } else { alert("البيانات غير صحيحة!"); }
+            } else {
+                alert("البيانات غير صحيحة!");
+            }
         }
 
         function loadData() {
             db.ref('restaurants').on('value', (snap) => {
                 const list = document.getElementById('activeList');
-                const resCount = document.getElementById('resCount');
                 list.innerHTML = "";
-                let count = 0;
-
                 snap.forEach((child) => {
-                    count++;
                     const id = child.key;
-                    const data = child.val();
-                    const settings = data.settings || {};
-                    const isClosed = settings.status === "closed";
-
-                    const ordersCount = data.completedOrders ? Object.keys(data.completedOrders).length : 0;
-                    const productsCount = data.products ? Object.keys(data.products).length : 0;
-
-                    const menuUrl = `${GITHUB_BASE}index.html?id=${id}`;
-                    const dashUrl = `${GITHUB_BASE}dashboard.html?id=${id}`;
+                    const val = child.val().settings || {};
+                    const status = val.status || "active";
+                    const isClosed = status === "closed";
 
                     list.innerHTML += `
                             <div class="restaurant-card" style="border-right-color: ${isClosed ? '#ef4444' : '#3b82f6'}">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="w-75">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <h5 class="fw-bold mb-0 me-3">${settings.name || 'بدون اسم'}</h5>
-                                            <button class="status-toggle ${isClosed ? 'bg-danger text-white' : 'bg-success text-white'}"
-                                                    onclick="toggleStatus('${id}', '${settings.status}')">
-                                                ${isClosed ? 'متوقف' : 'يعمل'}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1 fw-bold">${val.name || 'بدون اسم'}</h5>
+                                        <div class="d-flex align-items-center">
+                                            <button class="status-btn ${isClosed ? 'bg-danger text-white' : 'bg-success text-white'}"
+                                                    onclick="toggleStatus('${id}', '${status}')">
+                                                ${isClosed ? 'متوقف' : 'يعمل حالياً'}
                                             </button>
-                                        </div>
-                                        <div class="mb-3">
-                                            <span class="stat-badge">ID: ${id}</span>
-                                            <span class="stat-badge"><i class="fas fa-box"></i> ${productsCount} صنف</span>
-                                            <span class="stat-badge"><i class="fas fa-check-circle"></i> ${ordersCount} طلب</span>
-                                        </div>
-                                        <div class="link-box">
-                                            <span>المنيو: ${menuUrl}</span>
-                                            <i class="fas fa-copy cursor-pointer" onclick="copyText('${menuUrl}')"></i>
-                                        </div>
-                                        <div class="link-box">
-                                            <span>اللوحة: ${dashUrl}</span>
-                                            <i class="fas fa-copy cursor-pointer" onclick="copyText('${dashUrl}')"></i>
+                                            <small class="text-muted">ID: ${id}</small>
                                         </div>
                                     </div>
-                                    <div class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary mb-2 d-block w-100" onclick="window.open('${dashUrl}', '_blank')">فتح اللوحة</button>
-                                        <button class="btn btn-sm btn-outline-danger d-block w-100" onclick="deleteRes('${id}')">حذف</button>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="window.open('dashboard.html?id=${id}', '_blank')">اللوحة</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRestaurant('${id}')"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                             </div>`;
                 });
-                resCount.innerText = count + " مطاعم";
             });
         }
 
         function toggleStatus(id, currentStatus) {
-            const newStatus = currentStatus === "closed" ? "open" : "closed";
+            const newStatus = (currentStatus === "active" || currentStatus === "open") ? "closed" : "active";
             db.ref(`restaurants/${id}/settings`).update({ status: newStatus });
+        }
+
+        function deleteRestaurant(id) {
+            if (confirm("هل أنت متأكد من حذف هذا المطعم وكافة بياناته؟")) {
+                db.ref('restaurants/' + id).remove();
+            }
         }
 
         function createNewRestaurant() {
@@ -281,24 +250,15 @@
                 db.ref('restaurants/' + id + '/settings').set({
                     name: name,
                     password: password,
-                    status: "open",
-                    created_at: new Date().toISOString()
-                }).then(() => {
-                    alert("تمت الإضافة وتوليد الروابط");
-                    showSection('active-sec', document.querySelector('.nav-link'));
-                });
-            } else { alert("يرجى إكمال البيانات"); }
-        }
-
-        function deleteRes(id) {
-            if (confirm('سيتم حذف كافة بيانات المطعم، هل أنت متأكد؟')) {
-                db.ref('restaurants/' + id).remove();
+                    status: "active"
+                })
+                    .then(() => {
+                        alert("تمت إضافة المطعم بنجاح");
+                        showSection('active-sec', document.querySelector('.nav-link'));
+                    });
+            } else {
+                alert("يرجى ملء كافة الحقول");
             }
-        }
-
-        function copyText(txt) {
-            navigator.clipboard.writeText(txt);
-            alert("تم نسخ الرابط!");
         }
 
         function showSection(id, el) {
