@@ -127,6 +127,25 @@
             .section.active {
                 display: block;
             }
+        /* زر الإيقاف الجديد */
+        .status-btn {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .status-active {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-disabled {
+            background: #ef4444;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -207,6 +226,7 @@
                     const id = child.key;
                     const data = child.val();
                     const settings = data.settings || {};
+                    const isClosed = settings.status === "closed";
                     const ordersCount = data.completedOrders ? Object.keys(data.completedOrders).length : 0;
                     const productsCount = data.products ? Object.keys(data.products).length : 0;
 
@@ -214,10 +234,16 @@
                     const dashUrl = `${GITHUB_BASE}dashboard.html?id=${id}`;
 
                     list.innerHTML += `
-                            <div class="restaurant-card">
+                            <div class="restaurant-card" style="border-right-color: ${isClosed ? '#ef4444' : '#3b82f6'}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h4 class="mb-1 text-primary fw-bold">${settings.name || 'مطعم جديد'}</h4>
+                                        <div class="d-flex align-items-center mb-1">
+                                            <h4 class="mb-0 text-primary fw-bold me-3">${settings.name || 'مطعم جديد'}</h4>
+                                            <button class="status-btn ${isClosed ? 'status-disabled' : 'status-active'}"
+                                                    onclick="toggleStatus('${id}', '${settings.status}')">
+                                                ${isClosed ? '● متوقف' : '● يعمل'}
+                                            </button>
+                                        </div>
                                         <div class="mb-3">
                                             <span class="stat-badge"><i class="fas fa-hashtag"></i> ID: ${id}</span>
                                             <span class="stat-badge"><i class="fas fa-shopping-basket"></i> ${ordersCount} طلب مكتمل</span>
@@ -241,6 +267,11 @@
                 });
                 countBadge.innerText = count + " مطاعم";
             });
+        }
+
+        function toggleStatus(id, currentStatus) {
+            const newStatus = currentStatus === "closed" ? "open" : "closed";
+            db.ref(`restaurants/${id}/settings`).update({ status: newStatus });
         }
 
         function createNewRestaurant() {
