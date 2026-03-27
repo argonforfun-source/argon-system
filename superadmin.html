@@ -1680,80 +1680,1064 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-        // ══ FIREBASE ══
-        // استبدل من هنا
-        const firebaseConfig = {
-            apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
-            authDomain: "argon-system.firebaseapp.com",
-            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "argon-system",
-            storageBucket: "argon-system.firebasestorage.app",
-            messagingSenderId: "858120444233",
-            appId: "1:858120444233:web:4bda38dfa451b9eb26e298"
-        };
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ARGON OS — السوبر أدمن</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box
+            }
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+            :root {
+                --accent: #3b82f6;
+                --bg: #f1f5f9;
+                --card: #fff;
+                --text: #0f172a;
+                --border: #e2e8f0;
+                --muted: #64748b;
+                --side: #0f172a;
+                --green: #10b981;
+                --red: #ef4444
+            }
 
-        // أضف هذا الجزء تحت تعريف db مباشرة لعرض المطاعم
-        db.ref('restaurants').on('value', (snap) => {
-            const list = document.getElementById('list');
-            list.innerHTML = ''; // هذا هو السر لظهور كل المطاعم
-            const data = snap.val();
-            if (!data) return;
+            body {
+                font-family: 'Cairo',sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                margin: 0;
+                overflow: hidden
+            }
 
-            Object.keys(data).forEach(id => {
-                const res = data[id].settings;
-                if (!res) return;
-                const mUrl = window.location.origin + window.location.pathname.replace('superadmin.html', 'index.html') + '?id=' + id;
-                const dUrl = window.location.origin + window.location.pathname.replace('superadmin.html', 'dashboard.html') + '?id=' + id;
+            #loginPage {
+                position: fixed;
+                inset: 0;
+                background: #020617;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 999
+            }
 
-                list.innerHTML += `
-            <div class="res-card">
-                <div class="res-info">
-                    <div class="res-logo"><img src="${res.logo || 'https://via.placeholder.com/100'}"></div>
-                    <div class="res-details"><h3>${res.name}</h3><p>ID: ${id}</p></div>
-                </div>
-                <div class="actions">
-                    <button class="btn-sm btn-copy" onclick="cp('${mUrl}')"><i class="fas fa-link"></i> منيو</button>
-                    <button class="btn-sm btn-dash" onclick="window.open('${dUrl}')"><i class="fas fa-external-link-alt"></i> لوحة</button>
-                    <button class="btn-sm btn-del" onclick="delRes('${id}')"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`;
-            });
-        });
-        // إلى هنا
-           
-                document.getElementById('s-orders').textContent = totalOrders;
-                filterList();
-            }, err => {
-                // ── معالجة permission_denied بشكل واضح ──
-                console.error('Firebase error:', err.code, err.message);
-                let msg = 'خطأ في تحميل البيانات';
-                let hint = '';
-                if (err.code === 'PERMISSION_DENIED') {
-                    msg = '🔒 خطأ في صلاحيات Firebase';
-                    hint = 'يجب تحديث قواعد Firebase Database.<br>اذهب إلى Firebase Console → Realtime Database → Rules وانسخ القواعد الموضحة أدناه.';
+            .lbg {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse 60% 60% at 50% 30%,rgba(59,130,246,.15) 0%,transparent 70%)
+            }
+
+            .lcard {
+                position: relative;
+                width: 380px;
+                background: #1e293b;
+                border: 1px solid rgba(59,130,246,.3);
+                border-radius: 24px;
+                padding: 44px 36px;
+                text-align: center;
+                box-shadow: 0 40px 80px rgba(0,0,0,.6)
+            }
+
+                .lcard h2 {
+                    color: #60a5fa;
+                    font-weight: 900;
+                    letter-spacing: 3px;
+                    margin-bottom: 6px
                 }
-                document.getElementById('resGrid').innerHTML = `
-                        <div class="empty-state" style="grid-column:1/-1">
-                            <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i>
-                            <p style="color:var(--red)">${msg}</p>
-                            <small style="line-height:1.8">${hint || err.message}</small>
+
+                .lcard p {
+                    color: #64748b;
+                    font-size: 13px;
+                    margin-bottom: 28px
+                }
+
+            .li {
+                display: block;
+                width: 100%;
+                background: rgba(255,255,255,.05);
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 13px 16px;
+                color: #f1f5f9;
+                font-size: 14px;
+                outline: none;
+                transition: .3s;
+                font-family: 'Cairo',sans-serif;
+                text-align: center;
+                margin-bottom: 12px
+            }
+
+                .li:focus {
+                    border-color: rgba(59,130,246,.6);
+                    background: rgba(59,130,246,.05)
+                }
+
+                .li::placeholder {
+                    color: #475569
+                }
+
+            .lbtn {
+                width: 100%;
+                padding: 14px;
+                background: linear-gradient(135deg,#2563eb,#3b82f6);
+                border: none;
+                border-radius: 12px;
+                color: #fff;
+                font-size: 15px;
+                font-weight: 800;
+                cursor: pointer;
+                font-family: 'Cairo',sans-serif;
+                transition: .3s
+            }
+
+                .lbtn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 28px rgba(59,130,246,.4)
+                }
+
+            .lerr {
+                color: #f87171;
+                font-size: 13px;
+                margin-top: 10px;
+                display: none;
+                padding: 8px;
+                background: rgba(239,68,68,.1);
+                border-radius: 8px
+            }
+
+            #app {
+                display: none;
+                height: 100vh;
+                flex-direction: row
+            }
+
+            .sidebar {
+                width: 240px;
+                background: var(--side);
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                flex-shrink: 0
+            }
+
+            .sb-logo {
+                padding: 28px 20px;
+                border-bottom: 1px solid rgba(255,255,255,.06);
+                text-align: center
+            }
+
+                .sb-logo h4 {
+                    color: #60a5fa;
+                    font-weight: 900;
+                    letter-spacing: 2px;
+                    margin: 0
+                }
+
+                .sb-logo small {
+                    color: #475569;
+                    font-size: 11px
+                }
+
+            .si {
+                padding: 12px 20px;
+                cursor: pointer;
+                color: #94a3b8;
+                transition: .2s;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 600;
+                font-size: 13px;
+                margin: 2px 10px;
+                border-radius: 8px;
+                border-right: 3px solid transparent
+            }
+
+                .si i {
+                    width: 18px;
+                    text-align: center
+                }
+
+                .si:hover {
+                    background: rgba(59,130,246,.1);
+                    color: #93c5fd
+                }
+
+                .si.on {
+                    background: rgba(59,130,246,.15);
+                    color: #60a5fa;
+                    border-right-color: #3b82f6
+                }
+
+                .si.danger {
+                    color: #f87171
+                }
+
+                    .si.danger:hover {
+                        background: rgba(239,68,68,.1)
+                    }
+
+            .sb-stats {
+                padding: 14px 20px;
+                border-top: 1px solid rgba(255,255,255,.06);
+                margin-top: auto
+            }
+
+            .ss-item {
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+                margin-bottom: 6px;
+                color: #64748b
+            }
+
+            .ss-val {
+                font-weight: 700;
+                color: #f1f5f9
+            }
+
+            .main {
+                flex: 1;
+                overflow-y: auto;
+                padding: 28px
+            }
+
+            .pg-title {
+                font-size: 18px;
+                font-weight: 800;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px
+            }
+
+            .sec {
+                display: none
+            }
+
+                .sec.on {
+                    display: block
+                }
+
+            .srow {
+                display: grid;
+                grid-template-columns: repeat(4,1fr);
+                gap: 14px;
+                margin-bottom: 24px
+            }
+
+            .sc {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 20px;
+                transition: .3s
+            }
+
+                .sc:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(0,0,0,.07)
+                }
+
+            .sc-ic {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                margin-bottom: 10px
+            }
+
+            .sc-num {
+                font-size: 28px;
+                font-weight: 900;
+                line-height: 1;
+                margin-bottom: 3px
+            }
+
+            .sc-lbl {
+                font-size: 11px;
+                color: var(--muted)
+            }
+
+            .sg .sc-ic {
+                background: rgba(16,185,129,.1);
+                color: var(--green)
+            }
+
+            .sg .sc-num {
+                color: var(--green)
+            }
+
+            .sb2 .sc-ic {
+                background: rgba(59,130,246,.1);
+                color: var(--accent)
+            }
+
+            .sb2 .sc-num {
+                color: var(--accent)
+            }
+
+            .sy .sc-ic {
+                background: rgba(245,158,11,.1);
+                color: #f59e0b
+            }
+
+            .sy .sc-num {
+                color: #f59e0b
+            }
+
+            .sr2 .sc-ic {
+                background: rgba(239,68,68,.1);
+                color: var(--red)
+            }
+
+            .sr2 .sc-num {
+                color: var(--red)
+            }
+
+            .panel {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                overflow: hidden;
+                margin-bottom: 20px
+            }
+
+            .ph {
+                background: var(--bg);
+                padding: 14px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid var(--border)
+            }
+
+            .pt {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                gap: 8px
+            }
+
+            .frow {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 16px 20px
+            }
+
+            .fg {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                flex: 1;
+                min-width: 140px
+            }
+
+                .fg label {
+                    font-size: 11px;
+                    color: var(--muted);
+                    font-weight: 700
+                }
+
+            .fi {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 9px;
+                padding: 9px 12px;
+                color: var(--text);
+                font-size: 13px;
+                outline: none;
+                transition: .2s;
+                font-family: 'Cairo',sans-serif;
+                width: 100%
+            }
+
+                .fi:focus {
+                    border-color: var(--accent)
+                }
+
+                .fi::placeholder {
+                    color: var(--muted)
+                }
+
+            .factions {
+                padding: 12px 20px;
+                display: flex;
+                gap: 8px;
+                border-top: 1px solid var(--border)
+            }
+
+            .btn {
+                padding: 9px 18px;
+                border-radius: 9px;
+                border: none;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 700;
+                font-family: 'Cairo',sans-serif;
+                transition: .2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px
+            }
+
+            .bb {
+                background: var(--accent);
+                color: #fff
+            }
+
+                .bb:hover {
+                    filter: brightness(1.1)
+                }
+
+            .bg2 {
+                background: var(--green);
+                color: #fff
+            }
+
+                .bg2:hover {
+                    filter: brightness(1.1)
+                }
+
+            .br2 {
+                background: var(--red);
+                color: #fff
+            }
+
+                .br2:hover {
+                    filter: brightness(1.1)
+                }
+
+            .bo2 {
+                background: transparent;
+                border: 1px solid var(--border);
+                color: var(--muted)
+            }
+
+                .bo2:hover {
+                    border-color: var(--accent);
+                    color: var(--accent)
+                }
+
+            .bsm {
+                padding: 6px 12px;
+                font-size: 11px;
+                border-radius: 7px
+            }
+
+            .res-card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: .2s;
+                border-right: 4px solid var(--accent)
+            }
+
+                .res-card:hover {
+                    box-shadow: 0 4px 12px rgba(0,0,0,.07)
+                }
+
+                .res-card.closed {
+                    border-right-color: var(--red);
+                    opacity: .75
+                }
+
+            .rc-info {
+                display: flex;
+                align-items: center;
+                gap: 12px
+            }
+
+            .rc-icon {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                font-weight: 900;
+                color: #fff;
+                flex-shrink: 0;
+                background: var(--accent)
+            }
+
+            .rc-name {
+                font-weight: 700;
+                font-size: 14px
+            }
+
+            .rc-id {
+                font-size: 11px;
+                color: var(--muted);
+                font-family: monospace
+            }
+
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 2px 8px;
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: 700
+            }
+
+            .bon {
+                background: rgba(16,185,129,.1);
+                color: var(--green);
+                border: 1px solid rgba(16,185,129,.2)
+            }
+
+            .boff {
+                background: rgba(239,68,68,.1);
+                color: var(--red);
+                border: 1px solid rgba(239,68,68,.2)
+            }
+
+            .acts {
+                display: flex;
+                gap: 5px;
+                flex-wrap: wrap
+            }
+
+            .srch-row {
+                display: flex;
+                gap: 8px;
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border)
+            }
+
+            .srch {
+                flex: 1;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: var(--text);
+                font-size: 13px;
+                outline: none;
+                font-family: 'Cairo',sans-serif
+            }
+
+                .srch:focus {
+                    border-color: var(--accent)
+                }
+
+                .srch::placeholder {
+                    color: var(--muted)
+                }
+
+            .fb {
+                padding: 7px 14px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                background: transparent;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: 'Cairo',sans-serif;
+                transition: .2s
+            }
+
+                .fb:hover, .fb.on {
+                    background: rgba(59,130,246,.1);
+                    border-color: rgba(59,130,246,.3);
+                    color: var(--accent)
+                }
+
+            .res-list {
+                padding: 16px
+            }
+            /* result card after adding */
+            .result-box {
+                display: none;
+                background: rgba(16,185,129,.05);
+                border: 1px solid rgba(16,185,129,.2);
+                border-radius: 12px;
+                padding: 16px;
+                margin: 0 20px 16px
+            }
+
+                .result-box h6 {
+                    color: var(--green);
+                    font-weight: 700;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px
+                }
+
+            .lbox {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 12px;
+                margin-bottom: 8px
+            }
+
+            .ll {
+                font-size: 11px;
+                color: var(--muted);
+                margin-bottom: 5px;
+                font-weight: 700
+            }
+
+            .lv {
+                font-size: 12px;
+                color: var(--accent);
+                font-family: monospace;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+                word-break: break-all
+            }
+
+            .cpb {
+                background: rgba(59,130,246,.1);
+                border: 1px solid rgba(59,130,246,.2);
+                color: var(--accent);
+                padding: 3px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 11px;
+                font-weight: 700;
+                flex-shrink: 0;
+                transition: .2s;
+                font-family: 'Cairo',sans-serif
+            }
+
+                .cpb:hover {
+                    background: rgba(59,130,246,.2)
+                }
+
+            .rc-detail {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+                font-size: 12px;
+                color: var(--muted);
+                margin-top: 10px
+            }
+
+                .rc-detail span {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px
+                }
+
+                .rc-detail i {
+                    color: var(--accent);
+                    width: 14px
+                }
+
+            .tw2 {
+                position: fixed;
+                top: 18px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+                pointer-events: none
+            }
+
+            .toast {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 10px 20px;
+                font-size: 13px;
+                font-family: 'Cairo',sans-serif;
+                color: var(--text);
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: .3s;
+                white-space: nowrap;
+                box-shadow: 0 6px 20px rgba(0,0,0,.15)
+            }
+
+                .toast.show {
+                    opacity: 1;
+                    transform: translateY(0)
+                }
+
+                .toast.ok {
+                    border-color: rgba(16,185,129,.4);
+                    color: var(--green)
+                }
+
+                .toast.err {
+                    border-color: rgba(239,68,68,.4);
+                    color: var(--red)
+                }
+
+                .toast.info {
+                    border-color: rgba(59,130,246,.4);
+                    color: var(--accent)
+                }
+
+            .empty {
+                text-align: center;
+                padding: 50px;
+                color: var(--muted)
+            }
+
+                .empty i {
+                    font-size: 40px;
+                    margin-bottom: 10px;
+                    opacity: .25;
+                    display: block
+                }
+
+            ::-webkit-scrollbar {
+                width: 5px
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 3px
+            }
+
+            @media(max-width:800px) {
+                .sidebar {
+                    display: none
+                }
+
+                .srow {
+                    grid-template-columns: 1fr 1fr
+                }
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="loginPage">
+            <div class="lbg"></div>
+            <div class="lcard">
+                <h2>ARGON OS</h2>
+                <p>المركز الرئيسي — دخول السوبر أدمن</p>
+                <input class="li" type="text" id="lu" placeholder="اسم المستخدم" autocomplete="off">
+                <input class="li" type="password" id="lp" placeholder="كلمة المرور" onkeyup="if(event.key==='Enter')doLogin()">
+                <button class="lbtn" onclick="doLogin()">دخول ←</button>
+                <div class="lerr" id="lerr">❌ بيانات غير صحيحة</div>
+            </div>
+        </div>
+
+        <div id="app" style="display:none;flex-direction:row;height:100vh">
+            <div class="sidebar">
+                <div class="sb-logo">
+                    <h4>ARGON OS</h4>
+                    <small>نظام الإدارة المركزي</small>
+                </div>
+                <div style="padding:12px 0;flex:1">
+                    <div class="si on" onclick="pg('list',this)"><i class="fas fa-store"></i> قائمة المطاعم</div>
+                    <div class="si" onclick="pg('add',this)"><i class="fas fa-plus-circle"></i> إضافة مطعم</div>
+                </div>
+                <div class="sb-stats">
+                    <div class="ss-item"><span>إجمالي المطاعم</span><span class="ss-val" id="ss-tot">0</span></div>
+                    <div class="ss-item"><span>نشطة</span><span class="ss-val" id="ss-on">0</span></div>
+                    <div class="ss-item"><span>موقوفة</span><span class="ss-val" id="ss-off">0</span></div>
+                </div>
+                <div style="padding:14px 20px;border-top:1px solid rgba(255,255,255,.06)">
+                    <div class="si danger" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> خروج</div>
+                </div>
+            </div>
+
+            <div class="main">
+
+                <!-- LIST -->
+                <div class="sec on" id="sec-list">
+                    <div class="pg-title"><i class="fas fa-store" style="color:var(--accent)"></i> شبكة المطاعم</div>
+                    <div class="srow">
+                        <div class="sc sg"><div class="sc-ic"><i class="fas fa-store"></i></div><div class="sc-num" id="s-tot">0</div><div class="sc-lbl">إجمالي</div></div>
+                        <div class="sc sb2"><div class="sc-ic"><i class="fas fa-check-circle"></i></div><div class="sc-num" id="s-on">0</div><div class="sc-lbl">نشطة</div></div>
+                        <div class="sc sr2"><div class="sc-ic"><i class="fas fa-pause-circle"></i></div><div class="sc-num" id="s-off">0</div><div class="sc-lbl">موقوفة</div></div>
+                        <div class="sc sy"><div class="sc-ic"><i class="fas fa-calendar-day"></i></div><div class="sc-num" id="s-today">0</div><div class="sc-lbl">مضافة اليوم</div></div>
+                    </div>
+                    <div class="panel">
+                        <div class="ph">
+                            <div class="pt"><i class="fas fa-list"></i> المطاعم</div>
+                            <button class="btn bo2 bsm" onclick="loadData()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                        </div>
+                        <div class="srch-row">
+                            <input class="srch" id="srch" placeholder="🔍 بحث بالاسم أو المعرف..." oninput="filterList()">
+                            <button class="fb on" onclick="setF('all',this)">الكل</button>
+                            <button class="fb" onclick="setF('open',this)">نشط</button>
+                            <button class="fb" onclick="setF('closed',this)">موقوف</button>
+                        </div>
+                        <div class="res-list" id="resList">
+                            <div class="empty"><i class="fas fa-spinner fa-spin"></i>جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADD -->
+                <div class="sec" id="sec-add">
+                    <div class="pg-title"><i class="fas fa-plus-circle" style="color:var(--green)"></i> إضافة مطعم جديد</div>
+                    <div class="panel" style="max-width:640px">
+                        <div class="ph"><div class="pt"><i class="fas fa-store"></i> بيانات المطعم</div></div>
+                        <div class="frow">
+                            <div class="fg"><label><i class="fas fa-hashtag"></i> المعرف (ID) *</label><input class="fi" id="nId" placeholder="alsham" dir="ltr" autocomplete="off"></div>
+                            <div class="fg"><label><i class="fas fa-store"></i> اسم المطعم *</label><input class="fi" id="nName" placeholder="مطعم الشام"></div>
+                            <div class="fg"><label><i class="fas fa-lock"></i> كلمة المرور *</label><input class="fi" id="nPass" type="password" value="123456"></div>
+                            <div class="fg"><label><i class="fas fa-phone"></i> الواتساب</label><input class="fi" id="nPhone" dir="ltr" placeholder="+96279xxxxxxx"></div>
+                            <div class="fg" style="flex-basis:100%"><label><i class="fas fa-map-marker-alt"></i> العنوان</label><input class="fi" id="nAddr" placeholder="عمان — الأردن"></div>
+                        </div>
+                        <div class="factions">
+                            <button class="btn bg2" onclick="addRes()"><i class="fas fa-plus"></i> إضافة وتفعيل</button>
+                            <button class="btn bo2" onclick="clearAdd()"><i class="fas fa-times"></i> مسح</button>
+                        </div>
+                    </div>
+
+                    <!-- نتيجة الإضافة -->
+                    <div class="result-box" id="resultBox">
+                        <h6><i class="fas fa-check-circle"></i> تم إنشاء المطعم بنجاح!</h6>
+                        <div id="rc-card" style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                            <div id="rc-icon" style="width:48px;height:48px;border-radius:12px;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0">M</div>
+                            <div>
+                                <div id="rc-name" style="font-size:16px;font-weight:800"></div>
+                                <div id="rc-id" style="font-size:11px;color:var(--muted);font-family:monospace"></div>
+                            </div>
+                        </div>
+                        <div class="rc-detail">
+                            <span><i class="fas fa-phone"></i><span id="rc-phone">—</span></span>
+                            <span><i class="fas fa-map-marker-alt"></i><span id="rc-addr">—</span></span>
+                            <span><i class="fas fa-lock"></i>كلمة المرور: <span id="rc-pass" style="font-family:monospace;color:var(--text)">—</span></span>
+                            <span><i class="fas fa-circle" style="color:var(--green)"></i>حالة: نشط</span>
+                        </div>
+                        <hr style="border-color:var(--border);margin:12px 0">
+                        <div class="lbox">
+                            <div class="ll">📊 لوحة تحكم المطعم</div>
+                            <div class="lv"><span id="linkDash">—</span><button class="cpb" onclick="cpEl('linkDash')">نسخ</button></div>
+                        </div>
+                        <div class="lbox">
+                            <div class="ll">🍽 رابط منيو الزبائن</div>
+                            <div class="lv"><span id="linkMenu">—</span><button class="cpb" onclick="cpEl('linkMenu')">نسخ</button></div>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:12px">
+                            <button class="btn bb bsm" onclick="window.open(document.getElementById('linkDash').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح اللوحة</button>
+                            <button class="btn bo2 bsm" onclick="clearAdd()"><i class="fas fa-plus"></i> إضافة مطعم آخر</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tw2" id="tw"></div>
+
+        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+        <script>
+            const FC = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app", projectId: "argon-system", storageBucket: "argon-system.firebasestorage.app", messagingSenderId: "858120444233", appId: "1:858120444233:web:4bda38dfa451b9eb26e298" };
+            firebase.initializeApp(FC);
+            const db = firebase.database();
+            const ADMIN = { u: 'admin', p: '123456' };
+            let allData = [], curF = 'all';
+
+            function getBase() { return window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1); }
+
+            document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });
+
+            function doLogin() {
+                const u = document.getElementById('lu').value.trim(), p = document.getElementById('lp').value;
+                if (u === ADMIN.u && p === ADMIN.p) {
+                    document.getElementById('loginPage').style.cssText = 'opacity:0;transition:.3s';
+                    setTimeout(() => { document.getElementById('loginPage').style.display = 'none'; document.getElementById('app').style.display = 'flex'; loadData(); }, 320);
+                } else {
+                    const e = document.getElementById('lerr'); e.style.display = 'block';
+                    setTimeout(() => e.style.display = 'none', 3000);
+                }
+            }
+            function doLogout() {
+                db.ref('restaurants').off();
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1';
+                document.getElementById('lu').value = ''; document.getElementById('lp').value = '';
+            }
+
+            // ══════════════════════════════════════
+            // LOAD DATA — يستخدم .on('value') للتحديث الفوري
+            // ══════════════════════════════════════
+            function loadData() {
+                db.ref('restaurants').on('value', snap => {
+                    allData = [];
+                    snap.forEach(c => allData.push({ id: c.key, ...c.val() }));
+
+                    const today = new Date().toDateString();
+                    const tot = allData.length;
+                    const on = allData.filter(r => { const st = r.settings?.status || 'open'; return st !== 'closed' && st !== 'disabled'; }).length;
+                    const off = tot - on;
+                    const td = allData.filter(r => {
+                        const ca = r.settings?.createdAt;
+                        return ca && new Date(ca).toDateString() === today;
+                    }).length;
+
+                    ['s-tot', 'ss-tot'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = tot; });
+                    ['s-on', 'ss-on'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = on; });
+                    ['s-off', 'ss-off'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = off; });
+                    const std = document.getElementById('s-today'); if (std) std.textContent = td;
+
+                    filterList();
+                });
+            }
+
+            function setF(f, el) {
+                curF = f;
+                document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+                el.classList.add('on');
+                filterList();
+            }
+            function filterList() {
+                const q = (document.getElementById('srch').value || '').toLowerCase().trim();
+                let f = allData;
+                if (curF === 'open') f = f.filter(r => { const st = r.settings?.status || 'open'; return st !== 'closed' && st !== 'disabled'; });
+                if (curF === 'closed') f = f.filter(r => { const st = r.settings?.status || 'open'; return st === 'closed' || st === 'disabled'; });
+                if (q) f = f.filter(r => (r.settings?.name || '').toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+                renderList(f);
+            }
+
+            function renderList(data) {
+                const el = document.getElementById('resList');
+                if (!data.length) { el.innerHTML = '<div class="empty"><i class="fas fa-store"></i>لا توجد مطاعم</div>'; return; }
+                const base = getBase();
+                el.innerHTML = data.map(r => {
+                    const s = r.settings || {};
+                    const st = s.status || 'open';
+                    const closed = st === 'closed' || st === 'disabled';
+                    return `<div class="res-card ${closed ? 'closed' : ''}">
+              <div class="rc-info">
+                <div class="rc-icon" style="background:${s.color || '#3b82f6'}">${(s.name || '?').charAt(0)}</div>
+                <div>
+                  <div class="rc-name">${s.name || '—'}</div>
+                  <div class="rc-id">${r.id}${s.phone ? ` · ${s.phone}` : ''}</div>
+                  <span class="badge ${closed ? 'boff' : 'bon'} mt-1">${closed ? 'موقوف' : 'نشط'}</span>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="btn bb bsm" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> اللوحة</button>
+                <button class="btn bo2 bsm" onclick="toggleStatus('${r.id}','${st}')"><i class="fas fa-${closed ? 'play' : 'pause'}"></i>${closed ? 'تفعيل' : 'إيقاف'}</button>
+                <button class="btn br2 bsm" onclick="delRes('${r.id}','${(s.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>`;
+                }).join('');
+            }
+
+            // ══════════════════════════════════════
+            // ADD RESTAURANT
+            // ══════════════════════════════════════
+            function addRes() {
+                const id = document.getElementById('nId').value.trim();
+                const name = document.getElementById('nName').value.trim();
+                const pass = document.getElementById('nPass').value;
+                if (!id) { toast('يرجى إدخال المعرف (ID)', 'err'); document.getElementById('nId').focus(); return; }
+                if (!name) { toast('يرجى إدخال اسم المطعم', 'err'); document.getElementById('nName').focus(); return; }
+                if (!pass) { toast('يرجى إدخال كلمة المرور', 'err'); return; }
+
+                // التحقق من عدم وجود المعرف مسبقاً
+                db.ref(`restaurants/${id}/settings`).once('value', snap => {
+                    if (snap.exists()) { toast('⚠️ هذا المعرف مستخدم مسبقاً', 'err'); return; }
+                    const phone = document.getElementById('nPhone').value.trim();
+                    const addr = document.getElementById('nAddr').value.trim();
+                    db.ref(`restaurants/${id}/settings`).set({
+                        name, password: pass, phone, address: addr,
+                        status: 'open',
+                        createdAt: new Date().toISOString()
+                    }).then(() => {
+                        const base = getBase();
+                        const dash = `${base}dashboard.html?id=${id}`;
+                        const menu = `${base}index.html?id=${id}`;
+                        // ملء بطاقة النتيجة
+                        document.getElementById('rc-icon').textContent = name.charAt(0);
+                        document.getElementById('rc-name').textContent = name;
+                        document.getElementById('rc-id').textContent = 'ID: ' + id;
+                        document.getElementById('rc-phone').textContent = phone || '—';
+                        document.getElementById('rc-addr').textContent = addr || '—';
+                        document.getElementById('rc-pass').textContent = pass;
+                        document.getElementById('linkDash').textContent = dash;
+                        document.getElementById('linkMenu').textContent = menu;
+                        document.getElementById('resultBox').style.display = 'block';
+                        document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        toast(`✅ "${name}" تمت الإضافة بنجاح!`, 'ok');
+                    }).catch(e => toast('خطأ: ' + e.message, 'err'));
+                });
+            }
+
+            function clearAdd() {
+                ['nId', 'nName', 'nPhone', 'nAddr'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('nPass').value = '123456';
+                document.getElementById('resultBox').style.display = 'none';
+                document.getElementById('nId').focus();
+            }
+
+            // ══════════════════════════════════════
+            // ACTIONS
+            // ══════════════════════════════════════
+            function toggleStatus(id, cur) {
+                const isClosed = cur === 'closed' || cur === 'disabled';
+                const ns = isClosed ? 'open' : 'closed';
+                db.ref(`restaurants/${id}/settings`).update({ status: ns });
+                toast(ns === 'closed' ? '⏸ تم إيقاف المطعم' : '▶ تم تفعيل المطعم', ns === 'closed' ? 'err' : 'ok');
+            }
+            function delRes(id, name) {
+                if (!confirm(`⚠️ حذف "${name}" نهائياً؟\nكل البيانات ستُحذف.`)) return;
+                db.ref(`restaurants/${id}`).remove().then(() => toast('تم الحذف', 'err')).catch(e => toast('خطأ: ' + e.message, 'err'));
+            }
+
+            function pg(name, el) {
+                document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+                document.querySelectorAll('.si').forEach(s => s.classList.remove('on'));
+                document.getElementById('sec-' + name).classList.add('on');
+                el.classList.add('on');
+                if (name === 'add') { document.getElementById('resultBox').style.display = 'none'; document.getElementById('nId').focus(); }
+            }
+
+            function cpEl(id) {
+                const t = document.getElementById(id).textContent;
+                navigator.clipboard.writeText(t).then(() => toast('✅ تم النسخ', 'ok'));
+            }
+            function toast(msg, type = 'info') {
+                const w = document.getElementById('tw'), t = document.createElement('div');
+                t.className = `toast ${type}`; t.textContent = msg; w.appendChild(t);
+                setTimeout(() => t.classList.add('show'), 10);
+                setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+            }
+        </script>
+    </body>
+</html>
+| err.message}</small>
                             ${err.code === 'PERMISSION_DENIED' ? `
-                            <div style="margin-top:18px;background:rgba(232,64,80,.08);border:1px solid rgba(232,64,80,.2);border-radius:12px;padding:16px;text-align:right;max-width:600px;direction:ltr">
-                                <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center">📋 انسخ هذه القواعد في Firebase Console → Rules</div>
-                                <pre style="font-size:12px;color:var(--g1);line-height:1.7;overflow-x:auto;white-space:pre-wrap">{
+<div style="margin-top:18px;background:rgba(232,64,80,.08);border:1px solid rgba(232,64,80,.2);border-radius:12px;padding:16px;text-align:right;max-width:600px;direction:ltr">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center">📋 انسخ هذه القواعد في Firebase Console → Rules</div>
+    <pre style="font-size:12px;color:var(--g1);line-height:1.7;overflow-x:auto;white-space:pre-wrap">{
       "rules": {
         ".read": true,
         ".write": true
       }
 }</pre>
-                                <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">⚠️ هذه قواعد مؤقتة للتطوير — غيّرها لقواعد محكمة عند الإطلاق</div>
-                            </div>
-                            <button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">⚠️ هذه قواعد مؤقتة للتطوير — غيّرها لقواعد محكمة عند الإطلاق</div>
+</div>
+<button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>
                             ` : `<button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>`}
                         </div>`;
                 toast(msg, 'err');
@@ -1799,75 +2783,75 @@
                 const safeId = r.id.replace(/'/g, "\\'");
                 const safeName = (s.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
                 return `
-            <div class="res-card ${isOff ? 'is-off' : ''}" id="card-${r.id}">
-              <div class="rc-accent" style="background:linear-gradient(90deg,${c},${c}44,transparent)"></div>
-              <div class="rc-header">
-                <div class="rc-logo" style="background:linear-gradient(135deg,${c}99,${c})">${(s.name || '?').charAt(0)}</div>
-                <div class="rc-meta">
-                  <div class="rc-name">${s.name || '—'}</div>
-                  <div class="rc-id">${r.id}</div>
-                </div>
-                <span class="rc-badge ${isOff ? 'off' : 'on'}">
-                  <span class="dot"></span>${isOff ? 'موقوف' : 'نشط'}
-                </span>
-              </div>
+<div class="res-card ${isOff ? 'is-off' : ''}" id="card-${r.id}">
+    <div class="rc-accent" style="background:linear-gradient(90deg,${c},${c}44,transparent)"></div>
+    <div class="rc-header">
+        <div class="rc-logo" style="background:linear-gradient(135deg,${c}99,${c})">${(s.name || '?').charAt(0)}</div>
+        <div class="rc-meta">
+            <div class="rc-name">${s.name || '—'}</div>
+            <div class="rc-id">${r.id}</div>
+        </div>
+        <span class="rc-badge ${isOff ? 'off' : 'on'}">
+            <span class="dot"></span>${isOff ? 'موقوف' : 'نشط'}
+        </span>
+    </div>
 
-              <div class="rc-info">
-                <div class="rc-info-item"><i class="fas fa-phone"></i><span>${s.phone || '—'}</span></div>
-                <div class="rc-info-item"><i class="fas fa-map-marker-alt"></i><span>${s.address || '—'}</span></div>
-                <div class="rc-info-item"><i class="fas fa-clock"></i><span>${s.openTime || '08:00'} — ${s.closeTime || '23:00'}</span></div>
-                <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-JO') : '—'}</span></div>
-              </div>
+    <div class="rc-info">
+        <div class="rc-info-item"><i class="fas fa-phone"></i><span>${s.phone || '—'}</span></div>
+        <div class="rc-info-item"><i class="fas fa-map-marker-alt"></i><span>${s.address || '—'}</span></div>
+        <div class="rc-info-item"><i class="fas fa-clock"></i><span>${s.openTime || '08:00'} — ${s.closeTime || '23:00'}</span></div>
+        <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-JO') : '—'}</span></div>
+    </div>
 
-              <div class="rc-mini-stats">
-                <div class="ms"><div class="ms-num">${todayOrds.length}</div><div class="ms-lbl">طلبات اليوم</div></div>
-                <div class="ms"><div class="ms-num" style="color:var(--red)">${pendingOrds.length}</div><div class="ms-lbl">قيد التنفيذ</div></div>
-                <div class="ms"><div class="ms-num" style="font-size:14px">${totalRev.toFixed(0)}<small style="font-size:9px;opacity:.7"> JOD</small></div><div class="ms-lbl">إجمالي المبيعات</div></div>
-              </div>
+    <div class="rc-mini-stats">
+        <div class="ms"><div class="ms-num">${todayOrds.length}</div><div class="ms-lbl">طلبات اليوم</div></div>
+        <div class="ms"><div class="ms-num" style="color:var(--red)">${pendingOrds.length}</div><div class="ms-lbl">قيد التنفيذ</div></div>
+        <div class="ms"><div class="ms-num" style="font-size:14px">${totalRev.toFixed(0)}<small style="font-size:9px;opacity:.7"> JOD</small></div><div class="ms-lbl">إجمالي المبيعات</div></div>
+    </div>
 
-              <div class="rc-controls">
-                <div class="ctrl-label"><i class="fas fa-sliders-h"></i> أدوات التحكم الفوري</div>
-                <div class="ctrl-row">
+    <div class="rc-controls">
+        <div class="ctrl-label"><i class="fas fa-sliders-h"></i> أدوات التحكم الفوري</div>
+        <div class="ctrl-row">
 
-                  <div class="ctrl-toggle" onclick="toggleStatus('${safeId}','${s.status || 'active'}')">
-                    <div class="ct-info">
-                      <span class="ct-lbl" style="color:${isOff ? 'var(--red)' : 'var(--green)'}">
+            <div class="ctrl-toggle" onclick="toggleStatus('${safeId}','${s.status || 'active'}')">
+                <div class="ct-info">
+                    <span class="ct-lbl" style="color:${isOff ? 'var(--red)' : 'var(--green)'}">
                         <i class="fas fa-${isOff ? 'moon' : 'sun'}" style="margin-left:5px"></i>
                         ${isOff ? 'المطعم موقوف' : 'المطعم نشط'}
-                      </span>
-                      <span class="ct-sub">${isOff ? 'اضغط لتفعيل المطعم' : 'اضغط لإيقاف المطعم'}</span>
-                    </div>
-                    <label class="tog" onclick="event.stopPropagation()">
-                      <input type="checkbox" ${isOff ? '' : 'checked'} onchange="toggleStatus('${safeId}','${s.status || 'active'}')">
-                      <span class="tslider"></span>
-                    </label>
-                  </div>
+                    </span>
+                    <span class="ct-sub">${isOff ? 'اضغط لتفعيل المطعم' : 'اضغط لإيقاف المطعم'}</span>
+                </div>
+                <label class="tog" onclick="event.stopPropagation()">
+                    <input type="checkbox" ${isOff ? '' : 'checked' } onchange="toggleStatus('${safeId}','${s.status || 'active'}')">
+                    <span class="tslider"></span>
+                </label>
+            </div>
 
-                  <div class="ctrl-toggle" onclick="toggleOrders('${safeId}',${acceptOff})">
-                    <div class="ct-info">
-                      <span class="ct-lbl" style="color:${acceptOff ? 'var(--red)' : 'var(--green)'}">
+            <div class="ctrl-toggle" onclick="toggleOrders('${safeId}',${acceptOff})">
+                <div class="ct-info">
+                    <span class="ct-lbl" style="color:${acceptOff ? 'var(--red)' : 'var(--green)'}">
                         <i class="fas fa-${acceptOff ? 'ban' : 'shopping-cart'}" style="margin-left:5px"></i>
                         ${acceptOff ? 'استقبال مغلق' : 'يستقبل الطلبات'}
-                      </span>
-                      <span class="ct-sub">${acceptOff ? 'اضغط لفتح الاستقبال' : 'اضغط لإيقاف الاستقبال'}</span>
-                    </div>
-                    <label class="tog" onclick="event.stopPropagation()">
-                      <input type="checkbox" ${acceptOff ? '' : 'checked'} onchange="toggleOrders('${safeId}',${acceptOff})">
-                      <span class="tslider"></span>
-                    </label>
-                  </div>
-
+                    </span>
+                    <span class="ct-sub">${acceptOff ? 'اضغط لفتح الاستقبال' : 'اضغط لإيقاف الاستقبال'}</span>
                 </div>
-              </div>
+                <label class="tog" onclick="event.stopPropagation()">
+                    <input type="checkbox" ${acceptOff ? '' : 'checked' } onchange="toggleOrders('${safeId}',${acceptOff})">
+                    <span class="tslider"></span>
+                </label>
+            </div>
 
-              <div class="rc-actions">
-                <button class="act-btn gold" onclick="showLinks('${safeId}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-qrcode"></i> روابط & QR</button>
-                <button class="act-btn blue" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
-                <button class="act-btn" onclick="openEdit('${safeId}')"><i class="fas fa-edit"></i> تعديل</button>
-                <button class="act-btn" onclick="opPass('${safeId}')"><i class="fas fa-key"></i> كلمة المرور</button>
-                <button class="act-btn red" onclick="openDel('${safeId}','${safeName}')"><i class="fas fa-trash"></i> حذف</button>
-              </div>
-            </div>`;
+        </div>
+    </div>
+
+    <div class="rc-actions">
+        <button class="act-btn gold" onclick="showLinks('${safeId}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-qrcode"></i> روابط & QR</button>
+        <button class="act-btn blue" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
+        <button class="act-btn" onclick="openEdit('${safeId}')"><i class="fas fa-edit"></i> تعديل</button>
+        <button class="act-btn" onclick="opPass('${safeId}')"><i class="fas fa-key"></i> كلمة المرور</button>
+        <button class="act-btn red" onclick="openDel('${safeId}','${safeName}')"><i class="fas fa-trash"></i> حذف</button>
+    </div>
+</div>`;
             }).join('');
         }
 
@@ -2006,22 +2990,22 @@
             const menu = `${base}index.html?id=${id}`;
             const qid = 'qr' + Date.now();
             document.getElementById('lContent').innerHTML = `
-            <div style="font-size:16px;font-weight:800;color:var(--g2);margin-bottom:18px;display:flex;align-items:center;gap:8px"><i class="fas fa-store" style="color:var(--g1)"></i>${nm}</div>
-            <div class="lbox-m">
-              <div class="ll-m">📊 لوحة تحكم المطعم (Dashboard)</div>
-              <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div>
-            </div>
-            <div class="lbox-m">
-              <div class="ll-m">📱 منيو الزبائن — رابط QR Code</div>
-              <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
-              <div class="qrwrap">
-                <div class="qrbox" id="${qid}"></div>
-                <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-                  <button class="cpb" onclick="printQR('${qid}','${nm.replace(/'/g, "\\'")}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
-                  <button class="cpb" onclick="cp('${menu}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
-                </div>
-              </div>
-            </div>`;
+<div style="font-size:16px;font-weight:800;color:var(--g2);margin-bottom:18px;display:flex;align-items:center;gap:8px"><i class="fas fa-store" style="color:var(--g1)"></i>${nm}</div>
+<div class="lbox-m">
+    <div class="ll-m">📊 لوحة تحكم المطعم (Dashboard)</div>
+    <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div>
+</div>
+<div class="lbox-m">
+    <div class="ll-m">📱 منيو الزبائن — رابط QR Code</div>
+    <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
+    <div class="qrwrap">
+        <div class="qrbox" id="${qid}"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <button class="cpb" onclick="printQR('${qid}','${nm.replace(/'/g, " \\'")}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
+            <button class="cpb" onclick="cp('${menu}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
+        </div>
+    </div>
+</div>`;
             document.getElementById('lModal').classList.add('open');
             setTimeout(() => {
                 try { new QRCode(document.getElementById(qid), { text: menu, width: 180, height: 180, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H }); }
@@ -2032,29 +3016,84 @@
             const cv = document.getElementById(qid)?.querySelector('canvas');
             if (!cv) { toast('انتظر لحظة ثم حاول مجدداً', 'err'); return; }
             const w = window.open('', '_blank');
-            w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR - ${name}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-            <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
-            .qr-print{text-align:center;padding:40px;border:2px solid #eee;border-radius:20px;max-width:320px}
-            h2{font-size:22px;font-weight:900;margin-bottom:6px}p{color:#888;font-size:13px;margin-bottom:20px}
-            img{width:200px;height:200px;border-radius:12px}small{display:block;margin-top:14px;color:#999;font-size:11px;word-break:break-all}</style>
-            </head><body><div class="qr-print"><h2>${name}</h2><p>امسح الكود لعرض القائمة وتقديم طلبك</p>
-            <img src="${cv.toDataURL()}"><small>${url}</small></div>
-            <script>window.onload=()=>window.print()<\/script></body></html>`);
-            w.document.close();
+            w.document.write(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>QR - ${name}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
         }
 
-        function cp(t) { navigator.clipboard.writeText(t).then(() => toast('✅ تم النسخ', 'ok')); }
-        function cm(id) { document.getElementById(id).classList.remove('open'); }
-        function toast(msg, type = 'info') {
-            const w = document.getElementById('tw'); const t = document.createElement('div');
-            t.className = `toast ${type}`; t.textContent = msg; w.appendChild(t);
-            setTimeout(() => t.classList.add('show'), 10);
-            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+        body {
+            font-family: 'Cairo',sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #fff
         }
-        document.querySelectorAll('.modal-bg').forEach(mb => {
-            mb.addEventListener('click', e => { if (e.target === mb) mb.classList.remove('open'); });
-        });
+
+        .qr-print {
+            text-align: center;
+            padding: 40px;
+            border: 2px solid #eee;
+            border-radius: 20px;
+            max-width: 320px
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 6px
+        }
+
+        p {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 20px
+        }
+
+        img {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px
+        }
+
+        small {
+            display: block;
+            margin-top: 14px;
+            color: #999;
+            font-size: 11px;
+            word-break: break-all
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-print">
+        <h2>${name}</h2><p>امسح الكود لعرض القائمة وتقديم طلبك</p>
+        <img src="${cv.toDataURL()}"><small>${url}</small>
+    </div>
+    <script>
+    window.onload = () => window.print() <\/script></body ></html > `);
+                w.document.close();
+            }
+
+            function cp(t) { navigator.clipboard.writeText(t).then(() => toast('✅ تم النسخ', 'ok')); }
+            function cm(id) { document.getElementById(id).classList.remove('open'); }
+            function toast(msg, type = 'info') {
+                const w = document.getElementById('tw'); const t = document.createElement('div');
+                t.className = `toast ${ type } `; t.textContent = msg; w.appendChild(t);
+                setTimeout(() => t.classList.add('show'), 10);
+                setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+            }
+            document.querySelectorAll('.modal-bg').forEach(mb => {
+                mb.addEventListener('click', e => { if (e.target === mb) mb.classList.remove('open'); });
+            });
     </script>
 </body>
 </html>
