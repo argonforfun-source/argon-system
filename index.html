@@ -979,7 +979,7 @@
         const FC = {
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
-            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
+            databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/",
             projectId: "argon-system",
             storageBucket: "argon-system.firebasestorage.app",
             messagingSenderId: "858120444233",
@@ -1002,16 +1002,42 @@
             </div>`;
         }
 
+        // ── نظام إعادة المحاولة التلقائي ──
+        let _retryCount = 0;
+        const _MAX_RETRY = 3;
+        let _retryTimer = null;
+
+        function _showRetryScreen(secsLeft) {
+            document.getElementById('loadScreen').innerHTML = `
+            <div style="text-align:center;padding:40px 30px;font-family:'Cairo',sans-serif">
+              <div style="font-size:52px;margin-bottom:16px">📶</div>
+              <div style="font-size:17px;font-weight:700;color:var(--red);margin-bottom:8px">جاري إعادة الاتصال...</div>
+              <div style="font-size:13px;color:#888;margin-bottom:18px">إعادة المحاولة خلال <b id="rc-secs">${secsLeft}</b> ثانية</div>
+              <button onclick="retryNow()" style="background:var(--red);color:#fff;border:none;padding:12px 28px;border-radius:24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة الآن</button>
+            </div>`;
+        }
+
+        function retryNow() {
+            if (_retryTimer) { clearInterval(_retryTimer); _retryTimer = null; }
+            _retryCount = 0;
+            document.getElementById('loadScreen').innerHTML = `
+            <div class="load-logo">🍽️</div>
+            <div class="load-text">جاري تحميل القائمة...</div>
+            <div class="load-dots"><div class="load-dot"></div><div class="load-dot"></div><div class="load-dot"></div></div>`;
+            init();
+        }
+
         async function init() {
             if (!RID) { showLoadError('رابط غير صحيح', 'معرّف المطعم مفقود من الرابط'); return; }
             try {
-                // timeout 12 ثانية
+                // timeout 30 ثانية — يكفي أي شبكة حتى البطيئة
                 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
                 const [setSnap, menuSnap] = await withTimeout(Promise.all([
                     db.ref(`restaurants/${RID}/settings`).once('value'),
                     db.ref(`restaurants/${RID}/menu`).once('value')
-                ]), 12000);
+                ]), 30000);
 
+                _retryCount = 0; // نجح — صفّر العداد
                 if (!setSnap.exists()) { showLoadError('المطعم غير موجود', 'تأكد أن الرابط صحيح'); return; }
                 settings = setSnap.val() || {};
                 menu = {}; menuSnap.forEach(c => { menu[c.key] = c.val(); });
@@ -1029,7 +1055,6 @@
 
                 document.getElementById('mainContent').style.display = 'block';
                 const c = settings.color || '#d42818';
-                // تطبيق لون المطعم
                 document.documentElement.style.setProperty('--red', c);
                 document.documentElement.style.setProperty('--red2', c);
                 document.getElementById('hdr-icon').textContent = (settings.name || '🍽️').charAt(0);
@@ -1041,9 +1066,33 @@
                 document.title = (settings.name || 'المطعم') + ' — اطلب الآن';
                 buildMenu();
             } catch (e) {
-                const msg = e.message === 'timeout' ? 'انتهت مهلة الاتصال' : 'خطأ في الاتصال بالنظام';
-                const sub = e.message === 'timeout' ? 'تحقق من اتصالك بالإنترنت وأعد تحميل الصفحة' : e.message;
-                showLoadError(msg, sub);
+                _retryCount++;
+                if (_retryCount <= _MAX_RETRY) {
+                    // إعادة محاولة تلقائية بعد 5 ثوان
+                    let secs = 5;
+                    _showRetryScreen(secs);
+                    _retryTimer = setInterval(() => {
+                        secs--;
+                        const el = document.getElementById('rc-secs');
+                        if (el) el.textContent = secs;
+                        if (secs <= 0) {
+                            clearInterval(_retryTimer); _retryTimer = null;
+                            document.getElementById('loadScreen').innerHTML = `
+                    <div class="load-logo">🍽️</div>
+                    <div class="load-text">جاري تحميل القائمة...</div>
+                    <div class="load-dots"><div class="load-dot"></div><div class="load-dot"></div><div class="load-dot"></div></div>`;
+                            init();
+                        }
+                    }, 1000);
+                } else {
+                    // بعد 3 محاولات — رسالة نهائية مع زر يدوي
+                    showLoadError('تعذّر الاتصال بالنظام', 'تأكد من اتصالك بالإنترنت');
+                    const ls = document.getElementById('loadScreen');
+                    ls.insertAdjacentHTML('beforeend', `
+                <div style="margin-top:16px">
+                  <button onclick="retryNow()" style="background:var(--red);color:#fff;border:none;padding:12px 28px;border-radius:24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 حاول مرة أخرى</button>
+                </div>`);
+                }
             }
         }
 

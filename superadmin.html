@@ -1686,7 +1686,7 @@
         const FC = {
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
-            databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
+            databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/",
             projectId: "argon-system"
         };
         firebase.initializeApp(FC);
@@ -1722,6 +1722,9 @@
         }
         document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });
         function logout() {
+            // إيقاف المستمع عند الخروج
+            if (_resListener) { _resListener.off(); _resListener = null; }
+            data = [];
             document.getElementById('mainApp').style.display = 'none';
             document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1';
             document.getElementById('lu').value = ''; document.getElementById('lp').value = '';
@@ -1737,8 +1740,13 @@
         setTimeout(() => toggleAddPanel(), 100);
 
         // ══ LOAD DATA ══
+        let _resListener = null;
         function loadData() {
-            db.ref('restaurants').on('value', snap => {
+            // إلغاء أي مستمع سابق لمنع التكرار
+            if (_resListener) { _resListener.off(); _resListener = null; }
+            _resListener = db.ref('restaurants');
+            _resListener.on('value', snap => {
+                // ── تصفير الحاوية قبل إعادة البناء (الإصلاح الجذري) ──
                 data = [];
                 snap.forEach(c => data.push({ id: c.key, ...c.val() }));
                 const today = new Date().toDateString();
@@ -1758,6 +1766,8 @@
                 });
                 document.getElementById('s-orders').textContent = totalOrders;
                 filterList();
+            }, err => {
+                toast('خطأ في تحميل البيانات: ' + err.message, 'err');
             });
         }
 
@@ -1779,6 +1789,8 @@
         // ══ RENDER CARDS ══
         function renderCards(d) {
             const grid = document.getElementById('resGrid');
+            // ── تصفير الشبكة دائماً قبل إعادة الرسم ──
+            grid.innerHTML = '';
             if (!d.length) {
                 grid.innerHTML = `<div class="empty-state"><i class="fas fa-store"></i><p>لا توجد مطاعم مطابقة</p><small>جرّب تغيير فلتر البحث</small></div>`;
                 return;

@@ -1248,7 +1248,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script>
-        const FC = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app", projectId: "argon-system" };
+        const FC = { apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8", authDomain: "argon-system.firebaseapp.com", databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/", projectId: "argon-system" };
         firebase.initializeApp(FC);
         const db = firebase.database();
         let RID = '', RSettings = {}, menuCache = {}, tablesCache = {};
@@ -1343,48 +1343,53 @@
         }
 
         // ── REAL-TIME LISTENER — الإصلاح الجذري ──────────────────────────────
-        // نحتفظ بمرجع المستمع حتى نقدر نلغيه عند تسجيل الخروج
         let _ordersRef = null;
-        let _knownOrderIds = new Set(); // نتتبع الطلبات التي نعرفها
+        let _knownOrderIds = new Set();
 
         function listenOrders() {
-            // إلغاء أي مستمع سابق أولاً (مهم جداً لمنع التكرار)
-            if (_ordersRef) {
-                _ordersRef.off();
-                _ordersRef = null;
-            }
+            // إلغاء أي مستمع سابق (مهم لمنع التكرار)
+            if (_ordersRef) { _ordersRef.off(); _ordersRef = null; }
             _knownOrderIds.clear();
-            let isFirstLoad = true; // نتجاهل الطلبات الموجودة عند أول تحميل
+            let isFirstLoad = true;
 
             _ordersRef = db.ref(`restaurants/${RID}/orders`);
 
-            // .on('value') يطلق عند أي تغيير في أي طلب — هذا يحل مشكلة الطلب الواحد
+            // .on('value') يُطلق عند أي تغيير ويُعيد كامل البيانات في كل مرة
             _ordersRef.on('value', snap => {
-                const pendingCount = [];
                 const newOrders = [];
+
+                // بناء set من الـ IDs الحالية لاكتشاف الجديد
+                const currentIds = new Set();
+                let hasPending = false;
 
                 snap.forEach(child => {
                     const id = child.key;
                     const o = child.val();
-                    if (o.status === 'pending') pendingCount.push(id);
-                    // اكتشاف طلبات جديدة (غير موجودة في قائمتنا)
+                    currentIds.add(id);
+                    if (o.status === 'pending') hasPending = true;
+                    // طلب جديد = موجود الآن ولم يكن موجوداً قبل + حالته pending
                     if (!isFirstLoad && !_knownOrderIds.has(id) && o.status === 'pending') {
                         newOrders.push(o);
                     }
-                    _knownOrderIds.add(id);
                 });
 
-                // تحديث نقطة التنبيه
-                document.getElementById('ndot').classList.toggle('show', pendingCount.length > 0);
+                // تحديث الـ set بالأيدي الحالية
+                _knownOrderIds = new Set(currentIds);
 
+                // تحديث نقطة التنبيه
+                document.getElementById('ndot').classList.toggle('show', hasPending);
+
+                // تشغيل الصوت وإشعار للطلبات الجديدة فقط
                 if (newOrders.length > 0) {
                     playSound();
                     toast(`🔔 ${newOrders.length > 1 ? newOrders.length + ' طلبات جديدة!' : 'طلب جديد وصل!'}`, 'info');
                 }
 
-                // تحديث الواجهة تلقائياً عند أي تغيير
+                // ── تحديث الواجهة بالـ snapshot الكامل دائماً ──
                 _renderOrders(snap);
                 isFirstLoad = false;
+            }, err => {
+                console.error('Orders listener error:', err);
             });
         }
 
@@ -1392,33 +1397,51 @@
         function _renderOrders(snap) {
             const filter = document.getElementById('ord-filter').value;
             let orders = [];
+            // ── بناء المصفوفة من الـ snapshot مباشرة ──
             snap.forEach(c => orders.push({ id: c.key, ...c.val() }));
-            orders.reverse();
+            // أحدث الطلبات أولاً
+            orders.sort((a, b) => {
+                const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return tb - ta;
+            });
 
             const today = new Date().toDateString();
             const todayOrds = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
             document.getElementById('os-today').textContent = todayOrds.length;
             document.getElementById('os-pend').textContent = orders.filter(o => o.status === 'pending').length;
-            const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
+            const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
             document.getElementById('os-rev').textContent = rev.toFixed(2) + ' JOD';
 
+            // تطبيق الفلتر بعد الإحصاءات
             if (filter) orders = orders.filter(o => o.status === filter);
+
             const el = document.getElementById('ordList');
-            if (!orders.length) { el.innerHTML = '<div class="empty"><i class="fas fa-receipt"></i>لا توجد طلبات</div>'; return; }
+            // ── تصفير القائمة دائماً قبل إعادة الرسم (الإصلاح الجذري) ──
+            el.innerHTML = '';
+
+            if (!orders.length) {
+                el.innerHTML = '<div class="empty"><i class="fas fa-receipt"></i>لا توجد طلبات</div>';
+                return;
+            }
 
             el.innerHTML = orders.map(o => {
                 const st = OSTAT[o.status] || OSTAT.pending;
+                // معالجة الـ items — يدعم كل الصيغ الممكنة
                 let items = [];
                 if (o.items) {
-                    items = Array.isArray(o.items) ? o.items.filter(Boolean) : Object.values(o.items).filter(Boolean);
+                    if (Array.isArray(o.items)) {
+                        items = o.items.filter(Boolean);
+                    } else if (typeof o.items === 'object') {
+                        items = Object.values(o.items).filter(Boolean);
+                    }
                 }
                 items = items.map(i => ({
                     name: i.name || i.n || i.itemName || 'صنف',
-                    qty: i.qty || i.q || i.quantity || 1,
-                    price: i.price || i.p || i.unitPrice || 0
+                    qty: parseInt(i.qty || i.q || i.quantity || 1),
+                    price: parseFloat(i.price || i.p || i.unitPrice || 0)
                 }));
                 const nxt = ONEXT[o.status];
-                // رقم هاتف الزبون
                 const phone = o.customerPhone || o.phone || '';
                 return `<div class="ocard" style="--status-color:${st.col}">
                 <div class="oh"><span class="onum">طلب #${(o.id || '').slice(-4) || '—'}</span><span class="badge ${st.c}">${st.l}</span></div>
@@ -1430,11 +1453,11 @@
                   <span class="ometaitem"><i class="fas fa-tag"></i> ${OTYPE[o.orderType] || o.orderType || '—'}</span>
                 </div>
                 <div class="oitems">
-                  ${items.length ? items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(parseFloat(i.price) * parseInt(i.qty)).toFixed(2)} JOD</span>`).join('<br>') : '<span style="color:var(--muted)">بدون تفاصيل</span>'}
+                  ${items.length ? items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(i.price * i.qty).toFixed(2)} JOD</span>`).join('<br>') : '<span style="color:var(--muted)">بدون تفاصيل</span>'}
                 </div>
                 ${o.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:6px"><i class="fas fa-sticky-note"></i> ${o.notes}</div>` : ''}
                 <div class="ofoot">
-                  <span class="ototal">الإجمالي: ${(o.total || 0).toFixed(2)} JOD</span>
+                  <span class="ototal">الإجمالي: ${(parseFloat(o.total) || 0).toFixed(2)} JOD</span>
                   <div class="acts">
                     ${nxt ? `<button class="ab ag" onclick="updOrdStatus('${o.id}','${nxt.next}')">${nxt.lbl}</button>` : ''}
                     ${o.status !== 'cancelled' && o.status !== 'delivered' ? `<button class="ab ar" onclick="updOrdStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
