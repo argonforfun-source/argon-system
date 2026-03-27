@@ -1127,6 +1127,9 @@
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
@@ -1336,6 +1339,14 @@
             }
 
             firstLoad = false;
+        }, err => {
+            console.error('Firebase error:', err.code, err.message);
+            const og = document.getElementById('ordersGrid');
+            if (og) og.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444">
+                <i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:10px"></i>
+                <b>خطأ في الاتصال: ${err.code}</b><br>
+                <small style="color:#94a3b8;display:block;margin-top:8px">تأكد من إعدادات Firebase Rules</small>
+            </div>`;
         });
 
         function saveSets() {

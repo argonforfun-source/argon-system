@@ -899,6 +899,9 @@
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
@@ -1151,7 +1154,10 @@
                         document.getElementById('orderNotes').value = '';
                     }, 500);
                 }, 8000);
-            }).catch(() => alert('حدث خطأ، تحقق من اتصالك بالإنترنت وحاول مرة أخرى'));
+            }).catch(err => {
+                console.error('Order error:', err);
+                alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
+            });
         }
 
         function toggleTheme() {
