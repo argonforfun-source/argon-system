@@ -15,13 +15,17 @@
 
         :root {
             --g1: #d4a843;
+            --g2: #f5cc6a;
+            --g3: #a07820;
             --bg: #06060f;
             --card: #0d0d1a;
+            --card2: #131320;
             --border: #1c1c2e;
             --text: #ede8f5;
             --muted: #5a5470;
-            --green: #28c070;
             --red: #e84050;
+            --green: #28c070;
+            --blue: #4888f0;
             --shadow: 0 8px 32px rgba(0,0,0,.5);
         }
 
@@ -60,7 +64,8 @@
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 20px;
-            box-shadow: var(--shadow)
+            box-shadow: var(--shadow);
+            transition: 0.3s
         }
 
         .order-header {
@@ -93,6 +98,12 @@
             color: var(--green)
         }
 
+        .customer-info {
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
         .items-list {
             margin: 15px 0;
             font-size: 14px
@@ -110,7 +121,8 @@
             margin-top: 10px;
             font-weight: 900;
             display: flex;
-            justify-content: space-between
+            justify-content: space-between;
+            color: var(--g1)
         }
 
         .btn-action {
@@ -120,7 +132,8 @@
             border: none;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px
+            margin-top: 10px;
+            transition: 0.2s
         }
 
         .btn-done {
@@ -132,12 +145,20 @@
             background: rgba(232, 64, 80, 0.1);
             color: var(--red)
         }
+
+        #tw {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999
+        }
     </style>
 </head>
 <body>
+    <div id="tw"></div>
     <div class="header">
         <div class="res-name" id="resName">جاري التحميل...</div>
-        <div>لوحة تحكم الطلبات</div>
+        <div id="status-indicator" style="font-size: 12px; color: var(--green)"><i class="fas fa-circle"></i> متصل مباشر</div>
     </div>
     <div class="orders-grid" id="ordersList"></div>
 
@@ -147,16 +168,18 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const resId = urlParams.get('id');
+        if (!resId) { alert("رقم المطعم غير صحيح"); }
+
         const firebaseConfig = { databaseURL: "https://argonforfun-source-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // جلب إعدادات المطعم
+        // جلب اسم المطعم
         db.ref(`restaurants/${resId}/settings`).on('value', (s) => {
             if (s.val()) document.getElementById('resName').textContent = s.val().name;
         });
 
-        // الإصلاح الجوهري للطلبات
+        // الإصلاح الجوهري: استقبال جميع الطلبات وعرضها بدون تداخل
         let lastCount = 0;
         db.ref(`restaurants/${resId}/orders`).on('value', (snap) => {
             const list = document.getElementById('ordersList');
@@ -164,28 +187,30 @@
             const data = snap.val();
 
             if (!data) {
-                list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px">لا توجد طلبات</div>';
+                list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted)">لا توجد طلبات حالياً</div>';
                 return;
             }
 
-            const ordersArray = Object.entries(data).map(([key, value]) => ({ key, ...value }));
+            // تحويل البيانات لمصفوفة لترتيبها
+            const orders = Object.entries(data).map(([key, val]) => ({ key, ...val }));
 
-            // تنبيه صوتي عند زيادة الطلبات
-            if (ordersArray.length > lastCount) {
+            // تشغيل التنبيه عند وصول طلب جديد
+            if (orders.length > lastCount) {
                 if (lastCount !== 0) playSound();
-                lastCount = ordersArray.length;
+                lastCount = orders.length;
             }
 
-            ordersArray.reverse().forEach(order => {
+            orders.reverse().forEach(order => {
                 const card = document.createElement('div');
                 card.className = 'order-card';
                 card.innerHTML = `
                         <div class="order-header">
                             <span class="order-id">#\${order.key.slice(-4)}</span>
-                            <span class="status-badge \${order.status || 'pending'}">\${order.status === 'done' ? 'مكتمل' : 'جديد'}</span>
+                            <span class="status-badge \${order.status || 'pending'}">\${order.status === 'done' ? 'مكتمل' : 'قيد التنفيذ'}</span>
                         </div>
-                        <div style="font-size:13px; color:var(--muted); margin-bottom:10px">
-                            <i class="fas fa-user"></i> \${order.customer?.name} | طاوله: \${order.customer?.table}
+                        <div class="customer-info">
+                            <div><i class="fas fa-user"></i> \${order.customer?.name || 'زبون'}</div>
+                            <div><i class="fas fa-table"></i> طاولة: \${order.customer?.table || '---'}</div>
                         </div>
                         <div class="items-list">
                             \${order.items.map(i => `< div class="item-row" ><span>\${i.name} x \${i.qty}</span><span>\${(i.price * i.qty).toFixed(2)}</span></div > `).join('')}
@@ -199,12 +224,20 @@
         });
 
         function updateStatus(key, s) { db.ref(`restaurants/${resId}/orders/\${key}`).update({ status: s }); }
-        function deleteOrder(key) { if (confirm('حذف؟')) db.ref(`restaurants/${resId}/orders/\${key}`).remove(); }
+        function deleteOrder(key) { if (confirm('هل تريد حذف الطلب؟')) db.ref(`restaurants/${resId}/orders/\${key}`).remove(); }
 
         function playSound() {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator(); o.type = 'sine'; o.connect(ctx.destination);
-            o.start(); o.stop(ctx.currentTime + 0.5);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'sine'; o.frequency.value = 880;
+                g.gain.setValueAtTime(0, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+                o.start(); o.stop(ctx.currentTime + 1);
+            } catch (e) { console.log("Sound error"); }
         }
     </script>
 </body>
