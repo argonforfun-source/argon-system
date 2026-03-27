@@ -2,30 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>أرغون | المنيو الذكي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --main: #3b82f6;
-            --cyan: #22d3ee;
-            --green: #10b981;
-            --amber: #f59e0b;
-            --red: #ef4444;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
             --bg: #f0f4ff;
             --card: #ffffff;
-            --header-bg: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            --header-from: #1e3a8a;
+            --header-to: #3b82f6;
             --text: #0f172a;
             --muted: #64748b;
             --border: rgba(0,0,0,0.07);
             --shadow: rgba(0,0,0,0.06);
+            --green: #10b981;
+            --red: #ef4444;
+            --amber: #f59e0b;
         }
 
         [data-theme="dark"] {
             --bg: #070d1a;
             --card: #0f1929;
-            --header-bg: linear-gradient(135deg, #0a1628, #1e3a8a);
+            --header-from: #0a1628;
+            --header-to: #1e3a8a;
             --text: #e2e8f0;
             --muted: #64748b;
             --border: rgba(255,255,255,0.06);
@@ -39,18 +41,18 @@
         }
 
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Tajawal',sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-            padding-bottom: 100px;
+            transition: background 0.3s,color 0.3s;
+            padding-bottom: 110px;
         }
 
-        /* ===== HEADER ===== */
+        /* HEADER */
         .header {
-            background: var(--header-bg);
-            padding: 0 0 24px;
+            background: linear-gradient(135deg,var(--header-from),var(--header-to));
+            padding: 0 0 22px;
             position: relative;
             overflow: hidden;
         }
@@ -59,83 +61,82 @@
                 content: '';
                 position: absolute;
                 inset: 0;
-                background-image: radial-gradient(circle at 20% 50%, rgba(34,211,238,0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139,92,246,0.12) 0%, transparent 40%);
+                background-image: radial-gradient(circle at 20% 50%,rgba(34,211,238,0.12) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(139,92,246,0.12) 0%,transparent 40%);
                 pointer-events: none;
             }
 
-        .header-top {
+        .htop {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px 0;
+            padding: 14px 18px 0;
         }
 
-        .argon-badge {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.65rem;
+        .argon-mark {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.6rem;
             letter-spacing: 2px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.45);
             text-transform: uppercase;
         }
 
-        .theme-toggle {
+        .theme-tog {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.15);
             color: rgba(255,255,255,0.8);
-            padding: 7px 14px;
+            padding: 6px 13px;
             border-radius: 20px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.78rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.76rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .theme-toggle:hover {
+            .theme-tog:hover {
                 background: rgba(255,255,255,0.18);
             }
 
-        .header-main {
+        .hmain {
             text-align: center;
-            padding: 24px 20px 0;
+            padding: 22px 18px 0;
             position: relative;
         }
 
-        .res-logo-circle {
-            width: 72px;
-            height: 72px;
+        .rlogo {
+            width: 70px;
+            height: 70px;
             background: rgba(255,255,255,0.12);
             border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 22px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 14px;
+            font-size: 1.9rem;
+            margin: 0 auto 12px;
             backdrop-filter: blur(10px);
         }
 
-        .res-name-header {
-            font-size: 1.6rem;
+        .rname {
+            font-size: 1.55rem;
             font-weight: 900;
             color: #fff;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
-        .res-meta {
+        .rmeta {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 9px;
             flex-wrap: wrap;
         }
 
-        .res-chip {
+        .rchip {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.76rem;
-            padding: 4px 12px;
+            font-size: 0.74rem;
+            padding: 4px 11px;
             border-radius: 20px;
             font-weight: 600;
         }
@@ -146,102 +147,108 @@
             border: 1px solid rgba(16,185,129,0.3);
         }
 
-        .chip-hours {
+        .chip-closed {
+            background: rgba(239,68,68,0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+
+        .chip-hrs {
             background: rgba(255,255,255,0.1);
             color: rgba(255,255,255,0.7);
             border: 1px solid rgba(255,255,255,0.15);
         }
 
-        /* ===== SEARCH ===== */
-        .search-wrap {
-            padding: 0 16px;
-            margin-top: 20px;
+        /* SEARCH */
+        .srchwrap {
+            padding: 0 15px;
+            margin-top: 18px;
         }
 
-        .search-box {
+        .srchcont {
+            position: relative;
+        }
+
+        .srchbox {
             background: rgba(255,255,255,0.12);
             border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 14px;
-            padding: 12px 16px 12px 46px;
+            border-radius: 13px;
+            padding: 11px 15px 11px 44px;
             width: 100%;
             color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.95rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.93rem;
             outline: none;
             backdrop-filter: blur(10px);
             transition: all 0.25s;
         }
 
-            .search-box::placeholder {
+            .srchbox::placeholder {
                 color: rgba(255,255,255,0.4);
             }
 
-            .search-box:focus {
+            .srchbox:focus {
                 background: rgba(255,255,255,0.18);
                 border-color: rgba(255,255,255,0.3);
             }
 
-        .search-icon {
+        .srchico {
             position: absolute;
-            left: 30px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: rgba(255,255,255,0.5);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             pointer-events: none;
         }
 
-        .search-container {
-            position: relative;
+        /* MENU */
+        .menu-sec {
+            padding: 18px 13px 0;
         }
 
-        /* ===== MENU GRID ===== */
-        .menu-section {
-            padding: 20px 14px 0;
-        }
-
-        .section-label {
-            font-size: 0.72rem;
+        .sec-lbl {
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 14px;
-            font-family: 'IBM Plex Mono', monospace;
+            margin-bottom: 13px;
+            font-family: 'IBM Plex Mono',monospace;
         }
 
-        .menu-grid {
+        .mgrid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        .item-card {
+        .icard {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 18px;
+            border-radius: 17px;
             overflow: hidden;
             transition: all 0.25s;
-            box-shadow: 0 2px 12px var(--shadow);
+            box-shadow: 0 2px 10px var(--shadow);
             position: relative;
         }
 
-            .item-card:active {
+            .icard:active {
                 transform: scale(0.97);
             }
 
-        .item-img-wrap {
+        .iimgwrap {
             position: relative;
-            height: 120px;
+            height: 118px;
             background: #f1f5f9;
             overflow: hidden;
         }
 
-        [data-theme="dark"] .item-img-wrap {
+        [data-theme="dark"] .iimgwrap {
             background: #1a2540;
         }
 
-        .item-img {
+        .iimg {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -249,48 +256,48 @@
             transition: transform 0.3s;
         }
 
-        .item-card:hover .item-img {
+        .icard:hover .iimg {
             transform: scale(1.05);
         }
 
-        .img-placeholder {
+        .iimgph {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 2.4rem;
         }
 
-        .item-body {
-            padding: 12px;
+        .ibody {
+            padding: 11px;
         }
 
-        .item-name {
-            font-size: 0.88rem;
+        .iname {
+            font-size: 0.86rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 4px;
             line-height: 1.3;
         }
 
-        .item-price {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.92rem;
+        .iprice {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.9rem;
             font-weight: 600;
-            color: var(--main);
-            margin-bottom: 10px;
+            color: var(--accent);
+            margin-bottom: 9px;
         }
 
-        .add-btn {
+        .addbtn {
             width: 100%;
-            background: var(--main);
+            background: var(--accent);
             border: none;
             border-radius: 10px;
-            padding: 9px;
+            padding: 8px;
             color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.85rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.83rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -300,31 +307,31 @@
             gap: 5px;
         }
 
-            .add-btn:active {
+            .addbtn:active {
                 transform: scale(0.96);
             }
 
-            .add-btn.added {
+            .addbtn.added {
                 background: var(--green);
             }
 
-        /* ===== CART BUTTON ===== */
-        .cart-fab {
+        /* CART FAB */
+        .cartfab {
             position: fixed;
             bottom: 24px;
-            left: 20px;
+            left: 18px;
             z-index: 500;
         }
 
-        .cart-btn {
-            width: 66px;
-            height: 66px;
-            background: linear-gradient(135deg, var(--main), #6366f1);
-            border-radius: 22px;
+        .cartbtn {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg,var(--accent),#6366f1);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             color: white;
             cursor: pointer;
             box-shadow: 0 8px 25px rgba(59,130,246,0.4);
@@ -333,41 +340,41 @@
             border: none;
         }
 
-            .cart-btn:active {
+            .cartbtn:active {
                 transform: scale(0.92);
             }
 
-        .cart-count {
+        .cartcnt {
             position: absolute;
             top: -6px;
             right: -6px;
             background: var(--red);
             color: white;
-            width: 24px;
-            height: 24px;
+            width: 23px;
+            height: 23px;
             border-radius: 50%;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 2px solid var(--bg);
-            font-family: 'IBM Plex Mono', monospace;
+            font-family: 'IBM Plex Mono',monospace;
         }
 
-        .cart-label {
+        .cartlbl {
             position: absolute;
-            bottom: -22px;
+            bottom: -20px;
             white-space: nowrap;
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 700;
-            color: var(--main);
+            color: var(--accent);
             left: 50%;
             transform: translateX(-50%);
         }
 
-        /* ===== MODAL ===== */
-        .modal-overlay {
+        /* MODAL OVERLAY */
+        .moverlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.6);
@@ -378,89 +385,66 @@
             justify-content: center;
         }
 
-            .modal-overlay.show {
+            .moverlay.show {
                 display: flex;
             }
 
-        .modal-sheet {
+        .msheet {
             background: var(--card);
-            border-radius: 28px 28px 0 0;
-            padding: 28px 22px 32px;
+            border-radius: 26px 26px 0 0;
+            padding: 26px 20px 30px;
             width: 100%;
             max-width: 500px;
-            animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            animation: sup 0.3s cubic-bezier(0.34,1.56,0.64,1);
         }
 
-        @keyframes slideUp {
+        @keyframes sup {
             from {
                 transform: translateY(100%);
-                opacity: 0;
+                opacity: 0
             }
 
             to {
                 transform: translateY(0);
-                opacity: 1;
+                opacity: 1
             }
         }
 
-        .sheet-handle {
-            width: 36px;
+        .shandle {
+            width: 34px;
             height: 4px;
-            background: rgba(0,0,0,0.15);
+            background: rgba(0,0,0,0.12);
             border-radius: 2px;
-            margin: 0 auto 20px;
+            margin: 0 auto 18px;
         }
 
-        [data-theme="dark"] .sheet-handle {
+        [data-theme="dark"] .shandle {
             background: rgba(255,255,255,0.1);
         }
 
-        .sheet-title {
-            font-size: 1.2rem;
+        .stitle {
+            font-size: 1.15rem;
             font-weight: 800;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: center;
         }
 
-        .modal-input {
-            width: 100%;
-            background: var(--bg);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 13px 16px;
-            color: var(--text);
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            outline: none;
-            margin-bottom: 12px;
-            text-align: right;
-            transition: all 0.2s;
+        /* CART SUMMARY (step 0) */
+        .cart-summary {
+            background: rgba(59,130,246,0.04);
+            border: 1px solid rgba(59,130,246,0.1);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+            max-height: 220px;
+            overflow-y: auto;
         }
 
-            .modal-input:focus {
-                border-color: var(--main);
-            }
-
-        /* ===== BILL ===== */
-        .bill-box {
-            background: var(--bg);
-            border-radius: 16px;
-            padding: 18px;
-            border: 1.5px dashed rgba(59,130,246,0.25);
-            margin-bottom: 18px;
+        [data-theme="dark"] .cart-summary {
+            background: rgba(59,130,246,0.06);
         }
 
-        .bill-title {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--muted);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-
-        .bill-row {
+        .cart-item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -468,134 +452,289 @@
             border-bottom: 1px solid var(--border);
         }
 
-            .bill-row:last-of-type {
+            .cart-item-row:last-child {
                 border-bottom: none;
             }
 
-        .bill-row-name {
-            font-size: 0.88rem;
+        .ci-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .bill-row-price {
-            font-family: 'IBM Plex Mono', monospace;
+        .ci-qty {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono',monospace;
+            flex-shrink: 0;
+        }
+
+        .ci-name {
             font-size: 0.88rem;
             font-weight: 600;
-            color: var(--main);
         }
 
-        .bill-total {
+        .ci-price {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .ci-remove {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+        }
+
+            .ci-remove:hover {
+                background: rgba(239,68,68,0.08);
+            }
+
+        .cart-total-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 12px;
-            margin-top: 4px;
+            margin-top: 12px;
+            padding-top: 10px;
             border-top: 2px solid rgba(59,130,246,0.15);
         }
 
-        .bill-total-label {
-            font-size: 0.95rem;
+        .ct-label {
+            font-size: 0.9rem;
             font-weight: 700;
         }
 
-        .bill-total-val {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 1.3rem;
+        .ct-val {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 1.2rem;
             font-weight: 800;
             color: var(--green);
         }
 
-        .btn-send {
+        /* INPUTS */
+        .minp {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--green), #059669);
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 800;
-            cursor: pointer;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.97rem;
+            outline: none;
+            margin-bottom: 10px;
+            text-align: right;
             transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
         }
 
-            .btn-send:active {
-                transform: scale(0.98);
+            .minp:focus {
+                border-color: var(--accent);
             }
 
-        .btn-next {
+        /* BILL */
+        .billbox {
+            background: var(--bg);
+            border-radius: 15px;
+            padding: 16px;
+            border: 1.5px dashed rgba(59,130,246,0.2);
+            margin-bottom: 16px;
+        }
+
+        .billtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'IBM Plex Mono',monospace;
+        }
+
+        .billrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+            .billrow:last-of-type {
+                border-bottom: none;
+            }
+
+        .bname {
+            font-size: 0.86rem;
+        }
+
+        .bprice {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .billtotal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 11px;
+            margin-top: 3px;
+            border-top: 2px solid rgba(59,130,246,0.13);
+        }
+
+        .btl {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .btv {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        /* BUTTONS */
+        .bnext {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--main), #6366f1);
+            padding: 13px;
+            background: linear-gradient(135deg,var(--accent),#6366f1);
             border: none;
-            border-radius: 14px;
+            border-radius: 13px;
             color: white;
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Tajawal',sans-serif;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+            margin-bottom: 9px;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
         }
 
-        .btn-back-link {
+            .bnext:active {
+                transform: scale(0.98);
+            }
+
+        .bsend {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg,var(--green),#059669);
+            border: none;
+            border-radius: 13px;
+            color: white;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+
+            .bsend:active {
+                transform: scale(0.98);
+            }
+
+        .bback {
             display: block;
             text-align: center;
             color: var(--muted);
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             cursor: pointer;
             padding: 8px;
         }
 
-        .btn-close-modal {
+        .bclose {
             display: block;
             width: 100%;
             text-align: center;
             color: var(--muted);
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            padding: 10px;
-            margin-top: 4px;
+            padding: 9px;
+            margin-top: 3px;
             border: none;
             background: transparent;
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Tajawal',sans-serif;
         }
 
-        /* ===== SUCCESS SCREEN ===== */
-        .success-screen {
+        /* SUCCESS / ORDER NUMBER */
+        .success-wrap {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 10px 0;
         }
 
         .success-icon {
-            width: 70px;
-            height: 70px;
+            width: 68px;
+            height: 68px;
             background: rgba(16,185,129,0.1);
             border: 2px solid rgba(16,185,129,0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            margin: 0 auto 16px;
+            font-size: 1.7rem;
+            margin: 0 auto 14px;
         }
 
         .success-title {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--green);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        .success-sub {
-            font-size: 0.88rem;
+        .order-no-box {
+            background: rgba(59,130,246,0.06);
+            border: 1.5px dashed rgba(59,130,246,0.25);
+            border-radius: 14px;
+            padding: 18px;
+            margin: 14px 0;
+        }
+
+        .on-label {
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--muted);
+            letter-spacing: 1px;
+            font-family: 'IBM Plex Mono',monospace;
+            margin-bottom: 6px;
         }
 
-        /* ===== CLOSED SCREEN ===== */
-        .closed-screen {
+        .on-number {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 3px;
+        }
+
+        .on-remind {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+            .on-remind strong {
+                color: var(--accent);
+            }
+
+        /* CLOSED SCREEN */
+        .closed-scr {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -603,38 +742,53 @@
             justify-content: center;
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, #0a1628, #1e3a8a);
+            background: linear-gradient(135deg,#0a1628,#1e3a8a);
             color: white;
         }
 
-        .closed-icon {
+        .cls-icon {
             font-size: 4rem;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
-        .closed-title {
-            font-size: 1.6rem;
+        .cls-title {
+            font-size: 1.55rem;
             font-weight: 900;
-            margin-bottom: 10px;
+            margin-bottom: 9px;
         }
 
-        .closed-sub {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.9rem;
+        .cls-sub {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.88rem;
         }
 
-        /* ===== EMPTY ===== */
-        .empty-state {
+        /* EMPTY */
+        .empty-s {
             text-align: center;
-            padding: 60px 20px;
+            padding: 55px 20px;
             color: var(--muted);
         }
 
-            .empty-state i {
-                font-size: 2.5rem;
+            .empty-s i {
+                font-size: 2.4rem;
                 display: block;
                 margin-bottom: 12px;
-                opacity: 0.3;
+                opacity: 0.25;
+            }
+
+        /* POWERED BY */
+        .pwby-foot {
+            text-align: center;
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.58rem;
+            color: rgba(100,116,139,0.45);
+            letter-spacing: 1.5px;
+            padding: 20px 0 6px;
+        }
+
+            .pwby-foot span {
+                color: var(--accent);
+                opacity: 0.7;
             }
     </style>
 </head>
@@ -643,88 +797,97 @@
     <div id="mainContent">
         <!-- HEADER -->
         <div class="header">
-            <div class="header-top">
-                <span class="argon-badge">ARGON MENU</span>
-                <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
-                    🌙 الوضع الليلي
-                </button>
+            <div class="htop">
+                <span class="argon-mark">ARGON MENU</span>
+                <button class="theme-tog" id="themeBtn" onclick="toggleTheme()">🌙 الوضع الليلي</button>
             </div>
-
-            <div class="header-main">
-                <div class="res-logo-circle">🍽️</div>
-                <div class="res-name-header" id="resName">جاري التحميل...</div>
-                <div class="res-meta">
-                    <span class="res-chip chip-open" id="statusChip">
-                        <i class="fas fa-circle" style="font-size:0.4rem"></i> مفتوح الآن
-                    </span>
-                    <span class="res-chip chip-hours" id="hoursChip" style="display:none">
-                        <i class="fas fa-clock" style="font-size:0.7rem"></i>
-                        <span id="hoursText"></span>
-                    </span>
+            <div class="hmain">
+                <div class="rlogo">🍽️</div>
+                <div class="rname" id="resName">جاري التحميل...</div>
+                <div class="rmeta">
+                    <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن</span>
+                    <span class="rchip chip-hrs" id="hoursChip" style="display:none"><i class="fas fa-clock" style="font-size:0.68rem"></i> <span id="hoursText"></span></span>
                 </div>
             </div>
-
-            <div class="search-wrap" style="margin-top:18px">
-                <div class="search-container">
-                    <i class="fas fa-magnifying-glass search-icon"></i>
-                    <input type="text" class="search-box" id="searchBox" placeholder="ابحث عن صنف..." oninput="filterMenu()">
+            <div class="srchwrap" style="margin-top:16px">
+                <div class="srchcont">
+                    <i class="fas fa-magnifying-glass srchico"></i>
+                    <input type="text" class="srchbox" id="searchBox" placeholder="ابحث عن صنف..." oninput="filterMenu()">
                 </div>
             </div>
         </div>
 
         <!-- MENU -->
-        <div class="menu-section">
-            <div class="section-label">قائمة الطعام</div>
-            <div class="menu-grid" id="menuGrid">
-                <div class="empty-state" style="grid-column:1/-1">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>جاري تحميل القائمة...</p>
-                </div>
+        <div class="menu-sec">
+            <div class="sec-lbl">قائمة الطعام</div>
+            <div class="mgrid" id="menuGrid">
+                <div class="empty-s" style="grid-column:1/-1"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل القائمة...</p></div>
             </div>
         </div>
+
+        <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
     </div>
 
     <!-- CART FAB -->
-    <div class="cart-fab">
-        <button class="cart-btn" onclick="openModal()">
+    <div class="cartfab">
+        <button class="cartbtn" onclick="openModal()">
             🛒
-            <div class="cart-count" id="cartCount">0</div>
+            <div class="cartcnt" id="cartCnt">0</div>
         </button>
-        <span class="cart-label" id="cartTotal">0.00 د.أ</span>
+        <span class="cartlbl" id="cartLbl">0.00 د.أ</span>
     </div>
 
     <!-- ORDER MODAL -->
-    <div class="modal-overlay" id="orderModal">
-        <div class="modal-sheet">
-            <div class="sheet-handle"></div>
+    <div class="moverlay" id="orderModal">
+        <div class="msheet">
+            <div class="shandle"></div>
+
+            <!-- STEP 0: CART REVIEW -->
+            <div id="step0">
+                <div class="stitle">🛒 مراجعة السلة</div>
+                <div class="cart-summary" id="cartSummary"></div>
+                <button class="bnext" onclick="goStep1()">
+                    <i class="fas fa-arrow-left" style="margin-left:7px"></i> التالي — إدخال البيانات
+                </button>
+                <button class="bclose" onclick="closeModal()">إغلاق</button>
+            </div>
 
             <!-- STEP 1: INFO -->
-            <div id="stepInfo">
-                <div class="sheet-title">📋 أدخل بياناتك</div>
-                <input type="text" id="custName" class="modal-input" placeholder="اسمك الكريم *">
-                <input type="tel" id="custPhone" class="modal-input" placeholder="رقم هاتفك *">
-                <textarea id="orderNotes" class="modal-input" rows="2" placeholder="ملاحظات إضافية (اختياري)" style="resize:none"></textarea>
-                <button class="btn-next" onclick="goConfirm()">
-                    عرض الفاتورة <i class="fas fa-arrow-left me-1"></i>
+            <div id="step1" style="display:none">
+                <div class="stitle">📋 أدخل بياناتك</div>
+                <input type="text" id="custName" class="minp" placeholder="اسمك الكريم *">
+                <input type="tel" id="custPhone" class="minp" placeholder="رقم هاتفك *">
+                <textarea id="orderNotes" class="minp" rows="2" placeholder="ملاحظات إضافية (اختياري)" style="resize:none"></textarea>
+                <button class="bnext" onclick="goStep2()">
+                    <i class="fas fa-receipt" style="margin-left:7px"></i> عرض الفاتورة
                 </button>
-                <button class="btn-close-modal" onclick="closeModal()">إغلاق</button>
+                <span class="bback" onclick="goStep0()">← العودة للسلة</span>
+                <button class="bclose" onclick="closeModal()">إغلاق</button>
             </div>
 
-            <!-- STEP 2: CONFIRM -->
-            <div id="stepConfirm" style="display:none">
-                <div class="sheet-title">🧾 تأكيد الطلب</div>
-                <div class="bill-box" id="billBox"></div>
-                <button class="btn-send" onclick="sendOrder()">
-                    <i class="fas fa-paper-plane me-2"></i> إرسال الطلب للمطعم
+            <!-- STEP 2: CONFIRM BILL -->
+            <div id="step2" style="display:none">
+                <div class="stitle">🧾 تأكيد الطلب</div>
+                <div class="billbox" id="billBox"></div>
+                <button class="bsend" onclick="sendOrder()">
+                    <i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم
                 </button>
-                <span class="btn-back-link" onclick="backStep()">← تعديل البيانات</span>
+                <span class="bback" onclick="goStep1()">← تعديل البيانات</span>
             </div>
 
-            <!-- STEP 3: SUCCESS -->
-            <div class="success-screen" id="stepSuccess">
+            <!-- STEP 3: SUCCESS + ORDER NUMBER -->
+            <div class="success-wrap" id="step3">
                 <div class="success-icon">✅</div>
-                <div class="success-title">تم إرسال طلبك!</div>
-                <div class="success-sub">شكراً لك، سيتم تحضير طلبك في أقرب وقت</div>
+                <div class="success-title">تم إرسال طلبك بنجاح!</div>
+                <div class="order-no-box">
+                    <div class="on-label">رقم طلبك هو</div>
+                    <div class="on-number" id="finalOrderNo">----</div>
+                    <div class="on-remind">
+                        ⚠️ <strong>الرجاء حفظ رقم طلبك</strong><br>
+                        ستحتاجه عند استلام طلبك من المطعم
+                    </div>
+                </div>
+                <div style="font-size:0.85rem;color:var(--muted)">شكراً لك، سيتم تحضير طلبك في أقرب وقت 🙏</div>
             </div>
         </div>
     </div>
@@ -743,42 +906,51 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let RES_ID = urlParams.get('id');
-        if (!RES_ID) {
-            RES_ID = localStorage.getItem('argon_store_id') || '1';
-        } else {
-            localStorage.setItem('argon_store_id', RES_ID);
-        }
+        if (!RES_ID) { RES_ID = localStorage.getItem('argon_store_id') || '1'; }
+        else { localStorage.setItem('argon_store_id', RES_ID); }
 
-        let cart = [];
+        // Cart: {name, price, key} keyed by product key
+        let cart = []; // array of {name, price}
         let allProducts = [];
+
+        // Apply accent color from Firebase
+        function applyAccent(color) {
+            const root = document.documentElement;
+            root.style.setProperty('--accent', color);
+            // Compute darker shade for accent-dark
+            root.style.setProperty('--accent-dark', color);
+            // Update header gradient
+            root.style.setProperty('--header-to', color);
+        }
 
         db.ref('restaurants/' + RES_ID).on('value', snap => {
             const data = snap.val();
-
             if (!data) {
-                document.body.innerHTML = `<div class="closed-screen"><div class="closed-icon">❌</div><div class="closed-title">المطعم غير موجود</div><div class="closed-sub">تأكد من الرابط وحاول مرة أخرى</div></div>`;
+                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">❌</div><div class="cls-title">المطعم غير موجود</div><div class="cls-sub">تأكد من الرابط وحاول مرة أخرى</div></div>`;
                 return;
             }
-
             if (data.settings?.status === 'disabled') {
-                document.body.innerHTML = `<div class="closed-screen"><div class="closed-icon">🔒</div><div class="closed-title">عذراً، المطعم مغلق</div><div class="closed-sub">سيعود قريباً، شكراً لتفهمك</div></div>`;
+                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">🔒</div><div class="cls-title">عذراً، المطعم مغلق</div><div class="cls-sub">سيعود قريباً، شكراً لتفهمك</div></div>`;
                 return;
             }
 
             const sets = data.settings || {};
 
-            // Header
-            document.getElementById('resName').textContent = sets.name || 'مطعم أرغون';
-            document.title = sets.name || 'أرغون | المنيو';
+            // Apply color
+            if (sets.color) applyAccent(sets.color);
 
-            // Status
-            const statusChip = document.getElementById('statusChip');
+            // Name
+            document.getElementById('resName').textContent = sets.name || 'مطعم أرغون';
+            document.title = (sets.name || 'أرغون') + ' | المنيو';
+
+            // Status chip
+            const sc = document.getElementById('statusChip');
             if (sets.status === 'closed') {
-                statusChip.className = 'res-chip';
-                statusChip.style.background = 'rgba(239,68,68,0.2)';
-                statusChip.style.color = '#fca5a5';
-                statusChip.style.border = '1px solid rgba(239,68,68,0.3)';
-                statusChip.innerHTML = '<i class="fas fa-circle" style="font-size:0.4rem"></i> مغلق مؤقتاً';
+                sc.className = 'rchip chip-closed';
+                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق مؤقتاً';
+            } else {
+                sc.className = 'rchip chip-open';
+                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
             }
 
             // Hours
@@ -790,31 +962,28 @@
             // Products
             allProducts = [];
             const products = data.products || {};
-            for (let k in products) {
-                allProducts.push({ key: k, ...products[k] });
-            }
-
+            for (let k in products) allProducts.push({ key: k, ...products[k] });
             renderMenu(allProducts);
         });
 
         function renderMenu(products) {
             const grid = document.getElementById('menuGrid');
             if (!products.length) {
-                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-utensils"></i><p>لا توجد أصناف متاحة حالياً</p></div>`;
+                grid.innerHTML = `<div class="empty-s" style="grid-column:1/-1"><i class="fas fa-utensils"></i><p>لا توجد أصناف متاحة حالياً</p></div>`;
                 return;
             }
             grid.innerHTML = products.map(p => `
-                <div class="item-card">
-                    <div class="item-img-wrap">
+                <div class="icard">
+                    <div class="iimgwrap">
                         ${p.img
-                    ? `<img src="${p.img}" class="item-img" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>🍽️</div>'">`
-                    : `<div class="img-placeholder">🍽️</div>`
+                    ? `<img src="${p.img}" class="iimg" onerror="this.parentElement.querySelector('.iimgph').style.display='flex';this.style.display='none'"><div class="iimgph" style="display:none">🍽️</div>`
+                    : `<div class="iimgph">🍽️</div>`
                 }
                     </div>
-                    <div class="item-body">
-                        <div class="item-name">${p.name}</div>
-                        <div class="item-price">${p.price} د.أ</div>
-                        <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, this)">
+                    <div class="ibody">
+                        <div class="iname">${p.name}</div>
+                        <div class="iprice">${p.price} د.أ</div>
+                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${p.name}',${p.price},'${p.key}')">
                             <i class="fas fa-plus"></i> أضف للسلة
                         </button>
                     </div>
@@ -827,30 +996,64 @@
             renderMenu(allProducts.filter(p => p.name.toLowerCase().includes(q)));
         }
 
-        function addToCart(name, price, btn) {
-            cart.push({ name, price: parseFloat(price) });
+        function addToCart(name, price, key) {
+            cart.push({ name, price: parseFloat(price), key });
             updateCartUI();
-
-            const original = btn.innerHTML;
-            btn.classList.add('added');
-            btn.innerHTML = '<i class="fas fa-check"></i> تمت الإضافة';
-            setTimeout(() => {
-                btn.classList.remove('added');
-                btn.innerHTML = original;
-            }, 1000);
+            const btn = document.getElementById('abtn_' + key);
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.classList.add('added');
+                btn.innerHTML = '<i class="fas fa-check"></i> تمت الإضافة';
+                setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 900);
+            }
         }
 
         function updateCartUI() {
-            document.getElementById('cartCount').textContent = cart.length;
+            document.getElementById('cartCnt').textContent = cart.length;
             const total = cart.reduce((s, i) => s + i.price, 0);
-            document.getElementById('cartTotal').textContent = total.toFixed(2) + ' د.أ';
+            document.getElementById('cartLbl').textContent = total.toFixed(2) + ' د.أ';
+        }
+
+        // Build cart summary with counts and remove buttons
+        function buildCartSummary() {
+            const counts = {};
+            cart.forEach((item, idx) => {
+                const k = item.name;
+                if (!counts[k]) counts[k] = { name: item.name, price: item.price, qty: 0, indices: [] };
+                counts[k].qty++;
+                counts[k].indices.push(idx);
+            });
+
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const items = Object.values(counts);
+
+            document.getElementById('cartSummary').innerHTML =
+                items.map(it => `
+                    <div class="cart-item-row">
+                        <div class="ci-left">
+                            <div class="ci-qty">${it.qty}</div>
+                            <div class="ci-name">${it.name}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span class="ci-price">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                            <button class="ci-remove" onclick="removeFromCart('${it.name}')"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>`).join('') +
+                `<div class="cart-total-row">
+                    <span class="ct-label">المجموع الكلي</span>
+                    <span class="ct-val">${total.toFixed(2)} د.أ</span>
+                </div>`;
+        }
+
+        function removeFromCart(name) {
+            const idx = cart.findLastIndex ? cart.findLastIndex(i => i.name === name) : (() => { for (let i = cart.length - 1; i >= 0; i--) if (cart[i].name === name) return i; return -1; })();
+            if (idx !== -1) { cart.splice(idx, 1); updateCartUI(); buildCartSummary(); }
+            if (!cart.length) closeModal();
         }
 
         function openModal() {
-            if (!cart.length) {
-                alert('سلة مشترياتك فارغة! أضف أصنافاً أولاً');
-                return;
-            }
+            if (!cart.length) { alert('سلة مشترياتك فارغة! أضف أصنافاً أولاً'); return; }
+            goStep0();
             document.getElementById('orderModal').classList.add('show');
         }
 
@@ -858,37 +1061,55 @@
             document.getElementById('orderModal').classList.remove('show');
         }
 
-        function goConfirm() {
+        function showStep(n) {
+            [0, 1, 2, 3].forEach(i => {
+                const el = document.getElementById('step' + i);
+                if (el) el.style.display = i === n ? (i === 3 ? 'block' : 'block') : 'none';
+            });
+            document.getElementById('step3').style.display = n === 3 ? 'block' : 'none';
+            document.querySelector('.success-wrap').style.display = n === 3 ? 'block' : 'none';
+        }
+
+        function goStep0() {
+            buildCartSummary();
+            document.getElementById('step0').style.display = 'block';
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.querySelector('.success-wrap').style.display = 'none';
+        }
+
+        function goStep1() {
+            document.getElementById('step0').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.querySelector('.success-wrap').style.display = 'none';
+        }
+
+        function goStep2() {
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
             if (!name || !phone) { alert('يرجى إدخال الاسم ورقم الهاتف'); return; }
 
+            // Build detailed bill
             const counts = {};
-            cart.forEach(i => counts[i.name] = (counts[i.name] || { name: i.name, price: i.price, qty: 0 }));
-            cart.forEach(i => counts[i.name].qty++);
-
+            cart.forEach(item => {
+                if (!counts[item.name]) counts[item.name] = { name: item.name, price: item.price, qty: 0 };
+                counts[item.name].qty++;
+            });
             const items = Object.values(counts);
             const total = cart.reduce((s, i) => s + i.price, 0);
 
-            document.getElementById('billBox').innerHTML = `
-                <div class="bill-title">تفاصيل الفاتورة</div>
-                ${items.map(i => `
-                    <div class="bill-row">
-                        <span class="bill-row-name">${i.qty > 1 ? i.qty + 'x ' : ''}${i.name}</span>
-                        <span class="bill-row-price">${(i.price * i.qty).toFixed(2)} د.أ</span>
-                    </div>`).join('')}
-                <div class="bill-total">
-                    <span class="bill-total-label">المجموع الكلي</span>
-                    <span class="bill-total-val">${total.toFixed(2)} د.أ</span>
-                </div>`;
+            document.getElementById('billBox').innerHTML =
+                `<div class="billtitle">تفاصيل فاتورتك</div>` +
+                items.map(it => `
+                    <div class="billrow">
+                        <span class="bname">${it.qty > 1 ? it.qty + 'x ' : ''}${it.name}</span>
+                        <span class="bprice">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                    </div>`).join('') +
+                `<div class="billtotal"><span class="btl">المجموع الكلي</span><span class="btv">${total.toFixed(2)} د.أ</span></div>`;
 
-            document.getElementById('stepInfo').style.display = 'none';
-            document.getElementById('stepConfirm').style.display = 'block';
-        }
-
-        function backStep() {
-            document.getElementById('stepConfirm').style.display = 'none';
-            document.getElementById('stepInfo').style.display = 'block';
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
         }
 
         function sendOrder() {
@@ -896,6 +1117,7 @@
             const phone = document.getElementById('custPhone').value.trim();
             const notes = document.getElementById('orderNotes').value.trim();
             const total = cart.reduce((s, i) => s + i.price, 0);
+            const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
 
             const order = {
                 custName: name,
@@ -903,26 +1125,33 @@
                 notes: notes,
                 items: cart.map(i => i.name).join(' + '),
                 total: total.toFixed(2),
-                orderNo: '#' + Math.floor(1000 + Math.random() * 9000),
+                orderNo: orderNo,
                 status: 'new',
                 time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
                 date: new Date().toLocaleDateString('ar-EG')
             };
 
             db.ref(`restaurants/${RES_ID}/orders`).push(order).then(() => {
-                document.getElementById('stepConfirm').style.display = 'none';
-                document.getElementById('stepSuccess').style.display = 'block';
+                // Show success with order number
+                document.getElementById('step2').style.display = 'none';
+                document.getElementById('finalOrderNo').textContent = orderNo;
+                document.querySelector('.success-wrap').style.display = 'block';
+
                 cart = [];
                 updateCartUI();
-                setTimeout(closeModal, 3000);
+
+                // Close after 8 seconds
                 setTimeout(() => {
-                    document.getElementById('stepSuccess').style.display = 'none';
-                    document.getElementById('stepInfo').style.display = 'block';
-                    document.getElementById('custName').value = '';
-                    document.getElementById('custPhone').value = '';
-                    document.getElementById('orderNotes').value = '';
-                }, 3100);
-            }).catch(() => alert('حدث خطأ، تحقق من اتصالك بالإنترنت'));
+                    closeModal();
+                    setTimeout(() => {
+                        document.querySelector('.success-wrap').style.display = 'none';
+                        document.getElementById('step0').style.display = 'block';
+                        document.getElementById('custName').value = '';
+                        document.getElementById('custPhone').value = '';
+                        document.getElementById('orderNotes').value = '';
+                    }, 500);
+                }, 8000);
+            }).catch(() => alert('حدث خطأ، تحقق من اتصالك بالإنترنت وحاول مرة أخرى'));
         }
 
         function toggleTheme() {
@@ -937,7 +1166,7 @@
             }
         }
 
-        // Close modal on overlay click
+        // Close on overlay click
         document.getElementById('orderModal').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });

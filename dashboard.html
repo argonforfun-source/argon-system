@@ -9,10 +9,8 @@
     <style>
         :root {
             --void: #030712;
-            --deep: #0a0f1e;
             --panel: #0d1525;
             --surface: #111827;
-            --card: #131c2e;
             --border: rgba(99,179,237,0.1);
             --cyan: #22d3ee;
             --blue: #3b82f6;
@@ -20,9 +18,9 @@
             --green: #10b981;
             --red: #ef4444;
             --amber: #f59e0b;
-            --orange: #f97316;
             --text: #e2e8f0;
             --muted: #64748b;
+            --accent: #3b82f6; /* dynamic from Firebase */
         }
 
         * {
@@ -32,7 +30,7 @@
         }
 
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Tajawal',sans-serif;
             background: var(--void);
             color: var(--text);
             height: 100vh;
@@ -43,13 +41,13 @@
                 content: '';
                 position: fixed;
                 inset: 0;
-                background-image: linear-gradient(rgba(34,211,238,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.02) 1px, transparent 1px);
+                background-image: linear-gradient(rgba(34,211,238,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.02) 1px,transparent 1px);
                 background-size: 50px 50px;
                 pointer-events: none;
                 z-index: 0;
             }
 
-        /* ===== TOPBAR ===== */
+        /* TOPBAR */
         .topbar {
             height: 60px;
             background: var(--panel);
@@ -57,79 +55,79 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 22px;
             position: relative;
             z-index: 100;
             flex-shrink: 0;
         }
 
-        .topbar-left {
+        .tb-l {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
-        .topbar-logo {
-            font-family: 'IBM Plex Mono', monospace;
+        .tb-logo {
+            font-family: 'IBM Plex Mono',monospace;
             font-size: 1rem;
             font-weight: 600;
-            background: linear-gradient(135deg, #fff, var(--cyan));
+            background: linear-gradient(135deg,#fff,var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 3px;
         }
 
-        .topbar-sep {
+        .tb-sep {
             width: 1px;
-            height: 24px;
+            height: 22px;
             background: var(--border);
         }
 
-        #resNameTop {
-            font-size: 0.95rem;
+        .tb-name {
+            font-size: 0.93rem;
             font-weight: 700;
             color: var(--text);
         }
 
-        .topbar-right {
+        .tb-r {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
         }
 
-        .top-badge {
+        .tbadge {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             padding: 5px 12px;
             border-radius: 20px;
             font-weight: 600;
             border: 1px solid;
         }
 
-        .badge-id {
-            font-family: 'IBM Plex Mono', monospace;
+        .tbadge-id {
+            font-family: 'IBM Plex Mono',monospace;
             background: rgba(139,92,246,0.08);
             border-color: rgba(139,92,246,0.2);
             color: #c4b5fd;
         }
 
-        .badge-open {
+        .tbadge-open {
             background: rgba(16,185,129,0.08);
             border-color: rgba(16,185,129,0.2);
             color: var(--green);
         }
 
-        .badge-closed {
+        .tbadge-closed {
             background: rgba(239,68,68,0.08);
             border-color: rgba(239,68,68,0.2);
             color: #fca5a5;
         }
 
-        .clock-badge {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.78rem;
+        .clkbadge {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.76rem;
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--muted);
@@ -137,144 +135,140 @@
             border-radius: 8px;
         }
 
-        .theme-btn {
+        .tbtn {
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--muted);
-            padding: 6px 14px;
+            padding: 6px 13px;
             border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.82rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .theme-btn:hover {
+            .tbtn:hover {
                 border-color: rgba(59,130,246,0.3);
                 color: var(--text);
             }
 
-        .preview-btn {
-            background: linear-gradient(135deg, var(--blue), var(--purple));
+        .tbtn-prev {
+            background: linear-gradient(135deg,var(--accent),var(--purple));
             border: none;
             color: white;
-            padding: 7px 16px;
-            border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.82rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
         }
 
-            .preview-btn:hover {
+            .tbtn-prev:hover {
                 opacity: 0.85;
                 transform: translateY(-1px);
             }
 
-        /* ===== LAYOUT ===== */
+        /* LAYOUT */
         .app-layout {
             display: flex;
             height: calc(100vh - 60px);
         }
 
-        /* ===== SIDEBAR ===== */
+        /* SIDEBAR */
         .sidebar {
-            width: 220px;
+            width: 218px;
             background: var(--panel);
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 16px 0;
+            padding: 15px 0;
             flex-shrink: 0;
         }
 
-        .sidebar-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.58rem;
+        .sl {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.56rem;
             color: var(--muted);
             letter-spacing: 2px;
-            padding: 8px 16px 4px;
+            padding: 7px 15px 3px;
             text-transform: uppercase;
         }
 
-        .nav-item {
+        .ni {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 11px 16px;
-            margin: 1px 8px;
+            gap: 9px;
+            padding: 10px 14px;
+            margin: 1px 7px;
             border-radius: 9px;
             cursor: pointer;
             color: var(--muted);
-            font-size: 0.88rem;
+            font-size: 0.87rem;
             font-weight: 500;
             transition: all 0.2s;
             position: relative;
         }
 
-            .nav-item i {
+            .ni i {
                 width: 16px;
                 text-align: center;
-                font-size: 0.85rem;
+                font-size: 0.84rem;
             }
 
-            .nav-item:hover {
+            .ni:hover {
                 background: rgba(255,255,255,0.03);
                 color: var(--text);
             }
 
-            .nav-item.active {
+            .ni.active {
                 background: rgba(59,130,246,0.1);
                 color: #93c5fd;
             }
 
-                .nav-item.active::before {
+                .ni.active::before {
                     content: '';
                     position: absolute;
                     right: 0;
-                    top: 20%;
-                    bottom: 20%;
+                    top: 18%;
+                    bottom: 18%;
                     width: 3px;
-                    background: var(--blue);
+                    background: var(--accent);
                     border-radius: 3px 0 0 3px;
                 }
 
-        .notif-dot {
+        .nbadge {
             margin-right: auto;
             background: var(--red);
             color: white;
             font-size: 0.62rem;
+            font-family: 'IBM Plex Mono',monospace;
             padding: 2px 7px;
             border-radius: 10px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-            animation: none;
+            font-weight: 700;
         }
 
-            .notif-dot.pulse {
-                animation: pulseBadge 1.5s infinite;
+            .nbadge.zero {
+                background: rgba(100,116,139,0.2);
+                color: var(--muted);
             }
 
-        @keyframes pulseBadge {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.15);
-                opacity: 0.8;
-            }
+        .pwby {
+            text-align: center;
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.55rem;
+            color: rgba(100,116,139,0.4);
+            letter-spacing: 1.5px;
+            padding: 12px 0 4px;
         }
 
-        /* ===== MAIN CONTENT ===== */
+            .pwby span {
+                color: var(--accent);
+                opacity: 0.7;
+            }
+
+        /* MAIN AREA */
         .main-area {
             flex: 1;
             overflow-y: auto;
-            padding: 28px;
+            padding: 26px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.06) transparent;
+            scrollbar-color: rgba(255,255,255,0.05) transparent;
         }
 
         ::-webkit-scrollbar {
@@ -282,7 +276,7 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.06);
             border-radius: 2px;
         }
 
@@ -292,394 +286,410 @@
 
             .section.active {
                 display: block;
-                animation: fadeUp 0.3s ease;
+                animation: fu 0.3s ease;
             }
 
-        @keyframes fadeUp {
+        @keyframes fu {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(8px)
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0)
             }
         }
 
-        .page-header {
-            margin-bottom: 24px;
+        .ph {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 22px;
         }
 
-        .page-title {
+        .pt {
             font-size: 1.4rem;
             font-weight: 800;
         }
 
-        .page-sub {
-            font-size: 0.82rem;
+        .ps {
+            font-size: 0.8rem;
             color: var(--muted);
             margin-top: 3px;
         }
 
-        /* ===== STATS ===== */
-        .stats-row {
+        /* STATS */
+        .sr {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-bottom: 28px;
+            grid-template-columns: repeat(4,1fr);
+            gap: 13px;
+            margin-bottom: 26px;
         }
 
-        .stat-box {
+        .sb2 {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 18px;
-            transition: all 0.25s;
+            border-radius: 13px;
+            padding: 17px;
             position: relative;
             overflow: hidden;
+            transition: border-color 0.25s;
         }
 
-            .stat-box:hover {
-                border-color: rgba(59,130,246,0.25);
-            }
-
-            .stat-box::after {
+            .sb2::after {
                 content: '';
                 position: absolute;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 height: 2px;
-                background: var(--accent-color);
-                opacity: 0.5;
+                background: var(--bc,transparent);
             }
 
-        .stat-icon-wrap {
+            .sb2:hover {
+                border-color: rgba(59,130,246,0.22);
+            }
+
+        .si {
             width: 32px;
             height: 32px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.88rem;
-            margin-bottom: 12px;
+            font-size: 0.86rem;
+            margin-bottom: 10px;
         }
 
-        .stat-lbl {
-            font-size: 0.72rem;
+        .slb {
+            font-size: 0.7rem;
             color: var(--muted);
             font-weight: 500;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
-        .stat-val {
+        .sv {
             font-size: 1.6rem;
             font-weight: 800;
-            font-family: 'IBM Plex Mono', monospace;
-            color: var(--text);
+            font-family: 'IBM Plex Mono',monospace;
         }
 
-        .stat-hint {
-            font-size: 0.68rem;
+        .sh {
+            font-size: 0.66rem;
             color: var(--muted);
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
-        /* ===== ORDERS ===== */
-        .orders-grid {
+        /* ORDERS */
+        .og {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill,minmax(295px,1fr));
+            gap: 13px;
         }
 
-        .order-card {
+        .oc {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 18px;
+            border-radius: 13px;
+            padding: 16px;
             position: relative;
             overflow: hidden;
             transition: all 0.25s;
         }
 
-            .order-card::before {
+            .oc::before {
                 content: '';
                 position: absolute;
                 right: 0;
                 top: 0;
                 bottom: 0;
                 width: 3px;
-                background: var(--blue);
+                background: var(--accent);
             }
 
-            .order-card.completed::before {
+            .oc.done::before {
                 background: var(--green);
             }
 
-            .order-card:hover {
-                border-color: rgba(59,130,246,0.25);
+            .oc:hover {
+                border-color: rgba(59,130,246,0.22);
             }
 
-        .order-header {
+        .ono {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.76rem;
+            color: var(--accent);
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.15);
+            padding: 3px 9px;
+            border-radius: 7px;
+        }
+
+        .otm {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.66rem;
+            color: var(--muted);
+        }
+
+        .oheader {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
-        .order-no {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.78rem;
-            color: var(--cyan);
-            background: rgba(34,211,238,0.08);
-            border: 1px solid rgba(34,211,238,0.15);
-            padding: 3px 10px;
-            border-radius: 8px;
-        }
-
-        .order-time {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--muted);
-        }
-
-        .order-customer {
-            font-size: 0.95rem;
+        .ocust {
+            font-size: 0.93rem;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
-        .order-phone {
-            font-size: 0.78rem;
+        .ophone {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.75rem;
             color: var(--muted);
-            font-family: 'IBM Plex Mono', monospace;
         }
 
-        .order-items {
+        .oitems {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            margin: 12px 0;
+            margin: 10px 0;
         }
 
-        .item-chip {
+        .ichip {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.08);
-            padding: 3px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 3px 9px;
+            border-radius: 7px;
+            font-size: 0.73rem;
             color: var(--text);
         }
 
-        .order-note {
+        .onote {
             background: rgba(245,158,11,0.06);
             border: 1px solid rgba(245,158,11,0.15);
             border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.78rem;
+            padding: 7px 11px;
+            font-size: 0.76rem;
             color: #fcd34d;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
-        .order-footer {
+        .ofooter {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .order-total {
-            font-size: 1rem;
+        .ototal {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.98rem;
             font-weight: 800;
             color: var(--green);
-            font-family: 'IBM Plex Mono', monospace;
         }
 
-        .btn-complete {
+        .bcomplete {
             background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.25);
+            border: 1px solid rgba(16,185,129,0.22);
             color: var(--green);
-            padding: 7px 16px;
+            padding: 7px 15px;
             border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.82rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .btn-complete:hover {
+            .bcomplete:hover {
                 background: rgba(16,185,129,0.18);
             }
 
-        .empty-orders {
+        .empty-o {
             grid-column: 1/-1;
             text-align: center;
-            padding: 60px;
+            padding: 50px;
             color: var(--muted);
         }
 
-            .empty-orders i {
+            .empty-o i {
                 font-size: 2.5rem;
-                margin-bottom: 12px;
                 display: block;
-                opacity: 0.25;
+                margin-bottom: 12px;
+                opacity: 0.2;
             }
 
-        /* ===== SALES SECTION ===== */
-        .best-seller-grid {
+        /* BEST SELLERS */
+        .bsg {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill,minmax(155px,1fr));
+            gap: 11px;
+            margin-top: 18px;
         }
 
-        .bs-card {
+        .bsc {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 15px;
             text-align: center;
         }
 
-        .bs-rank {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.65rem;
+        .bsrank {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.62rem;
             color: var(--amber);
             letter-spacing: 1px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
-        .bs-name {
-            font-size: 0.88rem;
+        .bsname {
+            font-size: 0.86rem;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
-        .bs-count {
-            font-family: 'IBM Plex Mono', monospace;
+        .bscnt {
+            font-family: 'IBM Plex Mono',monospace;
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--cyan);
+            color: var(--accent);
         }
 
-        /* ===== MENU ===== */
-        .menu-form-panel {
+        /* HISTORY */
+        .hcard {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 22px;
-            margin-bottom: 24px;
+            border-right: 3px solid var(--green);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 9px;
+            transition: all 0.2s;
         }
 
-        .form-row {
+            .hcard:hover {
+                border-color: rgba(16,185,129,0.3);
+            }
+
+        /* MENU */
+        .mfp {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+
+        .mfr {
             display: grid;
             grid-template-columns: 2fr 1fr 3fr auto;
-            gap: 10px;
+            gap: 9px;
             align-items: end;
         }
 
-        .form-group-s {
-        }
-
-        .form-label-s {
+        .mfl {
             display: block;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--muted);
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             font-weight: 500;
         }
 
-        .form-inp {
+        .mfi {
             width: 100%;
             background: var(--surface);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 9px;
-            padding: 10px 14px;
+            padding: 9px 13px;
             color: var(--text);
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.9rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.88rem;
             outline: none;
             transition: all 0.2s;
         }
 
-            .form-inp:focus {
-                border-color: var(--blue);
+            .mfi:focus {
+                border-color: var(--accent);
                 box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
             }
 
-        .btn-add-item {
-            background: linear-gradient(135deg, var(--blue), var(--purple));
+        .badd {
+            background: linear-gradient(135deg,var(--accent),var(--purple));
             border: none;
             border-radius: 9px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.88rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
         }
 
-            .btn-add-item:hover {
+            .badd:hover {
                 opacity: 0.85;
             }
 
-        .menu-grid {
+        .mg {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill,minmax(175px,1fr));
+            gap: 13px;
         }
 
-        .menu-item-card {
+        .mic {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 13px;
             overflow: hidden;
             transition: all 0.25s;
         }
 
-            .menu-item-card:hover {
-                border-color: rgba(59,130,246,0.3);
+            .mic:hover {
+                border-color: rgba(59,130,246,0.28);
                 transform: translateY(-2px);
             }
 
-        .item-img {
+        .mimg {
             width: 100%;
-            height: 110px;
+            height: 108px;
             object-fit: cover;
             display: block;
         }
 
-        .item-img-placeholder {
+        .mip {
             width: 100%;
-            height: 110px;
+            height: 108px;
             background: var(--surface);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.2rem;
         }
 
-        .item-body {
-            padding: 14px;
+        .mbody {
+            padding: 12px;
         }
 
-        .item-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .item-price {
-            font-family: 'IBM Plex Mono', monospace;
+        .miname {
             font-size: 0.88rem;
-            color: var(--cyan);
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .miprice {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
             font-weight: 600;
         }
 
-        .btn-del-item {
+        .bdel {
             display: block;
             width: 100%;
             background: rgba(239,68,68,0.06);
@@ -687,95 +697,93 @@
             border-top: 1px solid rgba(239,68,68,0.1);
             color: #fca5a5;
             padding: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.78rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.76rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .btn-del-item:hover {
+            .bdel:hover {
                 background: rgba(239,68,68,0.12);
             }
 
-        /* ===== SETTINGS ===== */
-        .settings-panel {
+        /* SETTINGS */
+        .setp {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 28px;
+            border-radius: 15px;
+            padding: 26px;
             max-width: 560px;
         }
 
-        .settings-group {
-            margin-bottom: 18px;
+        .setg {
+            margin-bottom: 16px;
         }
 
-        .settings-label {
+        .setl {
             display: block;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--muted);
-            margin-bottom: 8px;
+            margin-bottom: 7px;
             font-weight: 500;
         }
 
-        .settings-inp, .settings-select {
+        .seti, .setsel {
             width: 100%;
             background: var(--surface);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 10px;
-            padding: 12px 16px;
+            padding: 11px 14px;
             color: var(--text);
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.92rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.9rem;
             outline: none;
             transition: all 0.2s;
         }
 
-            .settings-inp:focus, .settings-select:focus {
-                border-color: var(--blue);
+            .seti:focus, .setsel:focus {
+                border-color: var(--accent);
                 box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
             }
 
-        .btn-save {
+        .bsave {
             width: 100%;
-            padding: 13px;
-            background: linear-gradient(135deg, var(--green), #059669);
+            padding: 12px;
+            background: linear-gradient(135deg,var(--green),#059669);
             border: none;
             border-radius: 10px;
             color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.98rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 6px;
+            margin-top: 5px;
         }
 
-            .btn-save:hover {
+            .bsave:hover {
                 transform: translateY(-1px);
                 box-shadow: 0 6px 20px rgba(16,185,129,0.3);
             }
 
-        /* ===== COMPLETED ORDERS ===== */
-        .completed-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-right: 3px solid var(--green);
-            border-radius: 12px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+        .bclear {
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.15);
+            color: #fca5a5;
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-            .completed-card:hover {
-                border-color: rgba(16,185,129,0.3);
+            .bclear:hover {
+                background: rgba(239,68,68,0.12);
             }
 
-        /* ===== PREVIEW MODAL ===== */
-        #previewModal {
+        /* PREVIEW MODAL */
+        #prevModal {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.85);
@@ -786,47 +794,75 @@
             z-index: 9999;
         }
 
-        .phone-wrap {
+        .pfw {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
-        .phone-frame {
-            width: 360px;
-            height: 700px;
+        .pfr {
+            width: 358px;
+            height: 696px;
             background: #fff;
             border: 10px solid #1e293b;
-            border-radius: 48px;
+            border-radius: 46px;
             overflow: hidden;
             box-shadow: 0 0 60px rgba(0,0,0,0.5);
         }
 
-        .close-preview {
+        .bclose-prev {
             background: rgba(239,68,68,0.1);
             border: 1px solid rgba(239,68,68,0.3);
             color: #fca5a5;
-            padding: 10px 24px;
+            padding: 9px 22px;
             border-radius: 10px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.9rem;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
         }
 
-        /* ===== TOAST ===== */
+        /* COLOR PICKER in settings */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 9px;
+            border: 2px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .color-preview:hover {
+                transform: scale(1.08);
+            }
+
+        input[type="color"].hcp {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* TOAST */
         #toast {
             position: fixed;
             bottom: 24px;
             left: 50%;
-            transform: translateX(-50%) translateY(16px);
+            transform: translateX(-50%) translateY(14px);
             background: var(--surface);
             border: 1px solid rgba(16,185,129,0.3);
             color: var(--green);
-            padding: 11px 22px;
-            border-radius: 10px;
-            font-size: 0.88rem;
+            padding: 10px 20px;
+            border-radius: 11px;
+            font-size: 0.86rem;
             font-weight: 600;
             opacity: 0;
             transition: all 0.3s;
@@ -839,219 +875,235 @@
                 transform: translateX(-50%) translateY(0);
             }
 
-        /* ===== LIGHT MODE ===== */
+        /* LIGHT MODE */
         body.light-mode {
-            --void: #f1f5f9;
-            --deep: #e2e8f0;
+            --void: #f0f4ff;
             --panel: #ffffff;
             --surface: #f8fafc;
-            --card: #f1f5f9;
             --border: rgba(0,0,0,0.08);
             --text: #0f172a;
             --muted: #64748b;
         }
 
-            body.light-mode body::before {
-                display: none;
+        /* NOTIF RING ANIMATION */
+        @keyframes ring {
+            0% {
+                transform: rotate(0deg)
             }
 
-        /* ===== SECTION HEADER ===== */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .btn-clear {
-            background: rgba(239,68,68,0.06);
-            border: 1px solid rgba(239,68,68,0.15);
-            color: #fca5a5;
-            padding: 7px 14px;
-            border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-            .btn-clear:hover {
-                background: rgba(239,68,68,0.12);
+            10% {
+                transform: rotate(15deg)
             }
+
+            20% {
+                transform: rotate(-10deg)
+            }
+
+            30% {
+                transform: rotate(10deg)
+            }
+
+            40% {
+                transform: rotate(-8deg)
+            }
+
+            50% {
+                transform: rotate(0deg)
+            }
+
+            100% {
+                transform: rotate(0deg)
+            }
+        }
+
+        .ringing {
+            animation: ring 0.6s ease infinite;
+        }
     </style>
 </head>
 <body>
 
     <div class="topbar">
-        <div class="topbar-left">
-            <span class="topbar-logo">ARGON</span>
-            <div class="topbar-sep"></div>
-            <span id="resNameTop">جاري التحميل...</span>
+        <div class="tb-l">
+            <span class="tb-logo">ARGON</span>
+            <div class="tb-sep"></div>
+            <span class="tb-name" id="resNameTop">جاري التحميل...</span>
         </div>
-        <div class="topbar-right">
-            <span class="top-badge badge-id"><i class="fas fa-fingerprint"></i> <span id="resIdDisplay"></span></span>
-            <span class="top-badge" id="statusBadge"><i class="fas fa-circle" style="font-size:0.4rem"></i> مفتوح</span>
-            <span class="clock-badge" id="clockEl">--:--</span>
-            <button class="theme-btn" onclick="toggleTheme()">🌓 المظهر</button>
-            <button class="preview-btn" onclick="openPreview()">
-                <i class="fas fa-eye me-1"></i> معاينة مباشرة
-            </button>
+        <div class="tb-r">
+            <span class="tbadge tbadge-id"><i class="fas fa-fingerprint"></i> <span id="resIdDisp"></span></span>
+            <span class="tbadge" id="statusBadge"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح</span>
+            <span class="clkbadge" id="clkEl">--:--</span>
+            <button class="tbtn" onclick="toggleTheme()">🌓 المظهر</button>
+            <button class="tbtn tbtn-prev" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:6px"></i> معاينة</button>
         </div>
     </div>
 
     <div class="app-layout">
         <div class="sidebar">
-            <div class="sidebar-label">الإدارة</div>
-            <div class="nav-item active" onclick="showSec('dashSec', this)">
-                <i class="fas fa-chart-line"></i> التقارير المالية
+            <div style="padding:0 9px">
+                <div class="sl">الإدارة</div>
+                <div class="ni active" onclick="showSec('dashSec',this)">
+                    <i class="fas fa-chart-line"></i> التقارير المالية
+                </div>
+                <div class="ni" id="liveTab" onclick="showSec('liveSecEl',this)">
+                    <i class="fas fa-bell" id="bellIcon"></i> الطلبات الحية
+                    <span class="nbadge zero" id="liveCount">0</span>
+                </div>
+                <div class="ni" onclick="showSec('histSec',this)">
+                    <i class="fas fa-clock-rotate-left"></i> سجل المبيعات
+                </div>
+                <div class="ni" onclick="showSec('menuSec',this)">
+                    <i class="fas fa-utensils"></i> إدارة المنيو
+                </div>
+                <div class="ni" onclick="showSec('settingsSec',this)">
+                    <i class="fas fa-gear"></i> الإعدادات
+                </div>
             </div>
-            <div class="nav-item" onclick="showSec('liveOrdersSec', this)">
-                <i class="fas fa-bell"></i> الطلبات الحية
-                <span class="notif-dot" id="liveCount">0</span>
-            </div>
-            <div class="nav-item" onclick="showSec('histSec', this)">
-                <i class="fas fa-clock-rotate-left"></i> سجل المبيعات
-            </div>
-            <div class="nav-item" onclick="showSec('menuSec', this)">
-                <i class="fas fa-utensils"></i> إدارة المنيو
-            </div>
-            <div class="nav-item" onclick="showSec('settingsSec', this)">
-                <i class="fas fa-gear"></i> الإعدادات
+            <div style="margin-top:auto;padding:12px 9px;border-top:1px solid var(--border)">
+                <div class="pwby">POWERED BY <span>ARGON</span></div>
             </div>
         </div>
 
         <div class="main-area">
+
             <!-- DASHBOARD -->
             <div id="dashSec" class="section active">
-                <div class="page-header">
-                    <div class="page-title">📊 التقارير المالية</div>
-                    <div class="page-sub">إحصاءات حقيقية مباشرة من قاعدة البيانات</div>
-                </div>
-
-                <div class="stats-row">
-                    <div class="stat-box" style="--accent-color: linear-gradient(to left, var(--green), transparent)">
-                        <div class="stat-icon-wrap" style="background:rgba(16,185,129,0.1);color:var(--green)"><i class="fas fa-coins"></i></div>
-                        <div class="stat-lbl">إجمالي الدخل</div>
-                        <div class="stat-val" id="totalRevenue">0.00</div>
-                        <div class="stat-hint">دينار أردني · مكتمل</div>
-                    </div>
-                    <div class="stat-box" style="--accent-color: linear-gradient(to left, var(--blue), transparent)">
-                        <div class="stat-icon-wrap" style="background:rgba(59,130,246,0.1);color:var(--blue)"><i class="fas fa-hourglass-half"></i></div>
-                        <div class="stat-lbl">مبيعات بالانتظار</div>
-                        <div class="stat-val" id="pendingRevenue">0.00</div>
-                        <div class="stat-hint">طلبات قيد التنفيذ</div>
-                    </div>
-                    <div class="stat-box" style="--accent-color: linear-gradient(to left, var(--cyan), transparent)">
-                        <div class="stat-icon-wrap" style="background:rgba(34,211,238,0.1);color:var(--cyan)"><i class="fas fa-check-double"></i></div>
-                        <div class="stat-lbl">طلبات مكتملة</div>
-                        <div class="stat-val" id="statCompleted">0</div>
-                        <div class="stat-hint">إجمالي العمليات</div>
-                    </div>
-                    <div class="stat-box" style="--accent-color: linear-gradient(to left, var(--amber), transparent)">
-                        <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.1);color:var(--amber)"><i class="fas fa-calculator"></i></div>
-                        <div class="stat-lbl">متوسط قيمة الطلب</div>
-                        <div class="stat-val" id="avgOrder">0.00</div>
-                        <div class="stat-hint">دينار أردني</div>
-                    </div>
-                </div>
-
-                <div class="page-header" style="margin-bottom:14px">
+                <div class="ph">
                     <div>
-                        <div class="page-title" style="font-size:1.1rem">⭐ أعلى الأصناف مبيعاً</div>
+                        <div class="pt">📊 التقارير المالية</div>
+                        <div class="ps">إحصاءات حقيقية مباشرة من قاعدة البيانات</div>
                     </div>
                 </div>
-                <div class="best-seller-grid" id="bestSellerList">
-                    <div style="color:var(--muted);font-size:0.85rem">جاري التحليل...</div>
+                <div class="sr">
+                    <div class="sb2" style="--bc:var(--green)">
+                        <div class="si" style="background:rgba(16,185,129,0.1);color:var(--green)"><i class="fas fa-coins"></i></div>
+                        <div class="slb">إجمالي الدخل</div>
+                        <div class="sv" id="totalRevenue" style="color:var(--green)">0.00</div>
+                        <div class="sh">دينار أردني · مكتمل</div>
+                    </div>
+                    <div class="sb2" style="--bc:var(--accent)">
+                        <div class="si" style="background:rgba(59,130,246,0.1);color:var(--accent)"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="slb">مبيعات بالانتظار</div>
+                        <div class="sv" id="pendingRevenue" style="color:var(--accent)">0.00</div>
+                        <div class="sh">طلبات قيد التنفيذ</div>
+                    </div>
+                    <div class="sb2" style="--bc:var(--cyan)">
+                        <div class="si" style="background:rgba(34,211,238,0.1);color:var(--cyan)"><i class="fas fa-check-double"></i></div>
+                        <div class="slb">طلبات مكتملة</div>
+                        <div class="sv" id="statCompleted" style="color:var(--cyan)">0</div>
+                        <div class="sh">إجمالي العمليات</div>
+                    </div>
+                    <div class="sb2" style="--bc:var(--amber)">
+                        <div class="si" style="background:rgba(245,158,11,0.1);color:var(--amber)"><i class="fas fa-calculator"></i></div>
+                        <div class="slb">متوسط قيمة الطلب</div>
+                        <div class="sv" id="avgOrder" style="color:var(--amber)">0.00</div>
+                        <div class="sh">دينار أردني</div>
+                    </div>
                 </div>
+                <div class="ph" style="margin-bottom:12px">
+                    <div class="pt" style="font-size:1.05rem">⭐ أعلى الأصناف مبيعاً</div>
+                </div>
+                <div class="bsg" id="bestSellerList"><div style="color:var(--muted);font-size:0.84rem">جاري التحليل...</div></div>
             </div>
 
             <!-- LIVE ORDERS -->
-            <div id="liveOrdersSec" class="section">
-                <div class="page-header">
-                    <div class="page-title">🔔 الطلبات الحية</div>
-                    <div class="page-sub">تحديث فوري في الوقت الحقيقي</div>
+            <div id="liveSecEl" class="section">
+                <div class="ph">
+                    <div>
+                        <div class="pt">🔔 الطلبات الحية</div>
+                        <div class="ps">تحديث فوري في الوقت الحقيقي</div>
+                    </div>
                 </div>
-                <div class="orders-grid" id="ordersGrid"></div>
+                <div class="og" id="ordersGrid"></div>
             </div>
 
             <!-- HISTORY -->
             <div id="histSec" class="section">
-                <div class="section-header">
+                <div class="ph">
                     <div>
-                        <div class="page-title">📜 سجل المبيعات</div>
-                        <div class="page-sub">كل الطلبات المكتملة</div>
+                        <div class="pt">📜 سجل المبيعات</div>
+                        <div class="ps">جميع الطلبات المكتملة</div>
                     </div>
-                    <button class="btn-clear" onclick="clearHistory()">
-                        <i class="fas fa-trash me-1"></i> مسح السجل
-                    </button>
+                    <button class="bclear" onclick="clearHistory()"><i class="fas fa-trash" style="margin-left:5px"></i> مسح السجل</button>
                 </div>
                 <div id="histGrid"></div>
             </div>
 
             <!-- MENU -->
             <div id="menuSec" class="section">
-                <div class="page-header">
-                    <div class="page-title">🍽️ إدارة المنيو</div>
-                    <div class="page-sub">أضف وأدر أصناف قائمة طعامك</div>
-                </div>
-
-                <div class="menu-form-panel">
-                    <div class="form-row">
-                        <div class="form-group-s">
-                            <label class="form-label-s">اسم الصنف</label>
-                            <input type="text" id="itemName" class="form-inp" placeholder="مثال: برجر كلاسيك">
-                        </div>
-                        <div class="form-group-s">
-                            <label class="form-label-s">السعر (د.أ)</label>
-                            <input type="number" id="itemPrice" class="form-inp" placeholder="3.50">
-                        </div>
-                        <div class="form-group-s">
-                            <label class="form-label-s">رابط الصورة (اختياري)</label>
-                            <input type="text" id="itemImg" class="form-inp" placeholder="https://...">
-                        </div>
-                        <button class="btn-add-item" onclick="addItem()">
-                            <i class="fas fa-plus me-1"></i> إضافة
-                        </button>
+                <div class="ph">
+                    <div>
+                        <div class="pt">🍽️ إدارة المنيو</div>
+                        <div class="ps">أضف وأدر أصناف قائمة طعامك</div>
                     </div>
                 </div>
-
-                <div class="menu-grid" id="menuGrid"></div>
+                <div class="mfp">
+                    <div class="mfr">
+                        <div>
+                            <label class="mfl">اسم الصنف</label>
+                            <input type="text" id="itemName" class="mfi" placeholder="مثال: برجر كلاسيك">
+                        </div>
+                        <div>
+                            <label class="mfl">السعر (د.أ)</label>
+                            <input type="number" id="itemPrice" class="mfi" placeholder="3.50">
+                        </div>
+                        <div>
+                            <label class="mfl">رابط الصورة (اختياري)</label>
+                            <input type="text" id="itemImg" class="mfi" placeholder="https://...">
+                        </div>
+                        <button class="badd" onclick="addItem()"><i class="fas fa-plus" style="margin-left:5px"></i> إضافة</button>
+                    </div>
+                </div>
+                <div class="mg" id="menuGrid"></div>
             </div>
 
             <!-- SETTINGS -->
             <div id="settingsSec" class="section">
-                <div class="page-header">
-                    <div class="page-title">⚙️ إعدادات المطعم</div>
-                    <div class="page-sub">تعديل معلومات وبيانات مطعمك</div>
+                <div class="ph">
+                    <div>
+                        <div class="pt">⚙️ إعدادات المطعم</div>
+                        <div class="ps">تعديل معلومات وبيانات مطعمك</div>
+                    </div>
                 </div>
-                <div class="settings-panel">
-                    <div class="settings-group">
-                        <label class="settings-label">اسم المطعم</label>
-                        <input type="text" id="resNameInp" class="settings-inp">
+                <div class="setp">
+                    <div class="setg">
+                        <label class="setl">اسم المطعم</label>
+                        <input type="text" id="resNameInp" class="seti">
                     </div>
-                    <div class="settings-group">
-                        <label class="settings-label">رقم الواتساب</label>
-                        <input type="text" id="resPhoneInp" class="settings-inp" placeholder="+962700000000">
+                    <div class="setg">
+                        <label class="setl">رقم الواتساب</label>
+                        <input type="text" id="resPhoneInp" class="seti" placeholder="+962700000000">
                     </div>
-                    <div class="settings-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="setg" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div>
-                            <label class="settings-label">حالة المطعم</label>
-                            <select id="resStatusInp" class="settings-select">
+                            <label class="setl">حالة المطعم</label>
+                            <select id="resStatusInp" class="setsel">
                                 <option value="open">مفتوح الآن ✅</option>
                                 <option value="closed">مغلق مؤقتاً ❌</option>
                             </select>
                         </div>
                         <div>
-                            <label class="settings-label">ساعات العمل</label>
-                            <input type="text" id="resHoursInp" class="settings-inp" placeholder="9ص - 11م">
+                            <label class="setl">ساعات العمل</label>
+                            <input type="text" id="resHoursInp" class="seti" placeholder="9ص - 11م">
                         </div>
                     </div>
-                    <div class="settings-group">
-                        <label class="settings-label">كلمة مرور الدخول</label>
-                        <input type="text" id="resPassInp" class="settings-inp" placeholder="••••••">
+                    <div class="setg">
+                        <label class="setl">لون هوية المطعم</label>
+                        <div class="color-row" style="position:relative">
+                            <div class="color-preview" id="colorPreview" onclick="document.getElementById('colorPicker').click()"></div>
+                            <input type="color" id="colorPicker" class="hcp" onchange="onColorChange(this.value)">
+                            <div>
+                                <div style="font-size:0.88rem;font-weight:600" id="colorHex">#3b82f6</div>
+                                <div style="font-size:0.7rem;color:var(--muted)">يؤثر على لون التمييز في جميع الصفحات</div>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-save" onclick="saveSets()">
-                        <i class="fas fa-floppy-disk me-2"></i> حفظ جميع التغييرات
+                    <div class="setg">
+                        <label class="setl">كلمة مرور الدخول</label>
+                        <input type="text" id="resPassInp" class="seti" placeholder="••••••">
+                    </div>
+                    <button class="bsave" onclick="saveSets()">
+                        <i class="fas fa-floppy-disk" style="margin-left:8px"></i> حفظ جميع التغييرات
                     </button>
                 </div>
             </div>
@@ -1059,14 +1111,10 @@
     </div>
 
     <!-- PREVIEW MODAL -->
-    <div id="previewModal">
-        <div class="phone-wrap">
-            <button class="close-preview" onclick="closePreview()">
-                <i class="fas fa-xmark me-1"></i> إغلاق المعاينة
-            </button>
-            <div class="phone-frame">
-                <iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe>
-            </div>
+    <div id="prevModal">
+        <div class="pfw">
+            <button class="bclose-prev" onclick="closePreview()"><i class="fas fa-xmark" style="margin-left:6px"></i> إغلاق المعاينة</button>
+            <div class="pfr"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
         </div>
     </div>
 
@@ -1086,21 +1134,66 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const RES_ID = urlParams.get('id') || '99';
-        document.getElementById('resIdDisplay').textContent = RES_ID;
+        document.getElementById('resIdDisp').textContent = RES_ID;
 
-        // Clock
+        // CLOCK
         setInterval(() => {
-            document.getElementById('clockEl').textContent =
+            document.getElementById('clkEl').textContent =
                 new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
-        function formatItems(raw) {
-            const counts = {};
-            (raw || '').split(' + ').forEach(i => { i = i.trim(); if (i) counts[i] = (counts[i] || 0) + 1; });
-            return Object.entries(counts).map(([n, c]) =>
-                `<span class="item-chip">${c > 1 ? c + 'x ' : ''}${n}</span>`).join('');
+        // SOUND ENGINE
+        let audioCtx = null;
+        let prevLiveCount = 0;
+        let firstLoad = true;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
         }
 
+        function playNotifSound() {
+            try {
+                const ctx = getAudioCtx();
+                const notes = [523, 659, 784, 1047]; // C E G C octave
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = ctx.currentTime + i * 0.12;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.4, t + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+                    osc.start(t); osc.stop(t + 0.3);
+                });
+            } catch (e) { }
+        }
+
+        // ACCENT COLOR
+        function applyAccent(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            const cp = document.getElementById('colorPicker');
+            const cprev = document.getElementById('colorPreview');
+            const chex = document.getElementById('colorHex');
+            if (cp) cp.value = color;
+            if (cprev) cprev.style.background = color;
+            if (chex) chex.textContent = color;
+        }
+
+        function onColorChange(color) {
+            applyAccent(color);
+        }
+
+        // FORMAT ITEMS
+        function fmtItems(raw) {
+            const cnt = {};
+            (raw || '').split(' + ').forEach(i => { i = i.trim(); if (i) cnt[i] = (cnt[i] || 0) + 1; });
+            return Object.entries(cnt).map(([n, c]) => `<span class="ichip">${c > 1 ? c + 'x ' : ''} ${n}</span>`).join('');
+        }
+
+        // MAIN DATA LISTENER
         db.ref('restaurants/' + RES_ID).on('value', snap => {
             const data = snap.val() || {};
             const sets = data.settings || {};
@@ -1108,147 +1201,159 @@
             const completed = data.completedOrders || {};
             const products = data.products || {};
 
+            // Apply color accent from Firebase
+            if (sets.color) applyAccent(sets.color);
+
             // Header
             const name = sets.name || 'مطعم أرغون';
             document.getElementById('resNameTop').textContent = name;
             document.title = 'ARGON | ' + name;
+
+            // Settings inputs
             document.getElementById('resNameInp').value = sets.name || '';
             document.getElementById('resPhoneInp').value = sets.phone || '';
             document.getElementById('resStatusInp').value = sets.status || 'open';
             document.getElementById('resHoursInp').value = sets.hours || '';
             document.getElementById('resPassInp').value = sets.password || '';
 
-            const sBadge = document.getElementById('statusBadge');
+            // Status badge
+            const sb = document.getElementById('statusBadge');
             if (sets.status === 'closed') {
-                sBadge.className = 'top-badge badge-closed';
-                sBadge.innerHTML = '<i class="fas fa-circle" style="font-size:0.4rem"></i> مغلق';
+                sb.className = 'tbadge tbadge-closed';
+                sb.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق';
             } else {
-                sBadge.className = 'top-badge badge-open';
-                sBadge.innerHTML = '<i class="fas fa-circle" style="font-size:0.4rem"></i> مفتوح';
+                sb.className = 'tbadge tbadge-open';
+                sb.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح';
             }
 
             // Revenue
-            let totalRev = 0, count = 0;
+            let totalRev = 0, cnt = 0;
             const salesMap = {};
             for (let k in completed) {
-                totalRev += parseFloat(completed[k].total || 0);
-                count++;
-                (completed[k].items || '').split(' + ').forEach(i => {
-                    i = i.trim();
-                    if (i) salesMap[i] = (salesMap[i] || 0) + 1;
-                });
+                totalRev += parseFloat(completed[k].total || 0); cnt++;
+                (completed[k].items || '').split(' + ').forEach(i => { i = i.trim(); if (i) salesMap[i] = (salesMap[i] || 0) + 1; });
             }
-
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
-            document.getElementById('statCompleted').textContent = count;
-            document.getElementById('avgOrder').textContent = count > 0 ? (totalRev / count).toFixed(2) : '0.00';
+            document.getElementById('statCompleted').textContent = cnt;
+            document.getElementById('avgOrder').textContent = cnt > 0 ? (totalRev / cnt).toFixed(2) : '0.00';
 
             // Best sellers
-            const bsList = document.getElementById('bestSellerList');
+            const bsl = document.getElementById('bestSellerList');
             const sorted = Object.entries(salesMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            bsList.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
-                <div class="bs-card">
-                    <div class="bs-rank">#${i + 1} BESTSELLER</div>
-                    <div class="bs-name">${n}</div>
-                    <div class="bs-count">${c}</div>
-                    <div style="font-size:0.68rem;color:var(--muted)">طلب</div>
-                </div>`).join('') : '<div style="color:var(--muted);font-size:0.85rem">لا توجد بيانات مبيعات بعد</div>';
+            bsl.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
+                <div class="bsc">
+                    <div class="bsrank">#${i + 1} BESTSELLER</div>
+                    <div class="bsname">${n}</div>
+                    <div class="bscnt">${c}</div>
+                    <div style="font-size:0.66rem;color:var(--muted)">طلب</div>
+                </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد بيانات مبيعات بعد</div>';
 
-            // Live Orders
+            // Live orders
             const liveKeys = Object.keys(orders);
-            document.getElementById('liveCount').textContent = liveKeys.length;
-            document.getElementById('liveCount').className = 'notif-dot' + (liveKeys.length > 0 ? ' pulse' : '');
+            const newCount = liveKeys.length;
+            document.getElementById('liveCount').textContent = newCount;
+            document.getElementById('liveCount').className = 'nbadge' + (newCount === 0 ? ' zero' : '');
 
-            let pendingRev = 0;
-            const ordersGrid = document.getElementById('ordersGrid');
-            ordersGrid.innerHTML = '';
+            // Play sound if new order arrived
+            if (!firstLoad && newCount > prevLiveCount) {
+                playNotifSound();
+                const bell = document.getElementById('bellIcon');
+                bell.classList.add('ringing');
+                setTimeout(() => bell.classList.remove('ringing'), 2000);
+            }
+            if (!firstLoad) prevLiveCount = newCount;
 
+            let pendRev = 0;
+            const og = document.getElementById('ordersGrid');
+            og.innerHTML = '';
             if (!liveKeys.length) {
-                ordersGrid.innerHTML = `<div class="empty-orders"><i class="fas fa-inbox"></i><p>لا توجد طلبات حية حالياً</p></div>`;
+                og.innerHTML = `<div class="empty-o"><i class="fas fa-inbox"></i><p>لا توجد طلبات حية حالياً</p></div>`;
             } else {
                 liveKeys.forEach(k => {
                     const o = orders[k];
-                    pendingRev += parseFloat(o.total || 0);
-                    const noteHtml = o.notes ? `<div class="order-note">📝 ${o.notes}</div>` : '';
-                    ordersGrid.innerHTML += `
-                        <div class="order-card">
-                            <div class="order-header">
-                                <span class="order-no">${o.orderNo}</span>
-                                <span class="order-time">${o.time || ''}</span>
-                            </div>
-                            <div class="order-customer">${o.custName}</div>
-                            <div class="order-phone">${o.custPhone || ''}</div>
-                            <div class="order-items">${formatItems(o.items)}</div>
-                            ${noteHtml}
-                            <div class="order-footer">
-                                <span class="order-total">${o.total} د.أ</span>
-                                <button class="btn-complete" onclick="completeOrder('${k}', ${JSON.stringify(o).replace(/"/g, '&quot;')})">
-                                    <i class="fas fa-check me-1"></i> إكمال
-                                </button>
-                            </div>
-                        </div>`;
+                    pendRev += parseFloat(o.total || 0);
+                    const note = o.notes ? `<div class="onote">📝 ${o.notes}</div>` : '';
+                    og.innerHTML += `
+                    <div class="oc">
+                        <div class="oheader">
+                            <span class="ono">${o.orderNo}</span>
+                            <span class="otm">${o.time || ''}</span>
+                        </div>
+                        <div class="ocust">${o.custName}</div>
+                        <div class="ophone">${o.custPhone || ''}</div>
+                        <div class="oitems">${fmtItems(o.items)}</div>
+                        ${note}
+                        <div class="ofooter">
+                            <span class="ototal">${o.total} د.أ</span>
+                            <button class="bcomplete" onclick="completeOrder('${k}',${JSON.stringify(o).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-check" style="margin-left:5px"></i> إكمال
+                            </button>
+                        </div>
+                    </div>`;
                 });
             }
-            document.getElementById('pendingRevenue').textContent = pendingRev.toFixed(2);
+            document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
 
             // History
-            const histGrid = document.getElementById('histGrid');
-            const histKeys = Object.keys(completed).reverse();
-            histGrid.innerHTML = '';
-            if (!histKeys.length) {
-                histGrid.innerHTML = `<div class="empty-orders" style="text-align:center;padding:40px;color:var(--muted)"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.2"></i><p>لا يوجد سجل مبيعات بعد</p></div>`;
+            const hg = document.getElementById('histGrid');
+            const hkeys = Object.keys(completed).reverse();
+            hg.innerHTML = '';
+            if (!hkeys.length) {
+                hg.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.2"></i><p>لا يوجد سجل مبيعات بعد</p></div>`;
             } else {
-                histKeys.forEach(k => {
+                hkeys.forEach(k => {
                     const o = completed[k];
-                    const noteHtml = o.notes ? `<div style="font-size:0.75rem;color:var(--amber);margin-top:4px">📝 ${o.notes}</div>` : '';
-                    histGrid.innerHTML += `
-                        <div class="completed-card">
-                            <div>
-                                <div style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:4px">${o.orderNo} · ${o.date || ''} · ${o.time || ''}</div>
-                                <div style="font-size:0.9rem;font-weight:700">${o.custName}</div>
-                                <div style="margin-top:6px">${formatItems(o.items)}</div>
-                                ${noteHtml}
-                            </div>
-                            <div style="font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--green);white-space:nowrap">${o.total} د.أ</div>
-                        </div>`;
+                    hg.innerHTML += `
+                    <div class="hcard">
+                        <div>
+                            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);margin-bottom:4px">${o.orderNo} · ${o.date || ''} · ${o.time || ''}</div>
+                            <div style="font-size:0.88rem;font-weight:700">${o.custName}</div>
+                            <div style="margin-top:5px">${fmtItems(o.items)}</div>
+                            ${o.notes ? `<div style="font-size:0.74rem;color:var(--amber);margin-top:4px">📝 ${o.notes}</div>` : ''}
+                        </div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--green);white-space:nowrap">${o.total} د.أ</div>
+                    </div>`;
                 });
             }
 
             // Menu
-            const menuGrid = document.getElementById('menuGrid');
-            menuGrid.innerHTML = '';
+            const mg = document.getElementById('menuGrid');
+            mg.innerHTML = '';
             for (let k in products) {
                 const p = products[k];
-                const imgHtml = p.img ? `<img src="${p.img}" class="item-img" onerror="this.parentElement.querySelector('.item-img-placeholder').style.display='flex';this.style.display='none'">` : '';
-                menuGrid.innerHTML += `
-                    <div class="menu-item-card">
-                        ${imgHtml}
-                        <div class="item-img-placeholder" style="${p.img ? 'display:none' : ''}">🍽️</div>
-                        <div class="item-body">
-                            <div class="item-name">${p.name}</div>
-                            <div class="item-price">${p.price} د.أ</div>
-                        </div>
-                        <button class="btn-del-item" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">
-                            <i class="fas fa-trash me-1"></i> حذف الصنف
-                        </button>
-                    </div>`;
+                mg.innerHTML += `
+                <div class="mic">
+                    ${p.img ? `<img src="${p.img}" class="mimg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    <div class="mip" style="${p.img ? 'display:none' : ''}">🍽️</div>
+                    <div class="mbody">
+                        <div class="miname">${p.name}</div>
+                        <div class="miprice">${p.price} د.أ</div>
+                    </div>
+                    <button class="bdel" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">
+                        <i class="fas fa-trash" style="margin-left:5px"></i> حذف الصنف
+                    </button>
+                </div>`;
             }
+
+            firstLoad = false;
         });
 
         function saveSets() {
+            const color = document.getElementById('colorPicker').value || '#3b82f6';
             db.ref('restaurants/' + RES_ID + '/settings').update({
                 name: document.getElementById('resNameInp').value,
                 phone: document.getElementById('resPhoneInp').value,
                 status: document.getElementById('resStatusInp').value,
                 hours: document.getElementById('resHoursInp').value,
-                password: document.getElementById('resPassInp').value
-            }).then(() => showToast('✅ تم حفظ الإعدادات بنجاح'));
+                password: document.getElementById('resPassInp').value,
+                color: color
+            }).then(() => toast('✅ تم حفظ الإعدادات بنجاح'));
         }
 
         function completeOrder(key, data) {
             db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(data)
                 .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove());
-            showToast('✅ تم إكمال الطلب');
+            toast('✅ تم إكمال الطلب');
         }
 
         function addItem() {
@@ -1257,47 +1362,21 @@
             const img = document.getElementById('itemImg').value.trim();
             if (!name || !price) return;
             db.ref('restaurants/' + RES_ID + '/products').push({ name, price, img })
-                .then(() => {
-                    document.getElementById('itemName').value = '';
-                    document.getElementById('itemPrice').value = '';
-                    document.getElementById('itemImg').value = '';
-                    showToast('✅ تم إضافة الصنف');
-                });
+                .then(() => { document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemImg').value = ''; toast('✅ تم إضافة الصنف'); });
         }
 
-        function clearHistory() {
-            if (!confirm('هل أنت متأكد من مسح سجل المبيعات كاملاً؟')) return;
-            db.ref('restaurants/' + RES_ID + '/completedOrders').remove()
-                .then(() => showToast('🗑️ تم مسح السجل'));
-        }
+        function clearHistory() { if (!confirm('هل أنت متأكد من مسح سجل المبيعات؟')) return; db.ref('restaurants/' + RES_ID + '/completedOrders').remove().then(() => toast('🗑️ تم مسح السجل')); }
 
-        function showSec(id, el) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-        }
+        function showSec(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
 
-        function openPreview() {
-            document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`;
-            document.getElementById('previewModal').style.display = 'flex';
-        }
+        function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('prevModal').style.display = 'flex'; }
+        function closePreview() { document.getElementById('prevModal').style.display = 'none'; document.getElementById('prevFrame').src = ''; }
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
 
-        function closePreview() {
-            document.getElementById('previewModal').style.display = 'none';
-            document.getElementById('prevFrame').src = '';
-        }
+        function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
+        // Unlock audio on first interaction
+        document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
     </script>
 </body>
 </html>
