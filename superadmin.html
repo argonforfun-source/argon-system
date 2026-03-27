@@ -2,24 +2,36 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARGON OS | نظام الإدارة العليا</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>أرغون | المنيو الذكي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --void: #030712;
-            --panel: #0d1525;
-            --surface: #111827;
-            --border: rgba(99,179,237,0.12);
-            --cyan: #22d3ee;
-            --blue: #3b82f6;
-            --purple: #8b5cf6;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --bg: #f0f4ff;
+            --card: #ffffff;
+            --header-from: #1e3a8a;
+            --header-to: #3b82f6;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(0,0,0,0.07);
+            --shadow: rgba(0,0,0,0.06);
             --green: #10b981;
             --red: #ef4444;
             --amber: #f59e0b;
+        }
+
+        [data-theme="dark"] {
+            --bg: #070d1a;
+            --card: #0f1929;
+            --header-from: #0a1628;
+            --header-to: #1e3a8a;
             --text: #e2e8f0;
             --muted: #64748b;
+            --border: rgba(255,255,255,0.06);
+            --shadow: rgba(0,0,0,0.3);
         }
 
         * {
@@ -30,1028 +42,855 @@
 
         body {
             font-family: 'Tajawal',sans-serif;
-            background: var(--void);
+            background: var(--bg);
             color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s,color 0.3s;
+            padding-bottom: 110px;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg,var(--header-from),var(--header-to));
+            padding: 0 0 22px;
+            position: relative;
             overflow: hidden;
-            height: 100vh;
         }
 
-            body::before {
+            .header::before {
                 content: '';
-                position: fixed;
+                position: absolute;
                 inset: 0;
-                background-image: linear-gradient(rgba(34,211,238,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.025) 1px,transparent 1px);
-                background-size: 40px 40px;
+                background-image: radial-gradient(circle at 20% 50%,rgba(34,211,238,0.12) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(139,92,246,0.12) 0%,transparent 40%);
                 pointer-events: none;
-                z-index: 0;
             }
 
-        /* LOGIN */
-        #loginPage {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            background: var(--void);
-        }
-
-        .login-wrap {
-            position: relative;
-            width: 440px;
-        }
-
-        .login-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle,rgba(59,130,246,0.12),transparent 70%);
-            pointer-events: none;
-        }
-
-        .login-card {
-            position: relative;
-            background: var(--panel);
-            border: 1px solid rgba(59,130,246,0.2);
-            border-radius: 24px;
-            padding: 48px 40px;
-            box-shadow: 0 0 60px rgba(59,130,246,0.08),inset 0 1px 0 rgba(255,255,255,0.04);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .os-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg,var(--blue),var(--cyan));
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            box-shadow: 0 0 20px rgba(59,130,246,0.4);
-        }
-
-        .logo-text {
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 1.6rem;
-            font-weight: 600;
-            background: linear-gradient(135deg,#fff,var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 3px;
-        }
-
-        .login-badge {
-            display: inline-block;
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.62rem;
-            color: var(--cyan);
-            background: rgba(34,211,238,0.08);
-            border: 1px solid rgba(34,211,238,0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            letter-spacing: 2px;
-        }
-
-        .inp-label {
-            display: block;
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 7px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        .inp-field {
-            width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 11px;
-            padding: 13px 16px;
-            color: var(--text);
-            font-family: 'Tajawal',sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s;
-            outline: none;
-        }
-
-            .inp-field:focus {
-                border-color: var(--blue);
-                background: rgba(59,130,246,0.05);
-                box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-            }
-
-        .inp-grp {
-            margin-bottom: 14px;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg,var(--blue),#6366f1);
-            border: none;
-            border-radius: 11px;
-            color: white;
-            font-family: 'Tajawal',sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 6px;
-        }
-
-            .login-btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 8px 30px rgba(59,130,246,0.4);
-            }
-
-        .err-msg {
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.25);
-            border-radius: 10px;
-            padding: 10px 16px;
-            color: #fca5a5;
-            font-size: 0.84rem;
-            margin-top: 12px;
-            display: none;
-            text-align: center;
-        }
-
-        .login-foot {
-            text-align: center;
-            margin-top: 16px;
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.62rem;
-            color: rgba(100,116,139,0.45);
-            letter-spacing: 1.5px;
-        }
-
-        /* MAIN */
-        #mainWrapper {
-            display: none;
-            height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* TOPBAR */
-        .topbar {
-            height: 60px;
-            background: var(--panel);
-            border-bottom: 1px solid var(--border);
+        .htop {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 26px;
-            z-index: 100;
+            padding: 14px 18px 0;
         }
 
-        .tb-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .tb-logo {
+        .argon-mark {
             font-family: 'IBM Plex Mono',monospace;
-            font-size: 1rem;
-            font-weight: 600;
-            background: linear-gradient(135deg,#fff,var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 3px;
-        }
-
-        .tb-sep {
-            width: 1px;
-            height: 24px;
-            background: var(--border);
-        }
-
-        .tb-title {
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-
-        .tb-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sys-pill {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(16,185,129,0.08);
-            border: 1px solid rgba(16,185,129,0.2);
-            padding: 5px 13px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: var(--green);
-            font-family: 'IBM Plex Mono',monospace;
-        }
-
-        .sdot {
-            width: 6px;
-            height: 6px;
-            background: var(--green);
-            border-radius: 50%;
-            animation: pd 2s infinite;
-        }
-
-        @keyframes pd {
-            0%,100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: 0.4
-            }
-        }
-
-        .clk {
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.78rem;
-            color: var(--muted);
-            background: var(--surface);
-            padding: 5px 13px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .out-btn {
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.2);
-            color: #fca5a5;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-family: 'Tajawal',sans-serif;
-            font-size: 0.83rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-            .out-btn:hover {
-                background: rgba(239,68,68,0.15);
-            }
-
-        /* LAYOUT */
-        .app-layout {
-            display: flex;
-            height: calc(100vh - 60px);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 238px;
-            background: var(--panel);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 18px 0;
-            flex-shrink: 0;
-        }
-
-        .sl {
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.57rem;
-            color: var(--muted);
+            font-size: 0.6rem;
             letter-spacing: 2px;
-            padding: 8px 16px 4px;
+            color: rgba(255,255,255,0.45);
             text-transform: uppercase;
         }
 
-        .ni {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            margin: 1px 8px;
-            border-radius: 9px;
+        .theme-tog {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.8);
+            padding: 6px 13px;
+            border-radius: 20px;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.76rem;
             cursor: pointer;
-            color: var(--muted);
-            font-size: 0.88rem;
-            font-weight: 500;
             transition: all 0.2s;
-            position: relative;
         }
 
-            .ni i {
-                width: 17px;
-                text-align: center;
-                font-size: 0.86rem;
+            .theme-tog:hover {
+                background: rgba(255,255,255,0.18);
             }
 
-            .ni:hover {
-                background: rgba(255,255,255,0.03);
-                color: var(--text);
-            }
-
-            .ni.active {
-                background: rgba(59,130,246,0.1);
-                color: #93c5fd;
-            }
-
-                .ni.active::before {
-                    content: '';
-                    position: absolute;
-                    right: 0;
-                    top: 20%;
-                    bottom: 20%;
-                    width: 3px;
-                    background: var(--blue);
-                    border-radius: 3px 0 0 3px;
-                }
-
-        .nbadge {
-            margin-right: auto;
-            background: rgba(59,130,246,0.15);
-            color: #93c5fd;
-            font-size: 0.63rem;
-            font-family: 'IBM Plex Mono',monospace;
-            padding: 2px 7px;
-            border-radius: 10px;
-        }
-
-        .sb-foot {
-            margin-top: auto;
-            padding: 14px 10px;
-            border-top: 1px solid var(--border);
-        }
-
-        .adm-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 11px 13px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .adm-av {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg,var(--blue),var(--purple));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .adm-name {
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .adm-role {
-            font-size: 0.65rem;
-            color: var(--cyan);
-            font-family: 'IBM Plex Mono',monospace;
-        }
-
-        .pwby {
+        .hmain {
             text-align: center;
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.57rem;
-            color: rgba(100,116,139,0.4);
-            letter-spacing: 1.5px;
-            margin-top: 8px;
-        }
-
-            .pwby span {
-                color: var(--cyan);
-                opacity: 0.7;
-            }
-
-        /* MAIN AREA */
-        .main-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 30px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.05) transparent;
-        }
-
-        .section {
-            display: none;
-        }
-
-            .section.active {
-                display: block;
-                animation: fu 0.3s ease;
-            }
-
-        @keyframes fu {
-            from {
-                opacity: 0;
-                transform: translateY(8px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        .ph {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 26px;
-        }
-
-        .pt {
-            font-size: 1.45rem;
-            font-weight: 800;
-        }
-
-        .ps {
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-top: 3px;
-        }
-
-        /* STATS */
-        .sg {
-            display: grid;
-            grid-template-columns: repeat(4,1fr);
-            gap: 13px;
-            margin-bottom: 26px;
-        }
-
-        .st {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 17px;
-            transition: border-color 0.3s;
-        }
-
-            .st:hover {
-                border-color: rgba(59,130,246,0.22);
-            }
-
-        .si {
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.88rem;
-            margin-bottom: 10px;
-        }
-
-        .sl2 {
-            font-size: 0.7rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .sv {
-            font-size: 1.65rem;
-            font-weight: 800;
-            font-family: 'IBM Plex Mono',monospace;
-        }
-
-        /* RES CARDS */
-        .rg {
-            display: grid;
-            gap: 11px;
-        }
-
-        .rc {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            transition: all 0.25s;
+            padding: 22px 18px 0;
             position: relative;
-            overflow: hidden;
         }
 
-            .rc::before {
-                content: '';
-                position: absolute;
-                right: 0;
-                top: 0;
-                bottom: 0;
-                width: 3px;
-                background: var(--rc,var(--blue));
-            }
-
-            .rc:hover {
-                border-color: rgba(59,130,246,0.22);
-                transform: translateX(-2px);
-            }
-
-        .rav {
-            width: 40px;
-            height: 40px;
-            border-radius: 11px;
+        .rlogo {
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            flex-shrink: 0;
+            font-size: 1.9rem;
+            margin: 0 auto 12px;
+            backdrop-filter: blur(10px);
         }
 
-        .ri {
-            flex: 1;
-            min-width: 0;
+        .rname {
+            font-size: 1.55rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 8px;
         }
 
-        .rn {
-            font-size: 0.93rem;
-            font-weight: 700;
-        }
-
-        .rid {
-            font-family: 'IBM Plex Mono',monospace;
-            font-size: 0.68rem;
-            color: var(--muted);
-            margin-top: 1px;
-        }
-
-        .rstat {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.7rem;
-            padding: 3px 9px;
-            border-radius: 10px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-            .rstat.open {
-                background: rgba(16,185,129,0.1);
-                color: var(--green);
-                border: 1px solid rgba(16,185,129,0.2);
-            }
-
-            .rstat.closed {
-                background: rgba(239,68,68,0.08);
-                color: #fca5a5;
-                border: 1px solid rgba(239,68,68,0.15);
-            }
-
-        .ract {
+        .rmeta {
             display: flex;
-            gap: 7px;
             align-items: center;
+            justify-content: center;
+            gap: 9px;
             flex-wrap: wrap;
         }
 
-        .ba {
-            padding: 7px 13px;
-            border-radius: 8px;
-            font-family: 'Tajawal',sans-serif;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid;
-        }
-
-        .ba-open {
-            background: rgba(16,185,129,0.1);
-            border-color: rgba(16,185,129,0.25);
-            color: var(--green);
-        }
-
-            .ba-open:hover {
-                background: rgba(16,185,129,0.2);
-            }
-
-        .ba-close {
-            background: rgba(239,68,68,0.08);
-            border-color: rgba(239,68,68,0.2);
-            color: #fca5a5;
-        }
-
-            .ba-close:hover {
-                background: rgba(239,68,68,0.15);
-            }
-
-        .ba-dash {
-            background: rgba(59,130,246,0.1);
-            border-color: rgba(59,130,246,0.22);
-            color: #93c5fd;
-        }
-
-            .ba-dash:hover {
-                background: rgba(59,130,246,0.18);
-            }
-
-        .ba-del {
-            background: rgba(239,68,68,0.06);
-            border-color: rgba(239,68,68,0.13);
-            color: #fca5a5;
-            padding: 7px 10px;
-        }
-
-            .ba-del:hover {
-                background: rgba(239,68,68,0.14);
-            }
-
-        /* COLOR PICKER */
-        .cpwrap {
-            position: relative;
-            display: flex;
+        .rchip {
+            display: inline-flex;
             align-items: center;
+            gap: 5px;
+            font-size: 0.74rem;
+            padding: 4px 11px;
+            border-radius: 20px;
+            font-weight: 600;
         }
 
-        .cpdot {
-            width: 28px;
-            height: 28px;
-            border-radius: 7px;
-            border: 2px solid rgba(255,255,255,0.12);
-            cursor: pointer;
-            transition: all 0.2s;
+        .chip-open {
+            background: rgba(16,185,129,0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(16,185,129,0.3);
         }
 
-            .cpdot:hover {
-                transform: scale(1.12);
-            }
-
-        input[type="color"].hc {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .chip-closed {
+            background: rgba(239,68,68,0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.3);
         }
 
-        /* FORM */
-        .fp {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 17px;
-            padding: 26px;
-            max-width: 520px;
+        .chip-hrs {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
-        .fg {
-            margin-bottom: 16px;
+        /* SEARCH */
+        .srchwrap {
+            padding: 0 15px;
+            margin-top: 18px;
         }
 
-        .fl {
-            display: block;
-            font-size: 0.76rem;
-            color: var(--muted);
-            margin-bottom: 7px;
-            font-weight: 500;
+        .srchcont {
+            position: relative;
         }
 
-        .fi {
+        .srchbox {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 13px;
+            padding: 11px 15px 11px 44px;
             width: 100%;
-            background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 10px;
-            padding: 11px 14px;
-            color: var(--text);
+            color: white;
             font-family: 'Tajawal',sans-serif;
             font-size: 0.93rem;
             outline: none;
-            transition: all 0.22s;
+            backdrop-filter: blur(10px);
+            transition: all 0.25s;
         }
 
-            .fi:focus {
-                border-color: var(--blue);
-                box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            .srchbox::placeholder {
+                color: rgba(255,255,255,0.4);
             }
 
-        .fh {
-            font-size: 0.68rem;
-            color: var(--muted);
-            margin-top: 4px;
-            opacity: 0.7;
-        }
-
-        .bpc {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg,var(--blue),#6366f1);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-family: 'Tajawal',sans-serif;
-            font-size: 0.98rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 6px;
-        }
-
-            .bpc:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+            .srchbox:focus {
+                background: rgba(255,255,255,0.18);
+                border-color: rgba(255,255,255,0.3);
             }
 
-        /* SEARCH */
-        .sb {
-            position: relative;
-            margin-bottom: 16px;
-        }
-
-            .sb input {
-                width: 100%;
-                background: var(--panel);
-                border: 1px solid var(--border);
-                border-radius: 10px;
-                padding: 10px 13px 10px 40px;
-                color: var(--text);
-                font-family: 'Tajawal',sans-serif;
-                font-size: 0.87rem;
-                outline: none;
-                transition: all 0.2s;
-            }
-
-                .sb input:focus {
-                    border-color: rgba(59,130,246,0.3);
-                }
-
-            .sb i {
-                position: absolute;
-                left: 13px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--muted);
-                font-size: 0.83rem;
-            }
-
-        /* EMPTY */
-        .es {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--muted);
-        }
-
-            .es i {
-                font-size: 3rem;
-                margin-bottom: 14px;
-                opacity: 0.2;
-                display: block;
-            }
-
-        /* TOAST */
-        #toast {
-            position: fixed;
-            bottom: 26px;
-            left: 50%;
-            transform: translateX(-50%) translateY(14px);
-            background: var(--surface);
-            border: 1px solid rgba(16,185,129,0.3);
-            color: var(--green);
-            padding: 10px 20px;
-            border-radius: 11px;
-            font-size: 0.86rem;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 9999;
+        .srchico {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.88rem;
             pointer-events: none;
         }
 
-            #toast.show {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
+        /* MENU */
+        .menu-sec {
+            padding: 18px 13px 0;
+        }
+
+        .sec-lbl {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 13px;
+            font-family: 'IBM Plex Mono',monospace;
+        }
+
+        .mgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .icard {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 17px;
+            overflow: hidden;
+            transition: all 0.25s;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: relative;
+        }
+
+            .icard:active {
+                transform: scale(0.97);
             }
 
-        ::-webkit-scrollbar {
-            width: 3px;
+        .iimgwrap {
+            position: relative;
+            height: 118px;
+            background: #f1f5f9;
+            overflow: hidden;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.06);
-            border-radius: 2px;
+        [data-theme="dark"] .iimgwrap {
+            background: #1a2540;
         }
+
+        .iimg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .icard:hover .iimg {
+            transform: scale(1.05);
+        }
+
+        .iimgph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+        }
+
+        .ibody {
+            padding: 11px;
+        }
+
+        .iname {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .iprice {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 9px;
+        }
+
+        .addbtn {
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            padding: 8px;
+            color: white;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+            .addbtn:active {
+                transform: scale(0.96);
+            }
+
+            .addbtn.added {
+                background: var(--green);
+            }
+
+        /* CART FAB */
+        .cartfab {
+            position: fixed;
+            bottom: 24px;
+            left: 18px;
+            z-index: 500;
+        }
+
+        .cartbtn {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg,var(--accent),#6366f1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.45rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+            transition: all 0.3s;
+            position: relative;
+            border: none;
+        }
+
+            .cartbtn:active {
+                transform: scale(0.92);
+            }
+
+        .cartcnt {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--red);
+            color: white;
+            width: 23px;
+            height: 23px;
+            border-radius: 50%;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg);
+            font-family: 'IBM Plex Mono',monospace;
+        }
+
+        .cartlbl {
+            position: absolute;
+            bottom: -20px;
+            white-space: nowrap;
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--accent);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* MODAL OVERLAY */
+        .moverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+            .moverlay.show {
+                display: flex;
+            }
+
+        .msheet {
+            background: var(--card);
+            border-radius: 26px 26px 0 0;
+            padding: 26px 20px 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: sup 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        @keyframes sup {
+            from {
+                transform: translateY(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .shandle {
+            width: 34px;
+            height: 4px;
+            background: rgba(0,0,0,0.12);
+            border-radius: 2px;
+            margin: 0 auto 18px;
+        }
+
+        [data-theme="dark"] .shandle {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .stitle {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        /* CART SUMMARY (step 0) */
+        .cart-summary {
+            background: rgba(59,130,246,0.04);
+            border: 1px solid rgba(59,130,246,0.1);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        [data-theme="dark"] .cart-summary {
+            background: rgba(59,130,246,0.06);
+        }
+
+        .cart-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+            .cart-item-row:last-child {
+                border-bottom: none;
+            }
+
+        .ci-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ci-qty {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono',monospace;
+            flex-shrink: 0;
+        }
+
+        .ci-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .ci-price {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .ci-remove {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+        }
+
+            .ci-remove:hover {
+                background: rgba(239,68,68,0.08);
+            }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid rgba(59,130,246,0.15);
+        }
+
+        .ct-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .ct-val {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        /* INPUTS */
+        .minp {
+            width: 100%;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: 'Tajawal',sans-serif;
+            font-size: 0.97rem;
+            outline: none;
+            margin-bottom: 10px;
+            text-align: right;
+            transition: all 0.2s;
+        }
+
+            .minp:focus {
+                border-color: var(--accent);
+            }
+
+        /* BILL */
+        .billbox {
+            background: var(--bg);
+            border-radius: 15px;
+            padding: 16px;
+            border: 1.5px dashed rgba(59,130,246,0.2);
+            margin-bottom: 16px;
+        }
+
+        .billtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'IBM Plex Mono',monospace;
+        }
+
+        .billrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+            .billrow:last-of-type {
+                border-bottom: none;
+            }
+
+        .bname {
+            font-size: 0.86rem;
+        }
+
+        .bprice {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .billtotal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 11px;
+            margin-top: 3px;
+            border-top: 2px solid rgba(59,130,246,0.13);
+        }
+
+        .btl {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .btv {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        /* BUTTONS */
+        .bnext {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg,var(--accent),#6366f1);
+            border: none;
+            border-radius: 13px;
+            color: white;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 9px;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+        }
+
+            .bnext:active {
+                transform: scale(0.98);
+            }
+
+        .bsend {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg,var(--green),#059669);
+            border: none;
+            border-radius: 13px;
+            color: white;
+            font-family: 'Tajawal',sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+
+            .bsend:active {
+                transform: scale(0.98);
+            }
+
+        .bback {
+            display: block;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.83rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .bclose {
+            display: block;
+            width: 100%;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 9px;
+            margin-top: 3px;
+            border: none;
+            background: transparent;
+            font-family: 'Tajawal',sans-serif;
+        }
+
+        /* SUCCESS / ORDER NUMBER */
+        .success-wrap {
+            display: none;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .success-icon {
+            width: 68px;
+            height: 68px;
+            background: rgba(16,185,129,0.1);
+            border: 2px solid rgba(16,185,129,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            margin: 0 auto 14px;
+        }
+
+        .success-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--green);
+            margin-bottom: 6px;
+        }
+
+        .order-no-box {
+            background: rgba(59,130,246,0.06);
+            border: 1.5px dashed rgba(59,130,246,0.25);
+            border-radius: 14px;
+            padding: 18px;
+            margin: 14px 0;
+        }
+
+        .on-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 1px;
+            font-family: 'IBM Plex Mono',monospace;
+            margin-bottom: 6px;
+        }
+
+        .on-number {
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 3px;
+        }
+
+        .on-remind {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+            .on-remind strong {
+                color: var(--accent);
+            }
+
+        /* CLOSED SCREEN */
+        .closed-scr {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg,#0a1628,#1e3a8a);
+            color: white;
+        }
+
+        .cls-icon {
+            font-size: 4rem;
+            margin-bottom: 18px;
+        }
+
+        .cls-title {
+            font-size: 1.55rem;
+            font-weight: 900;
+            margin-bottom: 9px;
+        }
+
+        .cls-sub {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.88rem;
+        }
+
+        /* EMPTY */
+        .empty-s {
+            text-align: center;
+            padding: 55px 20px;
+            color: var(--muted);
+        }
+
+            .empty-s i {
+                font-size: 2.4rem;
+                display: block;
+                margin-bottom: 12px;
+                opacity: 0.25;
+            }
+
+        /* POWERED BY */
+        .pwby-foot {
+            text-align: center;
+            font-family: 'IBM Plex Mono',monospace;
+            font-size: 0.58rem;
+            color: rgba(100,116,139,0.45);
+            letter-spacing: 1.5px;
+            padding: 20px 0 6px;
+        }
+
+            .pwby-foot span {
+                color: var(--accent);
+                opacity: 0.7;
+            }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <!-- LOGIN -->
-    <div id="loginPage">
-        <div class="login-wrap">
-            <div class="login-glow"></div>
-            <div class="login-card">
-                <div class="login-header">
-                    <div class="os-logo">
-                        <div class="logo-icon">⚡</div>
-                        <span class="logo-text">ARGON</span>
-                    </div><br>
-                    <span class="login-badge">SUPER ADMIN ACCESS</span>
-                    <p style="color:var(--muted);font-size:0.82rem;margin-top:12px;">نظام إدارة المطاعم المركزي</p>
+    <div id="mainContent">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="htop">
+                <span class="argon-mark">ARGON MENU</span>
+                <button class="theme-tog" id="themeBtn" onclick="toggleTheme()">🌙 الوضع الليلي</button>
+            </div>
+            <div class="hmain">
+                <div class="rlogo">🍽️</div>
+                <div class="rname" id="resName">جاري التحميل...</div>
+                <div class="rmeta">
+                    <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن</span>
+                    <span class="rchip chip-hrs" id="hoursChip" style="display:none"><i class="fas fa-clock" style="font-size:0.68rem"></i> <span id="hoursText"></span></span>
                 </div>
-                <div class="inp-grp">
-                    <label class="inp-label">اسم المستخدم</label>
-                    <input type="text" id="adminUser" class="inp-field" placeholder="admin" autocomplete="off">
+            </div>
+            <div class="srchwrap" style="margin-top:16px">
+                <div class="srchcont">
+                    <i class="fas fa-magnifying-glass srchico"></i>
+                    <input type="text" class="srchbox" id="searchBox" placeholder="ابحث عن صنف..." oninput="filterMenu()">
                 </div>
-                <div class="inp-grp">
-                    <label class="inp-label">كلمة المرور</label>
-                    <input type="password" id="adminPass" class="inp-field" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
-                </div>
-                <button class="login-btn" onclick="login()">
-                    <i class="fas fa-shield-halved" style="margin-left:8px"></i> دخول النظام الآمن
+            </div>
+        </div>
+
+        <!-- MENU -->
+        <div class="menu-sec">
+            <div class="sec-lbl">قائمة الطعام</div>
+            <div class="mgrid" id="menuGrid">
+                <div class="empty-s" style="grid-column:1/-1"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل القائمة...</p></div>
+            </div>
+        </div>
+
+        <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
+    </div>
+
+    <!-- CART FAB -->
+    <div class="cartfab">
+        <button class="cartbtn" onclick="openModal()">
+            🛒
+            <div class="cartcnt" id="cartCnt">0</div>
+        </button>
+        <span class="cartlbl" id="cartLbl">0.00 د.أ</span>
+    </div>
+
+    <!-- ORDER MODAL -->
+    <div class="moverlay" id="orderModal">
+        <div class="msheet">
+            <div class="shandle"></div>
+
+            <!-- STEP 0: CART REVIEW -->
+            <div id="step0">
+                <div class="stitle">🛒 مراجعة السلة</div>
+                <div class="cart-summary" id="cartSummary"></div>
+                <button class="bnext" onclick="goStep1()">
+                    <i class="fas fa-arrow-left" style="margin-left:7px"></i> التالي — إدخال البيانات
                 </button>
-                <div class="err-msg" id="errMsg"><i class="fas fa-triangle-exclamation" style="margin-left:6px"></i> بيانات الدخول غير صحيحة</div>
-                <div class="login-foot">ARGON OS v2.0 · SUPER ADMIN PANEL<br><br>POWERED BY <span style="color:var(--cyan)">ARGON</span></div>
+                <button class="bclose" onclick="closeModal()">إغلاق</button>
+            </div>
+
+            <!-- STEP 1: INFO -->
+            <div id="step1" style="display:none">
+                <div class="stitle">📋 أدخل بياناتك</div>
+                <input type="text" id="custName" class="minp" placeholder="اسمك الكريم *">
+                <input type="tel" id="custPhone" class="minp" placeholder="رقم هاتفك *">
+                <textarea id="orderNotes" class="minp" rows="2" placeholder="ملاحظات إضافية (اختياري)" style="resize:none"></textarea>
+                <button class="bnext" onclick="goStep2()">
+                    <i class="fas fa-receipt" style="margin-left:7px"></i> عرض الفاتورة
+                </button>
+                <span class="bback" onclick="goStep0()">← العودة للسلة</span>
+                <button class="bclose" onclick="closeModal()">إغلاق</button>
+            </div>
+
+            <!-- STEP 2: CONFIRM BILL -->
+            <div id="step2" style="display:none">
+                <div class="stitle">🧾 تأكيد الطلب</div>
+                <div class="billbox" id="billBox"></div>
+                <button class="bsend" onclick="sendOrder()">
+                    <i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم
+                </button>
+                <span class="bback" onclick="goStep1()">← تعديل البيانات</span>
+            </div>
+
+            <!-- STEP 3: SUCCESS + ORDER NUMBER -->
+            <div class="success-wrap" id="step3">
+                <div class="success-icon">✅</div>
+                <div class="success-title">تم إرسال طلبك بنجاح!</div>
+                <div class="order-no-box">
+                    <div class="on-label">رقم طلبك هو</div>
+                    <div class="on-number" id="finalOrderNo">----</div>
+                    <div class="on-remind">
+                        ⚠️ <strong>الرجاء حفظ رقم طلبك</strong><br>
+                        ستحتاجه عند استلام طلبك من المطعم
+                    </div>
+                </div>
+                <div style="font-size:0.85rem;color:var(--muted)">شكراً لك، سيتم تحضير طلبك في أقرب وقت 🙏</div>
             </div>
         </div>
     </div>
-
-    <!-- MAIN APP -->
-    <div id="mainWrapper">
-        <div class="topbar">
-            <div class="tb-left">
-                <span class="tb-logo">ARGON</span>
-                <div class="tb-sep"></div>
-                <span class="tb-title">لوحة الإدارة المركزية</span>
-            </div>
-            <div class="tb-right">
-                <div class="sys-pill"><div class="sdot"></div> نظام فعّال</div>
-                <div class="clk" id="clkEl">--:--:--</div>
-                <button class="out-btn" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-left:5px"></i> خروج</button>
-            </div>
-        </div>
-
-        <div class="app-layout">
-            <div class="sidebar">
-                <div style="padding:0 10px">
-                    <div class="sl">التحكم الرئيسي</div>
-                    <div class="ni active" onclick="showSec('restSec',this)">
-                        <i class="fas fa-store"></i> المطاعم
-                        <span class="nbadge" id="resBadge">0</span>
-                    </div>
-                    <div class="ni" onclick="showSec('addSec',this)">
-                        <i class="fas fa-plus-circle"></i> إضافة مطعم
-                    </div>
-                    <div class="sl" style="margin-top:10px">النظام</div>
-                    <div class="ni" onclick="showSec('infoSec',this)">
-                        <i class="fas fa-circle-info"></i> معلومات النظام
-                    </div>
-                </div>
-                <div class="sb-foot">
-                    <div class="adm-card">
-                        <div class="adm-av">A</div>
-                        <div>
-                            <div class="adm-name">Super Admin</div>
-                            <div class="adm-role">ROOT · FULL ACCESS</div>
-                        </div>
-                    </div>
-                    <div class="pwby">POWERED BY <span>ARGON</span></div>
-                </div>
-            </div>
-
-            <div class="main-area">
-
-                <!-- RESTAURANTS -->
-                <div id="restSec" class="section active">
-                    <div class="ph">
-                        <div>
-                            <div class="pt">إدارة المطاعم</div>
-                            <div class="ps">جميع المطاعم المسجلة في نظام أرغون</div>
-                        </div>
-                    </div>
-                    <div class="sg">
-                        <div class="st">
-                            <div class="si" style="background:rgba(59,130,246,0.1);color:#93c5fd"><i class="fas fa-store"></i></div>
-                            <div class="sl2">إجمالي المطاعم</div>
-                            <div class="sv" id="totalCount" style="color:var(--text)">0</div>
-                        </div>
-                        <div class="st">
-                            <div class="si" style="background:rgba(16,185,129,0.1);color:var(--green)"><i class="fas fa-circle-check"></i></div>
-                            <div class="sl2">مفتوح الآن</div>
-                            <div class="sv" id="activeCount" style="color:var(--green)">0</div>
-                        </div>
-                        <div class="st">
-                            <div class="si" style="background:rgba(239,68,68,0.08);color:#fca5a5"><i class="fas fa-store-slash"></i></div>
-                            <div class="sl2">مغلق / موقوف</div>
-                            <div class="sv" id="closedCount" style="color:#fca5a5">0</div>
-                        </div>
-                        <div class="st">
-                            <div class="si" style="background:rgba(245,158,11,0.08);color:var(--amber)"><i class="fas fa-clock"></i></div>
-                            <div class="sl2">آخر تحديث</div>
-                            <div class="sv" id="lastUpd" style="font-size:0.95rem;color:var(--amber)">--</div>
-                        </div>
-                    </div>
-
-                    <div class="sb">
-                        <i class="fas fa-magnifying-glass"></i>
-                        <input type="text" id="searchInp" placeholder="ابحث بالاسم أو الـ ID..." oninput="filterList()">
-                    </div>
-                    <div id="resList"></div>
-                </div>
-
-                <!-- ADD -->
-                <div id="addSec" class="section">
-                    <div class="ph">
-                        <div>
-                            <div class="pt">إضافة مطعم جديد</div>
-                            <div class="ps">أنشئ حساباً جديداً في نظام أرغون</div>
-                        </div>
-                    </div>
-                    <div class="fp">
-                        <div class="fg">
-                            <label class="fl">معرّف المطعم (ID)</label>
-                            <input type="text" id="newId" class="fi" placeholder="مثال: burger_house">
-                            <div class="fh">يُستخدم في الرابط — لا يمكن تغييره لاحقاً</div>
-                        </div>
-                        <div class="fg">
-                            <label class="fl">اسم المطعم</label>
-                            <input type="text" id="newName" class="fi" placeholder="مثال: بيت البرجر">
-                        </div>
-                        <div class="fg">
-                            <label class="fl">كلمة المرور الأولية</label>
-                            <input type="text" id="newPass" class="fi" value="123456">
-                            <div class="fh">يمكن تغييرها لاحقاً من لوحة التحكم</div>
-                        </div>
-                        <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                            <div>
-                                <label class="fl">حالة المطعم</label>
-                                <select id="newStatus" class="fi">
-                                    <option value="open">مفتوح ✅</option>
-                                    <option value="closed">مغلق ❌</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="fl">لون هوية المطعم</label>
-                                <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-                                    <input type="color" id="newColor" value="#3b82f6" style="width:44px;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;cursor:pointer;padding:2px;">
-                                    <span style="font-size:0.75rem;color:var(--muted)">اختر اللون</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="bpc" onclick="createRest()">
-                            <i class="fas fa-plus" style="margin-left:7px"></i> إنشاء المطعم
-                        </button>
-                    </div>
-                </div>
-
-                <!-- INFO -->
-                <div id="infoSec" class="section">
-                    <div class="ph">
-                        <div>
-                            <div class="pt">معلومات النظام</div>
-                            <div class="ps">تفاصيل تقنية ومعلومات البنية التحتية</div>
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px">
-                        <div class="fp" style="padding:20px">
-                            <div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:9px">DATABASE</div>
-                            <div style="font-size:0.88rem;color:var(--text);margin-bottom:5px">🔷 Firebase Realtime DB</div>
-                            <div style="font-size:0.7rem;color:var(--muted)">europe-west1.firebasedatabase.app</div>
-                        </div>
-                        <div class="fp" style="padding:20px">
-                            <div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:9px">VERSION</div>
-                            <div style="font-size:0.88rem;color:var(--cyan);font-family:'IBM Plex Mono',monospace">ARGON OS v2.0</div>
-                            <div style="font-size:0.7rem;color:var(--muted);margin-top:4px">Super Admin Panel</div>
-                        </div>
-                        <div class="fp" style="padding:20px">
-                            <div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:9px">ENDPOINTS</div>
-                            <div style="font-size:0.8rem;color:var(--text)">dashboard.html?id=<span style="color:var(--cyan)">[ID]</span></div>
-                            <div style="font-size:0.8rem;color:var(--text);margin-top:5px">index.html?id=<span style="color:var(--cyan)">[ID]</span></div>
-                        </div>
-                        <div class="fp" style="padding:20px">
-                            <div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:9px">STATUS</div>
-                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                                <div class="sdot"></div>
-                                <span style="color:var(--green);font-size:0.88rem">النظام يعمل بكامل طاقته</span>
-                            </div>
-                            <div style="font-size:0.65rem;color:rgba(100,116,139,0.5);font-family:'IBM Plex Mono',monospace;letter-spacing:1px">POWERED BY ARGON SYSTEM</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div id="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -1060,122 +899,283 @@
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             projectId: "argon-system",
+            storageBucket: "argon-system.firebasestorage.app",
+            messagingSenderId: "858120444233",
+            appId: "1:858120444233:web:4bda38dfa451b9eb26e298",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let allRests = [];
 
-        setInterval(() => {
-            document.getElementById('clkEl').textContent =
-                new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }, 1000);
+        const urlParams = new URLSearchParams(window.location.search);
+        let RES_ID = urlParams.get('id');
+        if (!RES_ID) { RES_ID = localStorage.getItem('argon_store_id') || '1'; }
+        else { localStorage.setItem('argon_store_id', RES_ID); }
 
-        function login() {
-            const u = document.getElementById('adminUser').value.trim();
-            const p = document.getElementById('adminPass').value.trim();
-            if (u === 'admin' && p === '123456') {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('mainWrapper').style.display = 'block';
-                loadData();
+        // Cart: {name, price, key} keyed by product key
+        let cart = []; // array of {name, price}
+        let allProducts = [];
+
+        // Apply accent color from Firebase
+        function applyAccent(color) {
+            const root = document.documentElement;
+            root.style.setProperty('--accent', color);
+            // Compute darker shade for accent-dark
+            root.style.setProperty('--accent-dark', color);
+            // Update header gradient
+            root.style.setProperty('--header-to', color);
+        }
+
+        db.ref('restaurants/' + RES_ID).on('value', snap => {
+            const data = snap.val();
+            if (!data) {
+                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">❌</div><div class="cls-title">المطعم غير موجود</div><div class="cls-sub">تأكد من الرابط وحاول مرة أخرى</div></div>`;
+                return;
+            }
+            if (data.settings?.status === 'disabled') {
+                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">🔒</div><div class="cls-title">عذراً، المطعم مغلق</div><div class="cls-sub">سيعود قريباً، شكراً لتفهمك</div></div>`;
+                return;
+            }
+
+            const sets = data.settings || {};
+
+            // Apply color
+            if (sets.color) applyAccent(sets.color);
+
+            // Name
+            document.getElementById('resName').textContent = sets.name || 'مطعم أرغون';
+            document.title = (sets.name || 'أرغون') + ' | المنيو';
+
+            // Status chip
+            const sc = document.getElementById('statusChip');
+            if (sets.status === 'closed') {
+                sc.className = 'rchip chip-closed';
+                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق مؤقتاً';
             } else {
-                const e = document.getElementById('errMsg');
-                e.style.display = 'block';
-                setTimeout(() => e.style.display = 'none', 3000);
+                sc.className = 'rchip chip-open';
+                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
+            }
+
+            // Hours
+            if (sets.hours) {
+                document.getElementById('hoursChip').style.display = 'inline-flex';
+                document.getElementById('hoursText').textContent = sets.hours;
+            }
+
+            // Products
+            allProducts = [];
+            const products = data.products || {};
+            for (let k in products) allProducts.push({ key: k, ...products[k] });
+            renderMenu(allProducts);
+        });
+
+        function renderMenu(products) {
+            const grid = document.getElementById('menuGrid');
+            if (!products.length) {
+                grid.innerHTML = `<div class="empty-s" style="grid-column:1/-1"><i class="fas fa-utensils"></i><p>لا توجد أصناف متاحة حالياً</p></div>`;
+                return;
+            }
+            grid.innerHTML = products.map(p => `
+                <div class="icard">
+                    <div class="iimgwrap">
+                        ${p.img
+                    ? `<img src="${p.img}" class="iimg" onerror="this.parentElement.querySelector('.iimgph').style.display='flex';this.style.display='none'"><div class="iimgph" style="display:none">🍽️</div>`
+                    : `<div class="iimgph">🍽️</div>`
+                }
+                    </div>
+                    <div class="ibody">
+                        <div class="iname">${p.name}</div>
+                        <div class="iprice">${p.price} د.أ</div>
+                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${p.name}',${p.price},'${p.key}')">
+                            <i class="fas fa-plus"></i> أضف للسلة
+                        </button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function filterMenu() {
+            const q = document.getElementById('searchBox').value.toLowerCase().trim();
+            if (!q) { renderMenu(allProducts); return; }
+            renderMenu(allProducts.filter(p => p.name.toLowerCase().includes(q)));
+        }
+
+        function addToCart(name, price, key) {
+            cart.push({ name, price: parseFloat(price), key });
+            updateCartUI();
+            const btn = document.getElementById('abtn_' + key);
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.classList.add('added');
+                btn.innerHTML = '<i class="fas fa-check"></i> تمت الإضافة';
+                setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 900);
             }
         }
-        function logout() { location.reload(); }
 
-        function loadData() {
-            db.ref('restaurants').on('value', snap => {
-                allRests = [];
-                let act = 0, cls = 0;
-                snap.forEach(child => {
-                    const s = child.val()?.settings || {};
-                    allRests.push({ id: child.key, name: s.name || 'بدون اسم', status: s.status || 'open', color: s.color || '#3b82f6' });
-                    if (s.status === 'open') act++; else cls++;
-                });
-                document.getElementById('totalCount').textContent = allRests.length;
-                document.getElementById('activeCount').textContent = act;
-                document.getElementById('closedCount').textContent = cls;
-                document.getElementById('resBadge').textContent = allRests.length;
-                document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-                renderList(allRests);
+        function updateCartUI() {
+            document.getElementById('cartCnt').textContent = cart.length;
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            document.getElementById('cartLbl').textContent = total.toFixed(2) + ' د.أ';
+        }
+
+        // Build cart summary with counts and remove buttons
+        function buildCartSummary() {
+            const counts = {};
+            cart.forEach((item, idx) => {
+                const k = item.name;
+                if (!counts[k]) counts[k] = { name: item.name, price: item.price, qty: 0, indices: [] };
+                counts[k].qty++;
+                counts[k].indices.push(idx);
+            });
+
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const items = Object.values(counts);
+
+            document.getElementById('cartSummary').innerHTML =
+                items.map(it => `
+                    <div class="cart-item-row">
+                        <div class="ci-left">
+                            <div class="ci-qty">${it.qty}</div>
+                            <div class="ci-name">${it.name}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span class="ci-price">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                            <button class="ci-remove" onclick="removeFromCart('${it.name}')"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>`).join('') +
+                `<div class="cart-total-row">
+                    <span class="ct-label">المجموع الكلي</span>
+                    <span class="ct-val">${total.toFixed(2)} د.أ</span>
+                </div>`;
+        }
+
+        function removeFromCart(name) {
+            const idx = cart.findLastIndex ? cart.findLastIndex(i => i.name === name) : (() => { for (let i = cart.length - 1; i >= 0; i--) if (cart[i].name === name) return i; return -1; })();
+            if (idx !== -1) { cart.splice(idx, 1); updateCartUI(); buildCartSummary(); }
+            if (!cart.length) closeModal();
+        }
+
+        function openModal() {
+            if (!cart.length) { alert('سلة مشترياتك فارغة! أضف أصنافاً أولاً'); return; }
+            goStep0();
+            document.getElementById('orderModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('show');
+        }
+
+        function showStep(n) {
+            [0, 1, 2, 3].forEach(i => {
+                const el = document.getElementById('step' + i);
+                if (el) el.style.display = i === n ? (i === 3 ? 'block' : 'block') : 'none';
+            });
+            document.getElementById('step3').style.display = n === 3 ? 'block' : 'none';
+            document.querySelector('.success-wrap').style.display = n === 3 ? 'block' : 'none';
+        }
+
+        function goStep0() {
+            buildCartSummary();
+            document.getElementById('step0').style.display = 'block';
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.querySelector('.success-wrap').style.display = 'none';
+        }
+
+        function goStep1() {
+            document.getElementById('step0').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.querySelector('.success-wrap').style.display = 'none';
+        }
+
+        function goStep2() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            if (!name || !phone) { alert('يرجى إدخال الاسم ورقم الهاتف'); return; }
+
+            // Build detailed bill
+            const counts = {};
+            cart.forEach(item => {
+                if (!counts[item.name]) counts[item.name] = { name: item.name, price: item.price, qty: 0 };
+                counts[item.name].qty++;
+            });
+            const items = Object.values(counts);
+            const total = cart.reduce((s, i) => s + i.price, 0);
+
+            document.getElementById('billBox').innerHTML =
+                `<div class="billtitle">تفاصيل فاتورتك</div>` +
+                items.map(it => `
+                    <div class="billrow">
+                        <span class="bname">${it.qty > 1 ? it.qty + 'x ' : ''}${it.name}</span>
+                        <span class="bprice">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                    </div>`).join('') +
+                `<div class="billtotal"><span class="btl">المجموع الكلي</span><span class="btv">${total.toFixed(2)} د.أ</span></div>`;
+
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+
+        function sendOrder() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const notes = document.getElementById('orderNotes').value.trim();
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
+
+            const order = {
+                custName: name,
+                custPhone: phone,
+                notes: notes,
+                items: cart.map(i => i.name).join(' + '),
+                total: total.toFixed(2),
+                orderNo: orderNo,
+                status: 'new',
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('ar-EG')
+            };
+
+            db.ref(`restaurants/${RES_ID}/orders`).push(order).then(() => {
+                // Show success with order number
+                document.getElementById('step2').style.display = 'none';
+                document.getElementById('finalOrderNo').textContent = orderNo;
+                document.querySelector('.success-wrap').style.display = 'block';
+
+                cart = [];
+                updateCartUI();
+
+                // Close after 8 seconds
+                setTimeout(() => {
+                    closeModal();
+                    setTimeout(() => {
+                        document.querySelector('.success-wrap').style.display = 'none';
+                        document.getElementById('step0').style.display = 'block';
+                        document.getElementById('custName').value = '';
+                        document.getElementById('custPhone').value = '';
+                        document.getElementById('orderNotes').value = '';
+                    }, 500);
+                }, 8000);
+            }).catch(err => {
+                console.error('Order error:', err);
+                alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
             });
         }
 
-        function renderList(list) {
-            const el = document.getElementById('resList');
-            if (!list.length) { el.innerHTML = `<div class="es"><i class="fas fa-store-slash"></i><p>لا توجد مطاعم مسجلة بعد</p></div>`; return; }
-            el.innerHTML = `<div class="rg">` + list.map(r => `
-            <div class="rc" style="--rc:${r.color}">
-                <div class="rav" style="background:${r.color}20;color:${r.color}">🍽️</div>
-                <div class="ri">
-                    <div class="rn">${r.name}</div>
-                    <div class="rid">ID: ${r.id}</div>
-                </div>
-                <div class="rstat ${r.status === 'open' ? 'open' : 'closed'}">
-                    <i class="fas fa-circle" style="font-size:0.38rem"></i>
-                    ${r.status === 'open' ? 'مفتوح' : 'مغلق'}
-                </div>
-                <div class="ract">
-                    <div class="cpwrap" title="تغيير لون المطعم">
-                        <div class="cpdot" style="background:${r.color}" onclick="document.getElementById('cp_${r.id}').click()" title="تغيير اللون"></div>
-                        <input type="color" id="cp_${r.id}" class="hc" value="${r.color}" onchange="setColor('${r.id}',this.value)">
-                    </div>
-                    ${r.status === 'open'
-                    ? `<button class="ba ba-close" onclick="toggleSt('${r.id}','closed')"><i class="fas fa-lock" style="margin-left:5px"></i>إغلاق</button>`
-                    : `<button class="ba ba-open" onclick="toggleSt('${r.id}','open')"><i class="fas fa-lock-open" style="margin-left:5px"></i>فتح</button>`
-                }
-                    <button class="ba ba-dash" onclick="window.open('dashboard.html?id=${r.id}','_blank')"><i class="fas fa-gauge-high" style="margin-left:4px"></i>اللوحة</button>
-                    <button class="ba ba-del" onclick="delRest('${r.id}','${r.name}')"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`).join('') + `</div>`;
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️ الوضع النهاري';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.textContent = '🌙 الوضع الليلي';
+            }
         }
 
-        function toggleSt(id, newStatus) {
-            db.ref('restaurants/' + id + '/settings').update({ status: newStatus })
-                .then(() => toast(newStatus === 'open' ? '✅ تم فتح المطعم' : '🔒 تم إغلاق المطعم'));
-        }
-
-        function setColor(id, color) {
-            db.ref('restaurants/' + id + '/settings').update({ color })
-                .then(() => toast('🎨 تم تحديث لون المطعم'));
-        }
-
-        function filterList() {
-            const q = document.getElementById('searchInp').value.toLowerCase();
-            renderList(allRests.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)));
-        }
-
-        function createRest() {
-            const id = document.getElementById('newId').value.trim();
-            const name = document.getElementById('newName').value.trim();
-            const pass = document.getElementById('newPass').value.trim();
-            const status = document.getElementById('newStatus').value;
-            const color = document.getElementById('newColor').value;
-            if (!id || !name) { toast('⚠️ يرجى ملء الحقول المطلوبة'); return; }
-            db.ref('restaurants/' + id + '/settings').set({ name, password: pass, status, color })
-                .then(() => { toast('✅ تم إنشاء المطعم بنجاح'); document.getElementById('newId').value = ''; document.getElementById('newName').value = ''; });
-        }
-
-        function delRest(id, name) {
-            if (!confirm(`هل تريد حذف "${name}" نهائياً؟`)) return;
-            db.ref('restaurants/' + id).remove().then(() => toast('🗑️ تم حذف المطعم'));
-        }
-
-        function showSec(id, el) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function toast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
+        // Close on overlay click
+        document.getElementById('orderModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
     </script>
 </body>
 </html>
