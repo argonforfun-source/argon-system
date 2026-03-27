@@ -1747,6 +1747,10 @@
         function loadData() {
             // إلغاء أي مستمع سابق لمنع التكرار
             if (_resListener) { _resListener.off(); _resListener = null; }
+
+            // أظهر مؤشر التحميل
+            document.getElementById('resGrid').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
+
             _resListener = db.ref('restaurants');
             _resListener.on('value', snap => {
                 // ── تصفير الحاوية قبل إعادة البناء (الإصلاح الجذري) ──
@@ -1770,7 +1774,34 @@
                 document.getElementById('s-orders').textContent = totalOrders;
                 filterList();
             }, err => {
-                toast('خطأ في تحميل البيانات: ' + err.message, 'err');
+                // ── معالجة permission_denied بشكل واضح ──
+                console.error('Firebase error:', err.code, err.message);
+                let msg = 'خطأ في تحميل البيانات';
+                let hint = '';
+                if (err.code === 'PERMISSION_DENIED') {
+                    msg = '🔒 خطأ في صلاحيات Firebase';
+                    hint = 'يجب تحديث قواعد Firebase Database.<br>اذهب إلى Firebase Console → Realtime Database → Rules وانسخ القواعد الموضحة أدناه.';
+                }
+                document.getElementById('resGrid').innerHTML = `
+                        <div class="empty-state" style="grid-column:1/-1">
+                            <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i>
+                            <p style="color:var(--red)">${msg}</p>
+                            <small style="line-height:1.8">${hint || err.message}</small>
+                            ${err.code === 'PERMISSION_DENIED' ? `
+                            <div style="margin-top:18px;background:rgba(232,64,80,.08);border:1px solid rgba(232,64,80,.2);border-radius:12px;padding:16px;text-align:right;max-width:600px;direction:ltr">
+                                <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center">📋 انسخ هذه القواعد في Firebase Console → Rules</div>
+                                <pre style="font-size:12px;color:var(--g1);line-height:1.7;overflow-x:auto;white-space:pre-wrap">{
+      "rules": {
+        ".read": true,
+        ".write": true
+      }
+}</pre>
+                                <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">⚠️ هذه قواعد مؤقتة للتطوير — غيّرها لقواعد محكمة عند الإطلاق</div>
+                            </div>
+                            <button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>
+                            ` : `<button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>`}
+                        </div>`;
+                toast(msg, 'err');
             });
         }
 

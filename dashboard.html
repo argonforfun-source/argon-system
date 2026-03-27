@@ -1306,7 +1306,7 @@
             document.getElementById('hdr-icon').textContent = (s.name || 'M').charAt(0);
             document.title = `${s.name || 'المطعم'} — لوحة التحكم`;
             document.getElementById('statusTog').checked = s.status !== 'closed';
-            loadOrders();
+            // نستدعي listenOrders فقط — هي تعمل التحميل الأول والتحديثات معاً
             listenOrders();
         }
 
@@ -1330,13 +1330,14 @@
         const ONEXT = { pending: { next: 'preparing', lbl: 'بدء التحضير' }, preparing: { next: 'ready', lbl: 'جاهز' }, ready: { next: 'delivered', lbl: 'تم التسليم' } };
         const OTYPE = { dineIn: 'داخل المطعم', 'dine-in': 'داخل المطعم', takeaway: 'تيك أواي', delivery: 'توصيل' };
 
-        // loadOrders الآن تُعيد تهيئة المستمع (يضمن إعادة التحميل عند التنقل بين الصفحات)
+        // loadOrders: يعرض الطلبات الحالية أو يبدأ المستمع إن لم يكن شغالاً
         function loadOrders() {
             if (!_ordersRef) {
-                listenOrders(); // أول مرة: ابدأ المستمع
+                // المستمع غير شغّال — ابدأه (يعرض البيانات تلقائياً عند أول snap)
+                listenOrders();
             } else {
-                // المستمع شغّال — نطلب البيانات مرة وحدة لتحديث الفلتر
-                db.ref(`restaurants/${RID}/orders`).orderByChild('createdAt').once('value', snap => {
+                // المستمع شغّال — اجلب البيانات مرة للتحديث الفوري مع الفلتر الحالي
+                _ordersRef.once('value', snap => {
                     _renderOrders(snap);
                 });
             }
