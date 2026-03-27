@@ -1286,7 +1286,15 @@
             });
         }
 
-        function logout() { RID = ''; document.getElementById('app').style.display = 'none'; document.getElementById('lp').style.cssText = 'display:flex;opacity:1'; document.getElementById('lpwd').value = ''; }
+        function logout() {
+            // إيقاف المستمع عند الخروج — يمنع تسريب الذاكرة والأخطاء
+            if (_ordersRef) { _ordersRef.off(); _ordersRef = null; }
+            _knownOrderIds.clear();
+            RID = '';
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('lp').style.cssText = 'display:flex;opacity:1';
+            document.getElementById('lpwd').value = '';
+        }
 
         // ── INIT ──────────────────────────────────────────────────────────
         function initApp() {
@@ -1322,91 +1330,125 @@
         const ONEXT = { pending: { next: 'preparing', lbl: 'بدء التحضير' }, preparing: { next: 'ready', lbl: 'جاهز' }, ready: { next: 'delivered', lbl: 'تم التسليم' } };
         const OTYPE = { dineIn: 'داخل المطعم', 'dine-in': 'داخل المطعم', takeaway: 'تيك أواي', delivery: 'توصيل' };
 
+        // loadOrders الآن تُعيد تهيئة المستمع (يضمن إعادة التحميل عند التنقل بين الصفحات)
         function loadOrders() {
-            const filter = document.getElementById('ord-filter').value;
-            db.ref(`restaurants/${RID}/orders`).orderByChild('createdAt').once('value', snap => {
-                let orders = []; snap.forEach(c => orders.push({ id: c.key, ...c.val() }));
-                orders.reverse();
-                const today = new Date().toDateString();
-                const todayOrds = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
-                document.getElementById('os-today').textContent = todayOrds.length;
-                document.getElementById('os-pend').textContent = orders.filter(o => o.status === 'pending').length;
-                const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
-                document.getElementById('os-rev').textContent = rev.toFixed(2) + ' JOD';
-                if (filter) orders = orders.filter(o => o.status === filter);
-                const el = document.getElementById('ordList');
-                if (!orders.length) { el.innerHTML = '<div class="empty"><i class="fas fa-receipt"></i>لا توجد طلبات</div>'; return; }
-                el.innerHTML = orders.map(o => {
-                    const st = OSTAT[o.status] || OSTAT.pending;
-                    // معالجة الـ items سواء كانت object أو array
-                    let items = [];
-                    if (o.items) {
-                        if (Array.isArray(o.items)) {
-                            items = o.items.filter(Boolean);
-                        } else {
-                            items = Object.values(o.items).filter(Boolean);
-                        }
+            if (!_ordersRef) {
+                listenOrders(); // أول مرة: ابدأ المستمع
+            } else {
+                // المستمع شغّال — نطلب البيانات مرة وحدة لتحديث الفلتر
+                db.ref(`restaurants/${RID}/orders`).orderByChild('createdAt').once('value', snap => {
+                    _renderOrders(snap);
+                });
+            }
+        }
+
+        // ── REAL-TIME LISTENER — الإصلاح الجذري ──────────────────────────────
+        // نحتفظ بمرجع المستمع حتى نقدر نلغيه عند تسجيل الخروج
+        let _ordersRef = null;
+        let _knownOrderIds = new Set(); // نتتبع الطلبات التي نعرفها
+
+        function listenOrders() {
+            // إلغاء أي مستمع سابق أولاً (مهم جداً لمنع التكرار)
+            if (_ordersRef) {
+                _ordersRef.off();
+                _ordersRef = null;
+            }
+            _knownOrderIds.clear();
+            let isFirstLoad = true; // نتجاهل الطلبات الموجودة عند أول تحميل
+
+            _ordersRef = db.ref(`restaurants/${RID}/orders`);
+
+            // .on('value') يطلق عند أي تغيير في أي طلب — هذا يحل مشكلة الطلب الواحد
+            _ordersRef.on('value', snap => {
+                const pendingCount = [];
+                const newOrders = [];
+
+                snap.forEach(child => {
+                    const id = child.key;
+                    const o = child.val();
+                    if (o.status === 'pending') pendingCount.push(id);
+                    // اكتشاف طلبات جديدة (غير موجودة في قائمتنا)
+                    if (!isFirstLoad && !_knownOrderIds.has(id) && o.status === 'pending') {
+                        newOrders.push(o);
                     }
-                    // دعم الأسماء المختصرة (n,q,p) والكاملة (name,qty,price)
-                    items = items.map(i => ({
-                        name: i.name || i.n || i.itemName || 'صنف',
-                        qty: i.qty || i.q || i.quantity || 1,
-                        price: i.price || i.p || i.unitPrice || 0
-                    }));
-                    const nxt = ONEXT[o.status];
-                    return `<div class="ocard" style="--status-color:${st.col}">
-            <div class="oh"><span class="onum">طلب #${(o.id || '').slice(-4) || '—'}</span><span class="badge ${st.c}">${st.l}</span></div>
-            <div class="ometa">
-              <span class="ometaitem"><i class="fas fa-user"></i> ${o.customerName || o.customer || 'زيارة'}</span>
-              ${o.tableNum ? `<span class="ometaitem"><i class="fas fa-chair"></i> طاولة ${o.tableNum}</span>` : ''}
-              <span class="ometaitem"><i class="fas fa-clock"></i> ${o.createdAt ? new Date(o.createdAt).toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
-              <span class="ometaitem"><i class="fas fa-tag"></i> ${OTYPE[o.orderType] || o.orderType || '—'}</span>
-            </div>
-            <div class="oitems">
-              ${items.length ? items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(parseFloat(i.price) * parseInt(i.qty)).toFixed(2)} JOD</span>`).join('<br>') : '<span style="color:var(--muted)">بدون تفاصيل</span>'}
-            </div>
-            ${o.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:6px"><i class="fas fa-sticky-note"></i> ${o.notes}</div>` : ''}
-            <div class="ofoot">
-              <span class="ototal">الإجمالي: ${(o.total || 0).toFixed(2)} JOD</span>
-              <div class="acts">
-                ${nxt ? `<button class="ab ag" onclick="updOrdStatus('${o.id}','${nxt.next}')">${nxt.lbl}</button>` : ''}
-                ${o.status !== 'cancelled' && o.status !== 'delivered' ? `<button class="ab ar" onclick="updOrdStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
-                <button class="ab ab2" onclick="showInvoice('${o.id}')"><i class="fas fa-print"></i> فاتورة</button>
-              </div>
-            </div>
-          </div>`;
-                }).join('');
+                    _knownOrderIds.add(id);
+                });
+
+                // تحديث نقطة التنبيه
+                document.getElementById('ndot').classList.toggle('show', pendingCount.length > 0);
+
+                if (newOrders.length > 0) {
+                    playSound();
+                    toast(`🔔 ${newOrders.length > 1 ? newOrders.length + ' طلبات جديدة!' : 'طلب جديد وصل!'}`, 'info');
+                }
+
+                // تحديث الواجهة تلقائياً عند أي تغيير
+                _renderOrders(snap);
+                isFirstLoad = false;
             });
         }
 
-        function listenOrders() {
-            // نستخدم timestamp لاكتشاف الطلبات الجديدة فقط — أكثر موثوقية من العدّاد
-            const startTime = Date.now();
-            db.ref(`restaurants/${RID}/orders`).on('child_added', snap => {
-                const o = snap.val();
-                // الطلب جديد فعلاً (وُجد بعد ما فتحنا اللوحة) وحالته pending
-                if (o && o.createdAt && new Date(o.createdAt).getTime() > startTime && o.status === 'pending') {
-                    playSound();
-                    toast('🔔 طلب جديد وصل!', 'info');
-                    loadOrders();
+        // ── دالة عرض الطلبات المنفصلة (تُستدعى من المستمع ومن فلتر الحالة) ──────
+        function _renderOrders(snap) {
+            const filter = document.getElementById('ord-filter').value;
+            let orders = [];
+            snap.forEach(c => orders.push({ id: c.key, ...c.val() }));
+            orders.reverse();
+
+            const today = new Date().toDateString();
+            const todayOrds = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
+            document.getElementById('os-today').textContent = todayOrds.length;
+            document.getElementById('os-pend').textContent = orders.filter(o => o.status === 'pending').length;
+            const rev = todayOrds.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
+            document.getElementById('os-rev').textContent = rev.toFixed(2) + ' JOD';
+
+            if (filter) orders = orders.filter(o => o.status === filter);
+            const el = document.getElementById('ordList');
+            if (!orders.length) { el.innerHTML = '<div class="empty"><i class="fas fa-receipt"></i>لا توجد طلبات</div>'; return; }
+
+            el.innerHTML = orders.map(o => {
+                const st = OSTAT[o.status] || OSTAT.pending;
+                let items = [];
+                if (o.items) {
+                    items = Array.isArray(o.items) ? o.items.filter(Boolean) : Object.values(o.items).filter(Boolean);
                 }
-                // تحديث نقطة التنبيه
-                db.ref(`restaurants/${RID}/orders`).orderByChild('status').equalTo('pending').once('value', s => {
-                    document.getElementById('ndot').classList.toggle('show', s.numChildren() > 0);
-                });
-            });
-            // مراقبة التغييرات (تحديث حالة الطلبات)
-            db.ref(`restaurants/${RID}/orders`).on('child_changed', () => {
-                db.ref(`restaurants/${RID}/orders`).orderByChild('status').equalTo('pending').once('value', s => {
-                    document.getElementById('ndot').classList.toggle('show', s.numChildren() > 0);
-                });
-            });
+                items = items.map(i => ({
+                    name: i.name || i.n || i.itemName || 'صنف',
+                    qty: i.qty || i.q || i.quantity || 1,
+                    price: i.price || i.p || i.unitPrice || 0
+                }));
+                const nxt = ONEXT[o.status];
+                // رقم هاتف الزبون
+                const phone = o.customerPhone || o.phone || '';
+                return `<div class="ocard" style="--status-color:${st.col}">
+                <div class="oh"><span class="onum">طلب #${(o.id || '').slice(-4) || '—'}</span><span class="badge ${st.c}">${st.l}</span></div>
+                <div class="ometa">
+                  <span class="ometaitem"><i class="fas fa-user"></i> ${o.customerName || o.customer || 'زيارة'}</span>
+                  ${phone ? `<span class="ometaitem" style="color:var(--green)"><i class="fas fa-phone"></i> <a href="tel:${phone}" style="color:var(--green);text-decoration:none">${phone}</a></span>` : ''}
+                  ${o.tableNum ? `<span class="ometaitem"><i class="fas fa-chair"></i> طاولة ${o.tableNum}</span>` : ''}
+                  <span class="ometaitem"><i class="fas fa-clock"></i> ${o.createdAt ? new Date(o.createdAt).toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+                  <span class="ometaitem"><i class="fas fa-tag"></i> ${OTYPE[o.orderType] || o.orderType || '—'}</span>
+                </div>
+                <div class="oitems">
+                  ${items.length ? items.map(i => `<span style="color:var(--text)">${i.name}</span> × ${i.qty} — <span style="color:var(--green)">${(parseFloat(i.price) * parseInt(i.qty)).toFixed(2)} JOD</span>`).join('<br>') : '<span style="color:var(--muted)">بدون تفاصيل</span>'}
+                </div>
+                ${o.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:6px"><i class="fas fa-sticky-note"></i> ${o.notes}</div>` : ''}
+                <div class="ofoot">
+                  <span class="ototal">الإجمالي: ${(o.total || 0).toFixed(2)} JOD</span>
+                  <div class="acts">
+                    ${nxt ? `<button class="ab ag" onclick="updOrdStatus('${o.id}','${nxt.next}')">${nxt.lbl}</button>` : ''}
+                    ${o.status !== 'cancelled' && o.status !== 'delivered' ? `<button class="ab ar" onclick="updOrdStatus('${o.id}','cancelled')">إلغاء</button>` : ''}
+                    <button class="ab ab2" onclick="showInvoice('${o.id}')"><i class="fas fa-print"></i> فاتورة</button>
+                  </div>
+                </div>
+              </div>`;
+            }).join('');
         }
 
         function updOrdStatus(id, status) {
-            db.ref(`restaurants/${RID}/orders/${id}`).update({ status });
+            db.ref(`restaurants/${RID}/orders/${id}`).update({ status, updatedAt: new Date().toISOString() });
             toast(status === 'cancelled' ? 'تم إلغاء الطلب' : '✅ تم تحديث حالة الطلب', status === 'cancelled' ? 'err' : 'ok');
-            setTimeout(loadOrders, 500);
+            // لا نحتاج setTimeout — المستمع .on('value') يحدّث الواجهة تلقائياً
         }
 
         function showInvoice(id) {
@@ -1424,36 +1466,36 @@
                 }));
                 const s = RSettings;
                 document.getElementById('invoice').innerHTML = `
-          <div style="font-family:'Cairo',sans-serif;max-width:320px;margin:0 auto;padding:20px;direction:rtl">
-            <div style="text-align:center;border-bottom:2px dashed #ccc;padding-bottom:16px;margin-bottom:16px">
-              <div style="font-size:20px;font-weight:900">${s.name || 'المطعم'}</div>
-              ${s.phone ? `<div style="font-size:12px;color:#888;direction:ltr">${s.phone}</div>` : ''}
-              ${s.address ? `<div style="font-size:12px;color:#888">${s.address}</div>` : ''}
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px">
-              <span>رقم الطلب: #${id.slice(-4)}</span>
-              <span>${o.createdAt ? new Date(o.createdAt).toLocaleString('ar-JO') : ''}</span>
-            </div>
-            ${o.customerName ? `<div style="margin-bottom:10px;font-size:13px">الزبون: <strong>${o.customerName}</strong></div>` : ''}
-            ${o.tableNum ? `<div style="margin-bottom:10px;font-size:13px">الطاولة: <strong>${o.tableNum}</strong></div>` : ''}
-            <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
-              <thead><tr style="border-bottom:1px solid #ddd">
-                <th style="text-align:right;padding:6px 4px;font-size:12px">الصنف</th>
-                <th style="font-size:12px;padding:6px 4px;text-align:center">الكمية</th>
-                <th style="text-align:left;font-size:12px;padding:6px 4px">السعر</th>
-              </tr></thead>
-              <tbody>${items.map(i => `<tr>
-                <td style="padding:6px 4px;font-size:13px">${i.name}</td>
-                <td style="text-align:center;font-size:13px">${i.qty}</td>
-                <td style="text-align:left;font-size:13px">${(parseFloat(i.price) * parseInt(i.qty)).toFixed(2)}</td>
-              </tr>`).join('')}</tbody>
-            </table>
-            <div style="border-top:2px dashed #ccc;padding-top:12px;display:flex;justify-content:space-between;font-size:16px;font-weight:900">
-              <span>الإجمالي</span><span>${(o.total || 0).toFixed(2)} ${s.currency || 'JOD'}</span>
-            </div>
-            ${o.notes ? `<div style="margin-top:10px;font-size:12px;color:#888">ملاحظات: ${o.notes}</div>` : ''}
-            <div style="text-align:center;margin-top:20px;font-size:12px;color:#aaa">شكراً لزيارتكم 🙏</div>
-          </div>`;
+              <div style="font-family:'Cairo',sans-serif;max-width:320px;margin:0 auto;padding:20px;direction:rtl">
+                <div style="text-align:center;border-bottom:2px dashed #ccc;padding-bottom:16px;margin-bottom:16px">
+                  <div style="font-size:20px;font-weight:900">${s.name || 'المطعم'}</div>
+                  ${s.phone ? `<div style="font-size:12px;color:#888;direction:ltr">${s.phone}</div>` : ''}
+                  ${s.address ? `<div style="font-size:12px;color:#888">${s.address}</div>` : ''}
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px">
+                  <span>رقم الطلب: #${id.slice(-4)}</span>
+                  <span>${o.createdAt ? new Date(o.createdAt).toLocaleString('ar-JO') : ''}</span>
+                </div>
+                ${o.customerName ? `<div style="margin-bottom:10px;font-size:13px">الزبون: <strong>${o.customerName}</strong></div>` : ''}
+                ${o.tableNum ? `<div style="margin-bottom:10px;font-size:13px">الطاولة: <strong>${o.tableNum}</strong></div>` : ''}
+                <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+                  <thead><tr style="border-bottom:1px solid #ddd">
+                    <th style="text-align:right;padding:6px 4px;font-size:12px">الصنف</th>
+                    <th style="font-size:12px;padding:6px 4px;text-align:center">الكمية</th>
+                    <th style="text-align:left;font-size:12px;padding:6px 4px">السعر</th>
+                  </tr></thead>
+                  <tbody>${items.map(i => `<tr>
+                    <td style="padding:6px 4px;font-size:13px">${i.name}</td>
+                    <td style="text-align:center;font-size:13px">${i.qty}</td>
+                    <td style="text-align:left;font-size:13px">${(parseFloat(i.price) * parseInt(i.qty)).toFixed(2)}</td>
+                  </tr>`).join('')}</tbody>
+                </table>
+                <div style="border-top:2px dashed #ccc;padding-top:12px;display:flex;justify-content:space-between;font-size:16px;font-weight:900">
+                  <span>الإجمالي</span><span>${(o.total || 0).toFixed(2)} ${s.currency || 'JOD'}</span>
+                </div>
+                ${o.notes ? `<div style="margin-top:10px;font-size:12px;color:#888">ملاحظات: ${o.notes}</div>` : ''}
+                <div style="text-align:center;margin-top:20px;font-size:12px;color:#aaa">شكراً لزيارتكم 🙏</div>
+              </div>`;
                 document.getElementById('invModal').classList.add('open');
             });
         }
@@ -1466,15 +1508,15 @@
                 const items = Object.entries(menuCache);
                 if (!items.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="fas fa-utensils"></i>لا توجد أصناف</div></td></tr>'; return; }
                 tbody.innerHTML = items.map(([k, i]) => `<tr>
-          <td><strong>${i.name}</strong>${i.description ? `<div style="font-size:11px;color:var(--muted)">${i.description}</div>` : ''}</td>
-          <td style="font-size:12px;color:var(--muted)">${i.category || '—'}</td>
-          <td style="color:var(--green);font-weight:700">${(i.price || 0).toFixed(2)} JOD</td>
-          <td><span class="badge ${i.available !== false ? 'bon' : 'boff'}">${i.available !== false ? 'متاح' : 'مخفي'}</span></td>
-          <td><div class="acts">
-            <button class="ab ${i.available !== false ? 'ar' : 'agr'}" onclick="togItem('${k}',${i.available !== false})">${i.available !== false ? 'إخفاء' : 'إظهار'}</button>
-            <button class="ab ar" onclick="delItem('${k}')"><i class="fas fa-trash"></i></button>
-          </div></td>
-        </tr>`).join('');
+              <td><strong>${i.name}</strong>${i.description ? `<div style="font-size:11px;color:var(--muted)">${i.description}</div>` : ''}</td>
+              <td style="font-size:12px;color:var(--muted)">${i.category || '—'}</td>
+              <td style="color:var(--green);font-weight:700">${(i.price || 0).toFixed(2)} JOD</td>
+              <td><span class="badge ${i.available !== false ? 'bon' : 'boff'}">${i.available !== false ? 'متاح' : 'مخفي'}</span></td>
+              <td><div class="acts">
+                <button class="ab ${i.available !== false ? 'ar' : 'agr'}" onclick="togItem('${k}',${i.available !== false})">${i.available !== false ? 'إخفاء' : 'إظهار'}</button>
+                <button class="ab ar" onclick="delItem('${k}')"><i class="fas fa-trash"></i></button>
+              </div></td>
+            </tr>`).join('');
             });
         }
 
@@ -1500,15 +1542,15 @@
                 if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="fas fa-chair"></i>لا توجد طاولات</div></td></tr>'; return; }
                 const STM = { available: 'bon', occupied: 'boff', reserved: 'bpend' }; const STL = { available: 'متاحة', occupied: 'مشغولة', reserved: 'محجوزة' };
                 tbody.innerHTML = rows.map(([k, t]) => `<tr>
-          <td><strong>طاولة ${t.num}</strong></td><td>${t.cap || 4} أشخاص</td>
-          <td><span class="badge ${STM[t.status || 'available']}">${STL[t.status || 'available']}</span></td>
-          <td><select class="fi" style="width:auto" onchange="updTable('${k}',this.value)">
-            <option value="available" ${t.status === 'available' || !t.status ? 'selected' : ''}>متاحة</option>
-            <option value="occupied" ${t.status === 'occupied' ? 'selected' : ''}>مشغولة</option>
-            <option value="reserved" ${t.status === 'reserved' ? 'selected' : ''}>محجوزة</option>
-          </select></td>
-          <td><button class="ab ar" onclick="delTable('${k}')"><i class="fas fa-trash"></i></button></td>
-        </tr>`).join('');
+              <td><strong>طاولة ${t.num}</strong></td><td>${t.cap || 4} أشخاص</td>
+              <td><span class="badge ${STM[t.status || 'available']}">${STL[t.status || 'available']}</span></td>
+              <td><select class="fi" style="width:auto" onchange="updTable('${k}',this.value)">
+                <option value="available" ${t.status === 'available' || !t.status ? 'selected' : ''}>متاحة</option>
+                <option value="occupied" ${t.status === 'occupied' ? 'selected' : ''}>مشغولة</option>
+                <option value="reserved" ${t.status === 'reserved' ? 'selected' : ''}>محجوزة</option>
+              </select></td>
+              <td><button class="ab ar" onclick="delTable('${k}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('');
             });
         }
         function addTable() {
@@ -1531,17 +1573,17 @@
                 const SL = { pending: 'معلق', confirmed: 'مؤكد', cancelled: 'ملغي', done: 'مكتمل' };
                 const SC = { pending: 'bpend', confirmed: 'bon', cancelled: 'bcanc', done: 'bdone' };
                 tbody.innerHTML = rows.map(r => `<tr>
-          <td><strong>${r.name}</strong></td>
-          <td style="direction:ltr;font-size:12px;color:var(--muted)">${r.phone || '—'}</td>
-          <td style="text-align:center">${r.count || 1}</td>
-          <td style="font-size:12px">${r.date ? new Date(r.date).toLocaleString('ar-JO') : ''}</td>
-          <td>${r.tableNum || '—'}</td>
-          <td><span class="badge ${SC[r.status || 'pending']}">${SL[r.status || 'pending']}</span></td>
-          <td><div class="acts">
-            ${r.status === 'pending' ? `<button class="ab agr" onclick="updRes('${r.k}','confirmed')">تأكيد</button>` : ''}
-            ${r.status !== 'cancelled' && r.status !== 'done' ? `<button class="ab ar" onclick="updRes('${r.k}','cancelled')">إلغاء</button>` : ''}
-          </div></td>
-        </tr>`).join('');
+              <td><strong>${r.name}</strong></td>
+              <td style="direction:ltr;font-size:12px;color:var(--muted)">${r.phone || '—'}</td>
+              <td style="text-align:center">${r.count || 1}</td>
+              <td style="font-size:12px">${r.date ? new Date(r.date).toLocaleString('ar-JO') : ''}</td>
+              <td>${r.tableNum || '—'}</td>
+              <td><span class="badge ${SC[r.status || 'pending']}">${SL[r.status || 'pending']}</span></td>
+              <td><div class="acts">
+                ${r.status === 'pending' ? `<button class="ab agr" onclick="updRes('${r.k}','confirmed')">تأكيد</button>` : ''}
+                ${r.status !== 'cancelled' && r.status !== 'done' ? `<button class="ab ar" onclick="updRes('${r.k}','cancelled')">إلغاء</button>` : ''}
+              </div></td>
+            </tr>`).join('');
             });
         }
         function addReserv() {
@@ -1561,12 +1603,12 @@
                 const rows = []; snap.forEach(c => rows.push({ k: c.key, ...c.val() }));
                 if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="fas fa-users"></i>لا توجد زبائن</div></td></tr>'; return; }
                 tbody.innerHTML = rows.map(r => `<tr>
-          <td><strong>${r.name}</strong></td>
-          <td style="direction:ltr;font-size:12px">${r.phone || '—'}</td>
-          <td style="font-size:12px;color:var(--muted)">${r.email || '—'}</td>
-          <td style="text-align:center">${r.orderCount || 0}</td>
-          <td><button class="ab ar" onclick="delCust('${r.k}')"><i class="fas fa-trash"></i></button></td>
-        </tr>`).join('');
+              <td><strong>${r.name}</strong></td>
+              <td style="direction:ltr;font-size:12px">${r.phone || '—'}</td>
+              <td style="font-size:12px;color:var(--muted)">${r.email || '—'}</td>
+              <td style="text-align:center">${r.orderCount || 0}</td>
+              <td><button class="ab ar" onclick="delCust('${r.k}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('');
             });
         }
         function addCustomer() {

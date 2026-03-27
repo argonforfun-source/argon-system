@@ -1798,75 +1798,75 @@
                 const safeId = r.id.replace(/'/g, "\\'");
                 const safeName = (s.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
                 return `
-        <div class="res-card ${isOff ? 'is-off' : ''}" id="card-${r.id}">
-          <div class="rc-accent" style="background:linear-gradient(90deg,${c},${c}44,transparent)"></div>
-          <div class="rc-header">
-            <div class="rc-logo" style="background:linear-gradient(135deg,${c}99,${c})">${(s.name || '?').charAt(0)}</div>
-            <div class="rc-meta">
-              <div class="rc-name">${s.name || '—'}</div>
-              <div class="rc-id">${r.id}</div>
-            </div>
-            <span class="rc-badge ${isOff ? 'off' : 'on'}">
-              <span class="dot"></span>${isOff ? 'موقوف' : 'نشط'}
-            </span>
-          </div>
-
-          <div class="rc-info">
-            <div class="rc-info-item"><i class="fas fa-phone"></i><span>${s.phone || '—'}</span></div>
-            <div class="rc-info-item"><i class="fas fa-map-marker-alt"></i><span>${s.address || '—'}</span></div>
-            <div class="rc-info-item"><i class="fas fa-clock"></i><span>${s.openTime || '08:00'} — ${s.closeTime || '23:00'}</span></div>
-            <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-JO') : '—'}</span></div>
-          </div>
-
-          <div class="rc-mini-stats">
-            <div class="ms"><div class="ms-num">${todayOrds.length}</div><div class="ms-lbl">طلبات اليوم</div></div>
-            <div class="ms"><div class="ms-num" style="color:var(--red)">${pendingOrds.length}</div><div class="ms-lbl">قيد التنفيذ</div></div>
-            <div class="ms"><div class="ms-num" style="font-size:14px">${totalRev.toFixed(0)}<small style="font-size:9px;opacity:.7"> JOD</small></div><div class="ms-lbl">إجمالي المبيعات</div></div>
-          </div>
-
-          <div class="rc-controls">
-            <div class="ctrl-label"><i class="fas fa-sliders-h"></i> أدوات التحكم الفوري</div>
-            <div class="ctrl-row">
-
-              <div class="ctrl-toggle" onclick="toggleStatus('${safeId}','${s.status || 'active'}')">
-                <div class="ct-info">
-                  <span class="ct-lbl" style="color:${isOff ? 'var(--red)' : 'var(--green)'}">
-                    <i class="fas fa-${isOff ? 'moon' : 'sun'}" style="margin-left:5px"></i>
-                    ${isOff ? 'المطعم موقوف' : 'المطعم نشط'}
-                  </span>
-                  <span class="ct-sub">${isOff ? 'اضغط لتفعيل المطعم' : 'اضغط لإيقاف المطعم'}</span>
+            <div class="res-card ${isOff ? 'is-off' : ''}" id="card-${r.id}">
+              <div class="rc-accent" style="background:linear-gradient(90deg,${c},${c}44,transparent)"></div>
+              <div class="rc-header">
+                <div class="rc-logo" style="background:linear-gradient(135deg,${c}99,${c})">${(s.name || '?').charAt(0)}</div>
+                <div class="rc-meta">
+                  <div class="rc-name">${s.name || '—'}</div>
+                  <div class="rc-id">${r.id}</div>
                 </div>
-                <label class="tog" onclick="event.stopPropagation()">
-                  <input type="checkbox" ${isOff ? '' : 'checked'} onchange="toggleStatus('${safeId}','${s.status || 'active'}')">
-                  <span class="tslider"></span>
-                </label>
+                <span class="rc-badge ${isOff ? 'off' : 'on'}">
+                  <span class="dot"></span>${isOff ? 'موقوف' : 'نشط'}
+                </span>
               </div>
 
-              <div class="ctrl-toggle" onclick="toggleOrders('${safeId}',${acceptOff})">
-                <div class="ct-info">
-                  <span class="ct-lbl" style="color:${acceptOff ? 'var(--red)' : 'var(--green)'}">
-                    <i class="fas fa-${acceptOff ? 'ban' : 'shopping-cart'}" style="margin-left:5px"></i>
-                    ${acceptOff ? 'استقبال مغلق' : 'يستقبل الطلبات'}
-                  </span>
-                  <span class="ct-sub">${acceptOff ? 'اضغط لفتح الاستقبال' : 'اضغط لإيقاف الاستقبال'}</span>
-                </div>
-                <label class="tog" onclick="event.stopPropagation()">
-                  <input type="checkbox" ${acceptOff ? '' : 'checked'} onchange="toggleOrders('${safeId}',${acceptOff})">
-                  <span class="tslider"></span>
-                </label>
+              <div class="rc-info">
+                <div class="rc-info-item"><i class="fas fa-phone"></i><span>${s.phone || '—'}</span></div>
+                <div class="rc-info-item"><i class="fas fa-map-marker-alt"></i><span>${s.address || '—'}</span></div>
+                <div class="rc-info-item"><i class="fas fa-clock"></i><span>${s.openTime || '08:00'} — ${s.closeTime || '23:00'}</span></div>
+                <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-JO') : '—'}</span></div>
               </div>
 
-            </div>
-          </div>
+              <div class="rc-mini-stats">
+                <div class="ms"><div class="ms-num">${todayOrds.length}</div><div class="ms-lbl">طلبات اليوم</div></div>
+                <div class="ms"><div class="ms-num" style="color:var(--red)">${pendingOrds.length}</div><div class="ms-lbl">قيد التنفيذ</div></div>
+                <div class="ms"><div class="ms-num" style="font-size:14px">${totalRev.toFixed(0)}<small style="font-size:9px;opacity:.7"> JOD</small></div><div class="ms-lbl">إجمالي المبيعات</div></div>
+              </div>
 
-          <div class="rc-actions">
-            <button class="act-btn gold" onclick="showLinks('${safeId}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-qrcode"></i> روابط & QR</button>
-            <button class="act-btn blue" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
-            <button class="act-btn" onclick="openEdit('${safeId}')"><i class="fas fa-edit"></i> تعديل</button>
-            <button class="act-btn" onclick="opPass('${safeId}')"><i class="fas fa-key"></i> كلمة المرور</button>
-            <button class="act-btn red" onclick="openDel('${safeId}','${safeName}')"><i class="fas fa-trash"></i> حذف</button>
-          </div>
-        </div>`;
+              <div class="rc-controls">
+                <div class="ctrl-label"><i class="fas fa-sliders-h"></i> أدوات التحكم الفوري</div>
+                <div class="ctrl-row">
+
+                  <div class="ctrl-toggle" onclick="toggleStatus('${safeId}','${s.status || 'active'}')">
+                    <div class="ct-info">
+                      <span class="ct-lbl" style="color:${isOff ? 'var(--red)' : 'var(--green)'}">
+                        <i class="fas fa-${isOff ? 'moon' : 'sun'}" style="margin-left:5px"></i>
+                        ${isOff ? 'المطعم موقوف' : 'المطعم نشط'}
+                      </span>
+                      <span class="ct-sub">${isOff ? 'اضغط لتفعيل المطعم' : 'اضغط لإيقاف المطعم'}</span>
+                    </div>
+                    <label class="tog" onclick="event.stopPropagation()">
+                      <input type="checkbox" ${isOff ? '' : 'checked'} onchange="toggleStatus('${safeId}','${s.status || 'active'}')">
+                      <span class="tslider"></span>
+                    </label>
+                  </div>
+
+                  <div class="ctrl-toggle" onclick="toggleOrders('${safeId}',${acceptOff})">
+                    <div class="ct-info">
+                      <span class="ct-lbl" style="color:${acceptOff ? 'var(--red)' : 'var(--green)'}">
+                        <i class="fas fa-${acceptOff ? 'ban' : 'shopping-cart'}" style="margin-left:5px"></i>
+                        ${acceptOff ? 'استقبال مغلق' : 'يستقبل الطلبات'}
+                      </span>
+                      <span class="ct-sub">${acceptOff ? 'اضغط لفتح الاستقبال' : 'اضغط لإيقاف الاستقبال'}</span>
+                    </div>
+                    <label class="tog" onclick="event.stopPropagation()">
+                      <input type="checkbox" ${acceptOff ? '' : 'checked'} onchange="toggleOrders('${safeId}',${acceptOff})">
+                      <span class="tslider"></span>
+                    </label>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="rc-actions">
+                <button class="act-btn gold" onclick="showLinks('${safeId}','${encodeURIComponent(s.name || '')}')"><i class="fas fa-qrcode"></i> روابط & QR</button>
+                <button class="act-btn blue" onclick="window.open('${base}dashboard.html?id=${r.id}','_blank')"><i class="fas fa-tachometer-alt"></i> لوحة</button>
+                <button class="act-btn" onclick="openEdit('${safeId}')"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="act-btn" onclick="opPass('${safeId}')"><i class="fas fa-key"></i> كلمة المرور</button>
+                <button class="act-btn red" onclick="openDel('${safeId}','${safeName}')"><i class="fas fa-trash"></i> حذف</button>
+              </div>
+            </div>`;
             }).join('');
         }
 
@@ -1887,7 +1887,8 @@
                 const snap = await db.ref(`restaurants/${id}`).once('value');
                 if (snap.exists()) { toast('⚠️ هذا المعرف مستخدم — اختر معرفاً آخر', 'err'); return; }
                 await db.ref(`restaurants/${id}/settings`).set({ name, password: pass, phone, address: addr, color, status: 'active', acceptOrders: true, createdAt: new Date().toISOString() });
-                await db.ref(`restaurants/${id}/menu`).set({ placeholder: { name: 'صنف تجريبي', price: 0, category: 'عام', available: false } });
+                // نستخدم set فقط على مسار فرعي محدد — لا نمسح القائمة الكاملة أبداً
+                await db.ref(`restaurants/${id}/menu/placeholder`).set({ name: 'صنف تجريبي', price: 0, category: 'عام', available: false });
                 const base = getBase();
                 document.getElementById('linkDash').textContent = `${base}dashboard.html?id=${id}`;
                 document.getElementById('linkMenu').textContent = `${base}index.html?id=${id}`;
@@ -2004,22 +2005,22 @@
             const menu = `${base}index.html?id=${id}`;
             const qid = 'qr' + Date.now();
             document.getElementById('lContent').innerHTML = `
-        <div style="font-size:16px;font-weight:800;color:var(--g2);margin-bottom:18px;display:flex;align-items:center;gap:8px"><i class="fas fa-store" style="color:var(--g1)"></i>${nm}</div>
-        <div class="lbox-m">
-          <div class="ll-m">📊 لوحة تحكم المطعم (Dashboard)</div>
-          <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div>
-        </div>
-        <div class="lbox-m">
-          <div class="ll-m">📱 منيو الزبائن — رابط QR Code</div>
-          <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
-          <div class="qrwrap">
-            <div class="qrbox" id="${qid}"></div>
-            <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button class="cpb" onclick="printQR('${qid}','${nm.replace(/'/g, "\\'")}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
-              <button class="cpb" onclick="cp('${menu}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
+            <div style="font-size:16px;font-weight:800;color:var(--g2);margin-bottom:18px;display:flex;align-items:center;gap:8px"><i class="fas fa-store" style="color:var(--g1)"></i>${nm}</div>
+            <div class="lbox-m">
+              <div class="ll-m">📊 لوحة تحكم المطعم (Dashboard)</div>
+              <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${dash}</span><button class="cpb" onclick="cp('${dash}')">نسخ</button></div>
             </div>
-          </div>
-        </div>`;
+            <div class="lbox-m">
+              <div class="ll-m">📱 منيو الزبائن — رابط QR Code</div>
+              <div class="lv-m"><span style="overflow:hidden;text-overflow:ellipsis">${menu}</span><button class="cpb" onclick="cp('${menu}')">نسخ</button></div>
+              <div class="qrwrap">
+                <div class="qrbox" id="${qid}"></div>
+                <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                  <button class="cpb" onclick="printQR('${qid}','${nm.replace(/'/g, "\\'")}','${menu}')"><i class="fas fa-print"></i> طباعة QR</button>
+                  <button class="cpb" onclick="cp('${menu}')"><i class="fas fa-copy"></i> نسخ الرابط</button>
+                </div>
+              </div>
+            </div>`;
             document.getElementById('lModal').classList.add('open');
             setTimeout(() => {
                 try { new QRCode(document.getElementById(qid), { text: menu, width: 180, height: 180, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H }); }
@@ -2031,14 +2032,14 @@
             if (!cv) { toast('انتظر لحظة ثم حاول مجدداً', 'err'); return; }
             const w = window.open('', '_blank');
             w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR - ${name}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-        <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
-        .qr-print{text-align:center;padding:40px;border:2px solid #eee;border-radius:20px;max-width:320px}
-        h2{font-size:22px;font-weight:900;margin-bottom:6px}p{color:#888;font-size:13px;margin-bottom:20px}
-        img{width:200px;height:200px;border-radius:12px}small{display:block;margin-top:14px;color:#999;font-size:11px;word-break:break-all}</style>
-        </head><body><div class="qr-print"><h2>${name}</h2><p>امسح الكود لعرض القائمة وتقديم طلبك</p>
-        <img src="${cv.toDataURL()}"><small>${url}</small></div>
-        <script>window.onload=()=>window.print()<\/script></body></html>`);
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
+            .qr-print{text-align:center;padding:40px;border:2px solid #eee;border-radius:20px;max-width:320px}
+            h2{font-size:22px;font-weight:900;margin-bottom:6px}p{color:#888;font-size:13px;margin-bottom:20px}
+            img{width:200px;height:200px;border-radius:12px}small{display:block;margin-top:14px;color:#999;font-size:11px;word-break:break-all}</style>
+            </head><body><div class="qr-print"><h2>${name}</h2><p>امسح الكود لعرض القائمة وتقديم طلبك</p>
+            <img src="${cv.toDataURL()}"><small>${url}</small></div>
+            <script>window.onload=()=>window.print()<\/script></body></html>`);
             w.document.close();
         }
 

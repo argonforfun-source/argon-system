@@ -934,7 +934,7 @@
                 <div class="oib-title"><i class="fas fa-user-circle"></i> بياناتك</div>
                 <div class="oib-grid">
                     <div class="fg"><label><i class="fas fa-user"></i> اسمك</label><input class="fi" id="cust-name" placeholder="محمد أحمد"></div>
-                    <div class="fg"><label><i class="fas fa-phone"></i> رقم هاتفك</label><input class="fi" id="cust-phone" placeholder="+96279xxxxxxx" dir="ltr"></div>
+                    <div class="fg"><label><i class="fas fa-phone"></i> رقم هاتفك <span style="color:var(--red);font-size:13px">*</span></label><input class="fi" id="cust-phone" placeholder="+96279xxxxxxx" dir="ltr" required></div>
                     <div class="fg">
                         <label><i class="fas fa-tag"></i> نوع الطلب</label>
                         <select class="fi" id="order-type">
@@ -995,11 +995,11 @@
 
         function showLoadError(msg, sub) {
             document.getElementById('loadScreen').innerHTML = `
-        <div style="text-align:center;padding:60px 30px;font-family:'Cairo',sans-serif">
-          <div style="font-size:52px;margin-bottom:16px">⚠️</div>
-          <div style="font-size:18px;font-weight:700;color:#c00;margin-bottom:8px">${msg}</div>
-          <div style="font-size:13px;color:#888">${sub || 'تأكد من صحة الرابط أو تواصل مع المطعم'}</div>
-        </div>`;
+            <div style="text-align:center;padding:60px 30px;font-family:'Cairo',sans-serif">
+              <div style="font-size:52px;margin-bottom:16px">⚠️</div>
+              <div style="font-size:18px;font-weight:700;color:#c00;margin-bottom:8px">${msg}</div>
+              <div style="font-size:13px;color:#888">${sub || 'تأكد من صحة الرابط أو تواصل مع المطعم'}</div>
+            </div>`;
         }
 
         async function init() {
@@ -1066,21 +1066,21 @@
                 if (!catItems.length) return;
                 const sec = document.createElement('div'); sec.className = 'cat-section';
                 sec.innerHTML = `<div class="cat-head"><i class="fas fa-tag"></i> ${cat}</div>
-          <div class="menu-grid">${catItems.map(([k, i]) => {
+              <div class="menu-grid">${catItems.map(([k, i]) => {
                     const inCart = cart.find(c => c.id === k);
                     return `<div class="mcard" onclick="addToCart('${k}')">
-              <div class="mimg">${i.image ? `<img src="${i.image}" alt="${i.name}" onerror="this.style.display='none'">` : '🍽️'}</div>
-              <div class="mbody">
-                <div class="mname">${i.name}</div>
-                ${i.description ? `<div class="mdesc">${i.description}</div>` : ''}
-                <div class="mfooter">
-                  <div class="mprice">${(i.price || 0).toFixed(2)} JOD</div>
-                  <button class="madd-btn ${inCart ? 'in-cart' : ''}" onclick="event.stopPropagation();addToCart('${k}')">
-                    ${inCart ? `✓ في السلة (${inCart.qty})` : '+  أضف'}
-                  </button>
-                </div>
-              </div>
-            </div>`;
+                  <div class="mimg">${i.image ? `<img src="${i.image}" alt="${i.name}" onerror="this.style.display='none'">` : '🍽️'}</div>
+                  <div class="mbody">
+                    <div class="mname">${i.name}</div>
+                    ${i.description ? `<div class="mdesc">${i.description}</div>` : ''}
+                    <div class="mfooter">
+                      <div class="mprice">${(i.price || 0).toFixed(2)} JOD</div>
+                      <button class="madd-btn ${inCart ? 'in-cart' : ''}" onclick="event.stopPropagation();addToCart('${k}')">
+                        ${inCart ? `✓ في السلة (${inCart.qty})` : '+  أضف'}
+                      </button>
+                    </div>
+                  </div>
+                </div>`;
                 }).join('')}</div>`;
                 content.appendChild(sec);
             });
@@ -1093,7 +1093,12 @@
             const ex = cart.find(c => c.id === id);
             if (ex) ex.qty++;
             else cart.push({ id, name: item.name, price: item.price || 0, qty: 1 });
-            updateCart(); toast(`✓ "${item.name}" أُضيف للسلة`);
+            updateCart();
+            toast(`✓ "${item.name}" أُضيف للسلة`);
+            // رسالة "اذهب للسلة" تظهر بعد إضافة أول صنف
+            if (cart.length === 1) {
+                showCartHint();
+            }
             const cat = document.querySelector('.cat.on')?.textContent;
             const fc = allCategories.includes(cat) ? cat : null;
             buildMenu(fc || null);
@@ -1119,15 +1124,50 @@
             const el = document.getElementById('cart-items');
             if (!cart.length) { el.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-basket"></i>السلة فارغة<br><small style="font-size:12px;opacity:.6">أضف أصناف من القائمة</small></div>'; return; }
             el.innerHTML = cart.map(c => `
-        <div class="ci">
-          <div class="ci-info"><div class="ci-name">${c.name}</div><div class="ci-price">${(c.price * c.qty).toFixed(2)} JOD</div></div>
-          <div class="qty-ctrl">
-            <button class="qb" onclick="changeQty('${c.id}',-1)">−</button>
-            <span class="qn">${c.qty}</span>
-            <button class="qb" onclick="changeQty('${c.id}',1)">+</button>
-          </div>
-        </div>`).join('');
+            <div class="ci">
+              <div class="ci-info"><div class="ci-name">${c.name}</div><div class="ci-price">${(c.price * c.qty).toFixed(2)} JOD</div></div>
+              <div class="qty-ctrl">
+                <button class="qb" onclick="changeQty('${c.id}',-1)">−</button>
+                <span class="qn">${c.qty}</span>
+                <button class="qb" onclick="changeQty('${c.id}',1)">+</button>
+              </div>
+            </div>`).join('');
         }
+
+        // ── تلميح "اذهب للسلة" ─────────────────────────────────────────────────
+        let _hintShown = false;
+        function showCartHint() {
+            if (_hintShown) return;
+            _hintShown = true;
+            const hint = document.createElement('div');
+            hint.id = 'cart-hint';
+            hint.style.cssText = `
+                    position: fixed; bottom: 24px; right: 20px; left: 20px; max-width: 360px;
+                    margin: 0 auto; background: var(--red); color: #fff; border-radius: 16px;
+                    padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+                    gap: 12px; z-index: 300; box-shadow: 0 8px 28px rgba(212,40,24,.35);
+                    font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700;
+                    animation: slideUp .4s cubic-bezier(.25,.46,.45,.94);
+                `;
+            hint.innerHTML = `
+                    <span><i class="fas fa-shopping-basket" style="margin-left:8px"></i>لإكمال الطلب، انتقل إلى السلة</span>
+                    <button onclick="toggleCart();document.getElementById('cart-hint').remove()" style="
+                        background:rgba(255,255,255,.2);border:none;color:#fff;padding:7px 14px;
+                        border-radius:10px;cursor:pointer;font-weight:800;font-size:13px;font-family:'Cairo',sans-serif;
+                        white-space:nowrap;">فتح السلة ←</button>
+                `;
+            // أضف الأنيميشن
+            if (!document.getElementById('hint-style')) {
+                const s = document.createElement('style');
+                s.id = 'hint-style';
+                s.textContent = '@keyframes slideUp{0%{transform:translateY(80px);opacity:0}100%{transform:translateY(0);opacity:1}}';
+                document.head.appendChild(s);
+            }
+            document.body.appendChild(hint);
+            // إخفاء تلقائي بعد 6 ثوانٍ
+            setTimeout(() => { if (hint.parentNode) hint.remove(); }, 6000);
+        }
+
 
         function toggleCart() {
             document.getElementById('cart-panel').classList.toggle('open');
@@ -1136,10 +1176,28 @@
 
         async function doCheckout() {
             if (!cart.length) return;
-            const btn = document.getElementById('checkout-btn');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            // ── التحقق من المدخلات ──────────────────────────────────────────────
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
+            if (!phone) {
+                // تلوين حقل الهاتف بالأحمر
+                const phoneEl = document.getElementById('cust-phone');
+                phoneEl.style.borderColor = 'var(--red)';
+                phoneEl.style.boxShadow = '0 0 0 3px rgba(212,40,24,.12)';
+                phoneEl.focus();
+                toast('⚠️ رقم الهاتف مطلوب لإتمام الطلب');
+                setTimeout(() => { phoneEl.style.borderColor = ''; phoneEl.style.boxShadow = ''; }, 3000);
+                return;
+            }
+            // تحقق بسيط من صيغة الرقم (7 أرقام على الأقل)
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 7) {
+                document.getElementById('cust-phone').style.borderColor = 'var(--red)';
+                toast('⚠️ رقم الهاتف غير صحيح');
+                return;
+            }
+            const btn = document.getElementById('checkout-btn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
             const type = document.getElementById('order-type').value;
             const tableNum = document.getElementById('table-num').value.trim();
             const notes = document.getElementById('order-notes').value.trim();
@@ -1166,6 +1224,7 @@
         }
 
         function resetPage() {
+            _hintShown = false; // إعادة ضبط التلميح للطلب الجديد
             document.getElementById('successScreen').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             document.getElementById('cust-name').value = '';
