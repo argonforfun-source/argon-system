@@ -1683,7 +1683,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         // ══ FIREBASE ══
-        const FC = {
+        // استبدل من هنا
+        const firebaseConfig = {
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app",
@@ -1692,85 +1693,39 @@
             messagingSenderId: "858120444233",
             appId: "1:858120444233:web:4bda38dfa451b9eb26e298"
         };
-        firebase.initializeApp(FC);
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const ADMIN = { u: 'admin', p: 'admin2024' };
-        let data = [], curF = 'all';
 
-        // ══ CLOCK ══
-        setInterval(() => {
-            const el = document.getElementById('clock');
-            if (el) el.textContent = new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        }, 1000);
+        // أضف هذا الجزء تحت تعريف db مباشرة لعرض المطاعم
+        db.ref('restaurants').on('value', (snap) => {
+            const list = document.getElementById('list');
+            list.innerHTML = ''; // هذا هو السر لظهور كل المطاعم
+            const data = snap.val();
+            if (!data) return;
 
-        function getBase() {
-            const h = window.location.href;
-            return h.substring(0, h.lastIndexOf('/') + 1);
-        }
+            Object.keys(data).forEach(id => {
+                const res = data[id].settings;
+                if (!res) return;
+                const mUrl = window.location.origin + window.location.pathname.replace('superadmin.html', 'index.html') + '?id=' + id;
+                const dUrl = window.location.origin + window.location.pathname.replace('superadmin.html', 'dashboard.html') + '?id=' + id;
 
-        // ══ LOGIN ══
-        function doLogin() {
-            const u = document.getElementById('lu').value.trim();
-            const p = document.getElementById('lp').value;
-            if (u === ADMIN.u && p === ADMIN.p) {
-                const lp = document.getElementById('loginPage');
-                lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
-                setTimeout(() => { lp.style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
-            } else {
-                const e = document.getElementById('lerr');
-                e.style.display = 'block'; e.classList.add('shake');
-                setTimeout(() => e.classList.remove('shake'), 400);
-                setTimeout(() => e.style.display = 'none', 3000);
-            }
-        }
-        document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });
-        function logout() {
-            // إيقاف المستمع عند الخروج
-            if (_resListener) { _resListener.off(); _resListener = null; }
-            data = [];
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1';
-            document.getElementById('lu').value = ''; document.getElementById('lp').value = '';
-        }
-
-        // ══ ADD PANEL TOGGLE ══
-        let addOpen = false;
-        function toggleAddPanel() {
-            addOpen = !addOpen;
-            document.getElementById('addBody').classList.toggle('open', addOpen);
-            document.getElementById('addToggleIcon').classList.toggle('open', addOpen);
-        }
-        setTimeout(() => toggleAddPanel(), 100);
-
-        // ══ LOAD DATA ══
-        let _resListener = null;
-        function loadData() {
-            // إلغاء أي مستمع سابق لمنع التكرار
-            if (_resListener) { _resListener.off(); _resListener = null; }
-
-            // أظهر مؤشر التحميل
-            document.getElementById('resGrid').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
-
-            _resListener = db.ref('restaurants');
-            _resListener.on('value', snap => {
-                // ── تصفير الحاوية قبل إعادة البناء (الإصلاح الجذري) ──
-                data = [];
-                snap.forEach(c => data.push({ id: c.key, ...c.val() }));
-                const today = new Date().toDateString();
-                document.getElementById('s-tot').textContent = data.length;
-                document.getElementById('s-on').textContent = data.filter(r => (r.settings?.status || 'active') !== 'closed').length;
-                document.getElementById('s-off').textContent = data.filter(r => r.settings?.status === 'closed').length;
-                document.getElementById('s-today').textContent = data.filter(r => {
-                    if (!r.settings?.createdAt) return false;
-                    return new Date(r.settings.createdAt).toDateString() === today;
-                }).length;
-                let totalOrders = 0;
-                data.forEach(r => {
-                    const orders = r.orders || {};
-                    Object.values(orders).forEach(o => {
-                        if (o.createdAt && new Date(o.createdAt).toDateString() === today) totalOrders++;
-                    });
-                });
+                list.innerHTML += `
+            <div class="res-card">
+                <div class="res-info">
+                    <div class="res-logo"><img src="${res.logo || 'https://via.placeholder.com/100'}"></div>
+                    <div class="res-details"><h3>${res.name}</h3><p>ID: ${id}</p></div>
+                </div>
+                <div class="actions">
+                    <button class="btn-sm btn-copy" onclick="cp('${mUrl}')"><i class="fas fa-link"></i> منيو</button>
+                    <button class="btn-sm btn-dash" onclick="window.open('${dUrl}')"><i class="fas fa-external-link-alt"></i> لوحة</button>
+                    <button class="btn-sm btn-del" onclick="delRes('${id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+            });
+        });
+        // إلى هنا
+           
                 document.getElementById('s-orders').textContent = totalOrders;
                 filterList();
             }, err => {
