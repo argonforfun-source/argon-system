@@ -988,7 +988,7 @@
                     <div class="ibody">
                         <div class="iname">${p.name}</div>
                         <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} د.أ</div>
-                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${p.name}',${p.price},'${p.key}')">
+                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${(p.name||'').replace(/'/g, "\\'")}',${p.price},'${p.key}')">
                             <i class="fas fa-plus"></i> أضف للسلة
                         </button>
                     </div>
@@ -1041,7 +1041,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:8px">
                             <span class="ci-price">${(it.price * it.qty).toFixed(2)} د.أ</span>
-                            <button class="ci-remove" onclick="removeFromCart('${it.name}')"><i class="fas fa-minus"></i></button>
+                            <button class="ci-remove" onclick="removeFromCart('${(it.name||'').replace(/'/g, "\\'")}')"><i class="fas fa-minus"></i></button>
                         </div>
                     </div>`).join('') +
                 `<div class="cart-total-row">

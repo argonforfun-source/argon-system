@@ -1761,14 +1761,20 @@
                 document.getElementById('s-on').textContent = data.filter(r => (r.settings?.status || 'active') !== 'closed').length;
                 document.getElementById('s-off').textContent = data.filter(r => r.settings?.status === 'closed').length;
                 document.getElementById('s-today').textContent = data.filter(r => {
-                    if (!r.settings?.createdAt) return false;
-                    return new Date(r.settings.createdAt).toDateString() === today;
+                    const cr = r.settings?.createdAt || r.settings?.created_at;
+                    if (!cr) return false;
+                    return new Date(cr).toDateString() === today;
                 }).length;
+                const todayStrEG = new Date().toLocaleDateString('ar-EG');
                 let totalOrders = 0;
                 data.forEach(r => {
-                    const orders = r.orders || {};
-                    Object.values(orders).forEach(o => {
-                        if (o.createdAt && new Date(o.createdAt).toDateString() === today) totalOrders++;
+                    const allOrds = [ ...Object.values(r.orders || {}), ...Object.values(r.completedOrders || {}) ];
+                    allOrds.forEach(o => {
+                        if (o.createdAt && new Date(o.createdAt).toDateString() === today) {
+                            totalOrders++;
+                        } else if (o.date === todayStrEG) {
+                            totalOrders++;
+                        }
                     });
                 });
                 document.getElementById('s-orders').textContent = totalOrders;
@@ -1832,18 +1838,34 @@
             const base = getBase();
             const today = new Date().toDateString();
             grid.innerHTML = d.map(r => {
-                const s = r.settings || {};
-                const isOff = s.status === 'closed';
-                const acceptOff = s.acceptOrders === false;
-                const c = s.color || '#d4a843';
-                const orders = r.orders || {};
-                const ordArr = Object.values(orders);
-                const todayOrds = ordArr.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
-                const pendingOrds = ordArr.filter(o => o.status === 'pending' || o.status === 'new');
-                const totalRev = ordArr.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
-                const safeId = r.id.replace(/'/g, "\\'");
-                const safeName = (s.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
-                return `
+                try {
+                    const s = r.settings || {};
+                    const isOff = s.status === 'closed';
+                    const acceptOff = s.acceptOrders === false;
+                    const c = s.color || '#d4a843';
+                    const orders = r.orders || {};
+                    const compOrders = r.completedOrders || {};
+                    const ordArr = Object.values(orders);
+                    const compArr = Object.values(compOrders);
+                    const todayStrEG = new Date().toLocaleDateString('ar-EG');
+                    
+                    // Merge arrays to count todays orders
+                    const allOrds = [...ordArr, ...compArr];
+                    const todayOrds = allOrds.filter(o => 
+                        o && typeof o === 'object' &&
+                        ((o.createdAt && new Date(o.createdAt).toDateString() === today) || 
+                        (o.date === todayStrEG))
+                    );
+                    
+                    const pendingOrds = ordArr.filter(o => o && typeof o === 'object' && (o.status === 'pending' || o.status === 'new'));
+                    const totalRev = compArr.reduce((sum, o) => sum + (o && o.total ? (parseFloat(o.total) || 0) : 0), 0);
+                    const safeId = String(r.id || '').replace(/'/g, "\\'");
+                    const safeName = String(s.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                    const _dateStr = (s.createdAt || s.created_at) && typeof s.createdAt === 'string' 
+                        ? new Date(s.createdAt || s.created_at).toLocaleDateString('ar-JO') 
+                        : '—';
+                    
+                    return `
         <div class="res-card ${isOff ? 'is-off' : ''}" id="card-${r.id}">
           <div class="rc-accent" style="background:linear-gradient(90deg,${c},${c}44,transparent)"></div>
           <div class="rc-header">
@@ -1861,7 +1883,7 @@
             <div class="rc-info-item"><i class="fas fa-phone"></i><span>${s.phone || '—'}</span></div>
             <div class="rc-info-item"><i class="fas fa-map-marker-alt"></i><span>${s.address || '—'}</span></div>
             <div class="rc-info-item"><i class="fas fa-clock"></i><span>${s.openTime || '08:00'} — ${s.closeTime || '23:00'}</span></div>
-            <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-JO') : '—'}</span></div>
+            <div class="rc-info-item"><i class="fas fa-calendar-alt"></i><span>${_dateStr}</span></div>
           </div>
 
           <div class="rc-mini-stats">
@@ -1913,6 +1935,7 @@
             <button class="act-btn red" onclick="openDel('${safeId}','${safeName}')"><i class="fas fa-trash"></i> حذف</button>
           </div>
         </div>`;
+                } catch(e) { console.error('Error rendering card for', r.id, e); return ''; }
             }).join('');
         }
 

@@ -1,0 +1,6 @@
+db_dump.json
+live_data.json
+.gemini/
+.agent/
+tmp/
+node_modules/
