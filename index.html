@@ -933,10 +933,11 @@
                 document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">❌</div><div class="cls-title">المطعم غير موجود</div><div class="cls-sub">تأكد من الرابط وحاول مرة أخرى</div></div>`;
                 return;
             }
-            if (data.settings?.status === 'disabled') {
+            if (data.settings?.status === 'closed') {
                 document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">🔒</div><div class="cls-title">عذراً، المطعم مغلق</div><div class="cls-sub">سيعود قريباً، شكراً لتفهمك</div></div>`;
                 return;
             }
+            window.isAcceptingOrders = data.settings?.acceptOrders !== false;
 
             const sets = data.settings || {};
 
@@ -1093,6 +1094,10 @@
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
             if (!name || !phone) { alert('يرجى إدخال الاسم ورقم الهاتف'); return; }
+            if (window.isAcceptingOrders === false) {
+                alert('عذراً، المطعم لا يستقبل طلبات حالياً.');
+                return;
+            }
 
             // Build detailed bill
             const counts = {};
