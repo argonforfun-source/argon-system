@@ -987,7 +987,7 @@
                     </div>
                     <div class="ibody">
                         <div class="iname">${p.name}</div>
-                        <div class="iprice">${p.price} د.أ</div>
+                        <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} د.أ</div>
                         <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${p.name}',${p.price},'${p.key}')">
                             <i class="fas fa-plus"></i> أضف للسلة
                         </button>
@@ -1128,11 +1128,19 @@
             const total = cart.reduce((s, i) => s + i.price, 0);
             const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
 
+            // Build structured items array
+            const counts = {};
+            cart.forEach(item => {
+                if (!counts[item.name]) counts[item.name] = { name: item.name, price: item.price, qty: 0 };
+                counts[item.name].qty++;
+            });
+            const structuredItems = Object.values(counts);
+
             const order = {
                 custName: name,
                 custPhone: phone,
                 notes: notes,
-                items: cart.map(i => i.name).join(' + '),
+                items: structuredItems,
                 total: total.toFixed(2),
                 orderNo: orderNo,
                 status: 'new',
