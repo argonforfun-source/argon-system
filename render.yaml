@@ -1,0 +1,6 @@
+services:
+  - type: static
+    name: argon-system
+    env: static
+    buildCommand: ""
+    publishPath: "."
