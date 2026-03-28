@@ -1932,9 +1932,23 @@
             try {
                 const snap = await db.ref(`restaurants/${id}`).once('value');
                 if (snap.exists()) { toast('⚠️ هذا المعرف مستخدم — اختر معرفاً آخر', 'err'); return; }
-                await db.ref(`restaurants/${id}/settings`).set({ name, password: pass, phone, address: addr, color, status: 'active', acceptOrders: true, createdAt: new Date().toISOString() });
-                // نستخدم set فقط على مسار فرعي محدد — لا نمسح القائمة الكاملة أبداً
-                await db.ref(`restaurants/${id}/menu/placeholder`).set({ name: 'صنف تجريبي', price: 0, category: 'عام', available: false });
+                
+                // ── Fix: Create the FULL restaurant object structure so it persists ──
+                const newResData = {
+                    settings: { 
+                        name, password: pass, phone, address: addr, color, 
+                        status: 'active', acceptOrders: true, 
+                        createdAt: new Date().toISOString() 
+                    },
+                    menu: {
+                        placeholder: { name: 'صنف تجريبي', price: 0, category: 'عام', available: false }
+                    },
+                    orders: {},
+                    completedOrders: {}
+                };
+                
+                await db.ref(`restaurants/${id}`).set(newResData);
+                
                 const base = getBase();
                 document.getElementById('linkDash').textContent = `${base}dashboard.html?id=${id}`;
                 document.getElementById('linkMenu').textContent = `${base}index.html?id=${id}`;
