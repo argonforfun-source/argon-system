@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARGON | لوحة التحكم</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
             --void: #030712;
             --panel: #0d1525;
             --surface: #111827;
-            --border: rgba(99,179,237,0.1);
+            --border: rgba(99, 179, 237, 0.1);
             --cyan: #22d3ee;
             --blue: #3b82f6;
             --purple: #8b5cf6;
@@ -21,7 +24,8 @@
             --amber: #f59e0b;
             --text: #e2e8f0;
             --muted: #64748b;
-            --accent: #3b82f6; /* dynamic from Firebase */
+            --accent: #3b82f6;
+            /* dynamic from Firebase */
         }
 
         * {
@@ -31,22 +35,22 @@
         }
 
         body {
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             background: var(--void);
             color: var(--text);
             height: 100vh;
             overflow: hidden;
         }
 
-            body::before {
-                content: '';
-                position: fixed;
-                inset: 0;
-                background-image: linear-gradient(rgba(34,211,238,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.02) 1px,transparent 1px);
-                background-size: 50px 50px;
-                pointer-events: none;
-                z-index: 0;
-            }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(34, 211, 238, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
 
         /* TOPBAR */
         .topbar {
@@ -69,10 +73,10 @@
         }
 
         .tb-logo {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 1rem;
             font-weight: 600;
-            background: linear-gradient(135deg,#fff,var(--accent));
+            background: linear-gradient(135deg, #fff, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 3px;
@@ -108,26 +112,26 @@
         }
 
         .tbadge-id {
-            font-family: 'IBM Plex Mono',monospace;
-            background: rgba(139,92,246,0.08);
-            border-color: rgba(139,92,246,0.2);
+            font-family: 'IBM Plex Mono', monospace;
+            background: rgba(139, 92, 246, 0.08);
+            border-color: rgba(139, 92, 246, 0.2);
             color: #c4b5fd;
         }
 
         .tbadge-open {
-            background: rgba(16,185,129,0.08);
-            border-color: rgba(16,185,129,0.2);
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
             color: var(--green);
         }
 
         .tbadge-closed {
-            background: rgba(239,68,68,0.08);
-            border-color: rgba(239,68,68,0.2);
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
             color: #fca5a5;
         }
 
         .clkbadge {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.76rem;
             background: var(--surface);
             border: 1px solid var(--border);
@@ -142,28 +146,28 @@
             color: var(--muted);
             padding: 6px 13px;
             border-radius: 8px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .tbtn:hover {
-                border-color: rgba(59,130,246,0.3);
-                color: var(--text);
-            }
+        .tbtn:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--text);
+        }
 
         .tbtn-prev {
-            background: linear-gradient(135deg,var(--accent),var(--purple));
+            background: linear-gradient(135deg, var(--accent), var(--purple));
             border: none;
             color: white;
             font-weight: 600;
         }
 
-            .tbtn-prev:hover {
-                opacity: 0.85;
-                transform: translateY(-1px);
-            }
+        .tbtn-prev:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
 
         /* LAYOUT */
         .app-layout {
@@ -183,7 +187,7 @@
         }
 
         .sl {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.56rem;
             color: var(--muted);
             letter-spacing: 2px;
@@ -206,62 +210,62 @@
             position: relative;
         }
 
-            .ni i {
-                width: 16px;
-                text-align: center;
-                font-size: 0.84rem;
-            }
+        .ni i {
+            width: 16px;
+            text-align: center;
+            font-size: 0.84rem;
+        }
 
-            .ni:hover {
-                background: rgba(255,255,255,0.03);
-                color: var(--text);
-            }
+        .ni:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+        }
 
-            .ni.active {
-                background: rgba(59,130,246,0.1);
-                color: #93c5fd;
-            }
+        .ni.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #93c5fd;
+        }
 
-                .ni.active::before {
-                    content: '';
-                    position: absolute;
-                    right: 0;
-                    top: 18%;
-                    bottom: 18%;
-                    width: 3px;
-                    background: var(--accent);
-                    border-radius: 3px 0 0 3px;
-                }
+        .ni.active::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 18%;
+            bottom: 18%;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 3px 0 0 3px;
+        }
 
         .nbadge {
             margin-right: auto;
             background: var(--red);
             color: white;
             font-size: 0.62rem;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             padding: 2px 7px;
             border-radius: 10px;
             font-weight: 700;
         }
 
-            .nbadge.zero {
-                background: rgba(100,116,139,0.2);
-                color: var(--muted);
-            }
+        .nbadge.zero {
+            background: rgba(100, 116, 139, 0.2);
+            color: var(--muted);
+        }
 
         .pwby {
             text-align: center;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.55rem;
-            color: rgba(100,116,139,0.4);
+            color: rgba(100, 116, 139, 0.4);
             letter-spacing: 1.5px;
             padding: 12px 0 4px;
         }
 
-            .pwby span {
-                color: var(--accent);
-                opacity: 0.7;
-            }
+        .pwby span {
+            color: var(--accent);
+            opacity: 0.7;
+        }
 
         /* MAIN AREA */
         .main-area {
@@ -269,7 +273,7 @@
             overflow-y: auto;
             padding: 26px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.05) transparent;
+            scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
         }
 
         ::-webkit-scrollbar {
@@ -277,7 +281,7 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.06);
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 2px;
         }
 
@@ -285,10 +289,10 @@
             display: none;
         }
 
-            .section.active {
-                display: block;
-                animation: fu 0.3s ease;
-            }
+        .section.active {
+            display: block;
+            animation: fu 0.3s ease;
+        }
 
         @keyframes fu {
             from {
@@ -323,7 +327,7 @@
         /* STATS */
         .sr {
             display: grid;
-            grid-template-columns: repeat(4,1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 13px;
             margin-bottom: 26px;
         }
@@ -338,19 +342,19 @@
             transition: border-color 0.25s;
         }
 
-            .sb2::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: var(--bc,transparent);
-            }
+        .sb2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--bc, transparent);
+        }
 
-            .sb2:hover {
-                border-color: rgba(59,130,246,0.22);
-            }
+        .sb2:hover {
+            border-color: rgba(59, 130, 246, 0.22);
+        }
 
         .si {
             width: 32px;
@@ -373,7 +377,7 @@
         .sv {
             font-size: 1.6rem;
             font-weight: 800;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .sh {
@@ -385,7 +389,7 @@
         /* ORDERS */
         .og {
             display: grid;
-            grid-template-columns: repeat(auto-fill,minmax(295px,1fr));
+            grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
             gap: 13px;
         }
 
@@ -399,36 +403,36 @@
             transition: all 0.25s;
         }
 
-            .oc::before {
-                content: '';
-                position: absolute;
-                right: 0;
-                top: 0;
-                bottom: 0;
-                width: 3px;
-                background: var(--accent);
-            }
+        .oc::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+        }
 
-            .oc.done::before {
-                background: var(--green);
-            }
+        .oc.done::before {
+            background: var(--green);
+        }
 
-            .oc:hover {
-                border-color: rgba(59,130,246,0.22);
-            }
+        .oc:hover {
+            border-color: rgba(59, 130, 246, 0.22);
+        }
 
         .ono {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.76rem;
             color: var(--accent);
-            background: rgba(59,130,246,0.08);
-            border: 1px solid rgba(59,130,246,0.15);
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.15);
             padding: 3px 9px;
             border-radius: 7px;
         }
 
         .otm {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.66rem;
             color: var(--muted);
         }
@@ -447,7 +451,7 @@
         }
 
         .ophone {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.75rem;
             color: var(--muted);
         }
@@ -460,8 +464,8 @@
         }
 
         .ichip {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 3px 9px;
             border-radius: 7px;
             font-size: 0.73rem;
@@ -469,8 +473,8 @@
         }
 
         .onote {
-            background: rgba(245,158,11,0.06);
-            border: 1px solid rgba(245,158,11,0.15);
+            background: rgba(245, 158, 11, 0.06);
+            border: 1px solid rgba(245, 158, 11, 0.15);
             border-radius: 8px;
             padding: 7px 11px;
             font-size: 0.76rem;
@@ -485,28 +489,28 @@
         }
 
         .ototal {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.98rem;
             font-weight: 800;
             color: var(--green);
         }
 
         .bcomplete {
-            background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.22);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.22);
             color: var(--green);
             padding: 7px 15px;
             border-radius: 8px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .bcomplete:hover {
-                background: rgba(16,185,129,0.18);
-            }
+        .bcomplete:hover {
+            background: rgba(16, 185, 129, 0.18);
+        }
 
         .empty-o {
             grid-column: 1/-1;
@@ -515,17 +519,17 @@
             color: var(--muted);
         }
 
-            .empty-o i {
-                font-size: 2.5rem;
-                display: block;
-                margin-bottom: 12px;
-                opacity: 0.2;
-            }
+        .empty-o i {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.2;
+        }
 
         /* BEST SELLERS */
         .bsg {
             display: grid;
-            grid-template-columns: repeat(auto-fill,minmax(155px,1fr));
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
             gap: 11px;
             margin-top: 18px;
         }
@@ -539,7 +543,7 @@
         }
 
         .bsrank {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.62rem;
             color: var(--amber);
             letter-spacing: 1px;
@@ -553,7 +557,7 @@
         }
 
         .bscnt {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--accent);
@@ -573,9 +577,9 @@
             transition: all 0.2s;
         }
 
-            .hcard:hover {
-                border-color: rgba(16,185,129,0.3);
-            }
+        .hcard:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
 
         /* MENU */
         .mfp {
@@ -604,28 +608,28 @@
         .mfi {
             width: 100%;
             background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.07);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 9px;
             padding: 9px 13px;
             color: var(--text);
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.88rem;
             outline: none;
             transition: all 0.2s;
         }
 
-            .mfi:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-            }
+        .mfi:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
 
         .badd {
-            background: linear-gradient(135deg,var(--accent),var(--purple));
+            background: linear-gradient(135deg, var(--accent), var(--purple));
             border: none;
             border-radius: 9px;
             padding: 9px 16px;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
@@ -633,13 +637,13 @@
             transition: all 0.2s;
         }
 
-            .badd:hover {
-                opacity: 0.85;
-            }
+        .badd:hover {
+            opacity: 0.85;
+        }
 
         .mg {
             display: grid;
-            grid-template-columns: repeat(auto-fill,minmax(175px,1fr));
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
             gap: 13px;
         }
 
@@ -651,10 +655,10 @@
             transition: all 0.25s;
         }
 
-            .mic:hover {
-                border-color: rgba(59,130,246,0.28);
-                transform: translateY(-2px);
-            }
+        .mic:hover {
+            border-color: rgba(59, 130, 246, 0.28);
+            transform: translateY(-2px);
+        }
 
         .mimg {
             width: 100%;
@@ -684,7 +688,7 @@
         }
 
         .miprice {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.85rem;
             color: var(--accent);
             font-weight: 600;
@@ -693,20 +697,20 @@
         .bdel {
             display: block;
             width: 100%;
-            background: rgba(239,68,68,0.06);
+            background: rgba(239, 68, 68, 0.06);
             border: none;
-            border-top: 1px solid rgba(239,68,68,0.1);
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
             color: #fca5a5;
             padding: 8px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.76rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .bdel:hover {
-                background: rgba(239,68,68,0.12);
-            }
+        .bdel:hover {
+            background: rgba(239, 68, 68, 0.12);
+        }
 
         /* SETTINGS */
         .setp {
@@ -729,32 +733,34 @@
             font-weight: 500;
         }
 
-        .seti, .setsel {
+        .seti,
+        .setsel {
             width: 100%;
             background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.07);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 10px;
             padding: 11px 14px;
             color: var(--text);
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.9rem;
             outline: none;
             transition: all 0.2s;
         }
 
-            .seti:focus, .setsel:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-            }
+        .seti:focus,
+        .setsel:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
 
         .bsave {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg,var(--green),#059669);
+            background: linear-gradient(135deg, var(--green), #059669);
             border: none;
             border-radius: 10px;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.98rem;
             font-weight: 700;
             cursor: pointer;
@@ -762,32 +768,32 @@
             margin-top: 5px;
         }
 
-            .bsave:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 20px rgba(16,185,129,0.3);
-            }
+        .bsave:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
 
         .bclear {
-            background: rgba(239,68,68,0.06);
-            border: 1px solid rgba(239,68,68,0.15);
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.15);
             color: #fca5a5;
             padding: 7px 13px;
             border-radius: 8px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .bclear:hover {
-                background: rgba(239,68,68,0.12);
-            }
+        .bclear:hover {
+            background: rgba(239, 68, 68, 0.12);
+        }
 
         /* PREVIEW MODAL */
         #prevModal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             display: none;
             justify-content: center;
@@ -809,16 +815,16 @@
             border: 10px solid #1e293b;
             border-radius: 46px;
             overflow: hidden;
-            box-shadow: 0 0 60px rgba(0,0,0,0.5);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
         }
 
         .bclose-prev {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             color: #fca5a5;
             padding: 9px 22px;
             border-radius: 10px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
@@ -835,15 +841,15 @@
             width: 40px;
             height: 40px;
             border-radius: 9px;
-            border: 2px solid rgba(255,255,255,0.12);
+            border: 2px solid rgba(255, 255, 255, 0.12);
             cursor: pointer;
             transition: all 0.2s;
             flex-shrink: 0;
         }
 
-            .color-preview:hover {
-                transform: scale(1.08);
-            }
+        .color-preview:hover {
+            transform: scale(1.08);
+        }
 
         input[type="color"].hcp {
             position: absolute;
@@ -859,7 +865,7 @@
             left: 50%;
             transform: translateX(-50%) translateY(14px);
             background: var(--surface);
-            border: 1px solid rgba(16,185,129,0.3);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--green);
             padding: 10px 20px;
             border-radius: 11px;
@@ -871,17 +877,17 @@
             pointer-events: none;
         }
 
-            #toast.show {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
 
         /* LIGHT MODE */
         body.light-mode {
             --void: #f0f4ff;
             --panel: #ffffff;
             --surface: #f8fafc;
-            --border: rgba(0,0,0,0.08);
+            --border: rgba(0, 0, 0, 0.08);
             --text: #0f172a;
             --muted: #64748b;
         }
@@ -922,6 +928,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="topbar">
@@ -935,7 +942,8 @@
             <span class="tbadge" id="statusBadge"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح</span>
             <span class="clkbadge" id="clkEl">--:--</span>
             <button class="tbtn" onclick="toggleTheme()">🌓 المظهر</button>
-            <button class="tbtn tbtn-prev" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:6px"></i> معاينة</button>
+            <button class="tbtn tbtn-prev" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:6px"></i>
+                معاينة</button>
         </div>
     </div>
 
@@ -977,25 +985,29 @@
                 </div>
                 <div class="sr">
                     <div class="sb2" style="--bc:var(--green)">
-                        <div class="si" style="background:rgba(16,185,129,0.1);color:var(--green)"><i class="fas fa-coins"></i></div>
+                        <div class="si" style="background:rgba(16,185,129,0.1);color:var(--green)"><i
+                                class="fas fa-coins"></i></div>
                         <div class="slb">إجمالي الدخل</div>
                         <div class="sv" id="totalRevenue" style="color:var(--green)">0.00</div>
                         <div class="sh">دينار أردني · مكتمل</div>
                     </div>
                     <div class="sb2" style="--bc:var(--accent)">
-                        <div class="si" style="background:rgba(59,130,246,0.1);color:var(--accent)"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="si" style="background:rgba(59,130,246,0.1);color:var(--accent)"><i
+                                class="fas fa-hourglass-half"></i></div>
                         <div class="slb">مبيعات بالانتظار</div>
                         <div class="sv" id="pendingRevenue" style="color:var(--accent)">0.00</div>
                         <div class="sh">طلبات قيد التنفيذ</div>
                     </div>
                     <div class="sb2" style="--bc:var(--cyan)">
-                        <div class="si" style="background:rgba(34,211,238,0.1);color:var(--cyan)"><i class="fas fa-check-double"></i></div>
+                        <div class="si" style="background:rgba(34,211,238,0.1);color:var(--cyan)"><i
+                                class="fas fa-check-double"></i></div>
                         <div class="slb">طلبات مكتملة</div>
                         <div class="sv" id="statCompleted" style="color:var(--cyan)">0</div>
                         <div class="sh">إجمالي العمليات</div>
                     </div>
                     <div class="sb2" style="--bc:var(--amber)">
-                        <div class="si" style="background:rgba(245,158,11,0.1);color:var(--amber)"><i class="fas fa-calculator"></i></div>
+                        <div class="si" style="background:rgba(245,158,11,0.1);color:var(--amber)"><i
+                                class="fas fa-calculator"></i></div>
                         <div class="slb">متوسط قيمة الطلب</div>
                         <div class="sv" id="avgOrder" style="color:var(--amber)">0.00</div>
                         <div class="sh">دينار أردني</div>
@@ -1004,7 +1016,9 @@
                 <div class="ph" style="margin-bottom:12px">
                     <div class="pt" style="font-size:1.05rem">⭐ أعلى الأصناف مبيعاً</div>
                 </div>
-                <div class="bsg" id="bestSellerList"><div style="color:var(--muted);font-size:0.84rem">جاري التحليل...</div></div>
+                <div class="bsg" id="bestSellerList">
+                    <div style="color:var(--muted);font-size:0.84rem">جاري التحليل...</div>
+                </div>
             </div>
 
             <!-- LIVE ORDERS -->
@@ -1025,7 +1039,8 @@
                         <div class="pt">📜 سجل المبيعات</div>
                         <div class="ps">جميع الطلبات المكتملة</div>
                     </div>
-                    <button class="bclear" onclick="clearHistory()"><i class="fas fa-trash" style="margin-left:5px"></i> مسح السجل</button>
+                    <button class="bclear" onclick="clearHistory()"><i class="fas fa-trash" style="margin-left:5px"></i>
+                        مسح السجل</button>
                 </div>
                 <div id="histGrid"></div>
             </div>
@@ -1052,7 +1067,8 @@
                             <label class="mfl">رابط الصورة (اختياري)</label>
                             <input type="text" id="itemImg" class="mfi" placeholder="https://...">
                         </div>
-                        <button class="badd" onclick="addItem()"><i class="fas fa-plus" style="margin-left:5px"></i> إضافة</button>
+                        <button class="badd" onclick="addItem()"><i class="fas fa-plus" style="margin-left:5px"></i>
+                            إضافة</button>
                     </div>
                 </div>
                 <div class="mg" id="menuGrid"></div>
@@ -1091,11 +1107,13 @@
                     <div class="setg">
                         <label class="setl">لون هوية المطعم</label>
                         <div class="color-row" style="position:relative">
-                            <div class="color-preview" id="colorPreview" onclick="document.getElementById('colorPicker').click()"></div>
+                            <div class="color-preview" id="colorPreview"
+                                onclick="document.getElementById('colorPicker').click()"></div>
                             <input type="color" id="colorPicker" class="hcp" onchange="onColorChange(this.value)">
                             <div>
                                 <div style="font-size:0.88rem;font-weight:600" id="colorHex">#3b82f6</div>
-                                <div style="font-size:0.7rem;color:var(--muted)">يؤثر على لون التمييز في جميع الصفحات</div>
+                                <div style="font-size:0.7rem;color:var(--muted)">يؤثر على لون التمييز في جميع الصفحات
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1114,7 +1132,8 @@
     <!-- PREVIEW MODAL -->
     <div id="prevModal">
         <div class="pfw">
-            <button class="bclose-prev" onclick="closePreview()"><i class="fas fa-xmark" style="margin-left:6px"></i> إغلاق المعاينة</button>
+            <button class="bclose-prev" onclick="closePreview()"><i class="fas fa-xmark" style="margin-left:6px"></i>
+                إغلاق المعاينة</button>
             <div class="pfr"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
         </div>
     </div>
@@ -1399,4 +1418,5 @@
         document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
     </script>
 </body>
+
 </html>
