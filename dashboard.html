@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARGON | لوحة التحكم</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -1149,6 +1150,8 @@
         let audioCtx = null;
         let prevLiveCount = 0;
         let firstLoad = true;
+        // Cache for order data keyed by Firebase key (fixes completeOrder onclick bug)
+        const ordersCache = {};
 
         function getAudioCtx() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1264,11 +1267,14 @@
                 bell.classList.add('ringing');
                 setTimeout(() => bell.classList.remove('ringing'), 2000);
             }
-            if (!firstLoad) prevLiveCount = newCount;
+            prevLiveCount = newCount;
 
             let pendRev = 0;
             const og = document.getElementById('ordersGrid');
             og.innerHTML = '';
+            // Update orders cache
+            for (const k in ordersCache) delete ordersCache[k];
+            Object.assign(ordersCache, orders);
             if (!liveKeys.length) {
                 og.innerHTML = `<div class="empty-o"><i class="fas fa-inbox"></i><p>لا توجد طلبات حية حالياً</p></div>`;
             } else {
@@ -1279,16 +1285,16 @@
                     og.innerHTML += `
                     <div class="oc">
                         <div class="oheader">
-                            <span class="ono">${o.orderNo}</span>
+                            <span class="ono">${o.orderNo || '—'}</span>
                             <span class="otm">${o.time || ''}</span>
                         </div>
-                        <div class="ocust">${o.custName}</div>
+                        <div class="ocust">${o.custName || 'زبون'}</div>
                         <div class="ophone">${o.custPhone || ''}</div>
                         <div class="oitems">${fmtItems(o.items)}</div>
                         ${note}
                         <div class="ofooter">
-                            <span class="ototal">${o.total} د.أ</span>
-                            <button class="bcomplete" onclick="completeOrder('${k}',${JSON.stringify(o).replace(/"/g, '&quot;')})">
+                            <span class="ototal">${parseFloat(o.total || 0).toFixed(2)} د.أ</span>
+                            <button class="bcomplete" onclick="completeOrder('${k}')">
                                 <i class="fas fa-check" style="margin-left:5px"></i> إكمال
                             </button>
                         </div>
@@ -1361,10 +1367,13 @@
             }).then(() => toast('✅ تم حفظ الإعدادات بنجاح'));
         }
 
-        function completeOrder(key, data) {
-            db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(data)
-                .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove());
-            toast('✅ تم إكمال الطلب');
+        function completeOrder(key) {
+            const orderData = ordersCache[key];
+            if (!orderData) { toast('⚠️ لم يتم العثور على الطلب'); return; }
+            db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData)
+                .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove()
+                    .then(() => toast('✅ تم إكمال الطلب'))
+                ).catch(err => toast('❌ خطأ: ' + err.message));
         }
 
         function addItem() {
