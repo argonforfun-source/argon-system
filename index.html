@@ -1057,6 +1057,11 @@
                     <div class="stitle">تم استلام طلبك!</div>
                     <div class="ssub">رقم طلبك هو <span id="finalOrderNo" style="color:var(--accent);font-weight:900">...</span></div>
                     
+                    <div style="margin:15px 0; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:12px; font-size:0.85rem; text-align:right">
+                        <div>👤 الاسم: <span id="finalCustName" style="font-weight:700"></span></div>
+                        <div style="margin-top:5px">🚚 النوع: <span id="finalOrderType" style="font-weight:700"></span></div>
+                    </div>
+
                     <div class="track-wrap">
                         <div class="track-title"><i class="fas fa-clock"></i> تتبع حالة الطلب المباشرة:</div>
                         <div class="track-steps">
@@ -1084,6 +1089,7 @@
                     </div>
 
                     <button class="bnext" onclick="closeModal()" style="margin-top:20px; background:var(--border); color:var(--text)">حسناً</button>
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:10px">يرجى تصوير هذه الشاشة لحفظ رقم الطلب</div>
                 </div>
             </div>
         </div>
@@ -1371,10 +1377,12 @@
             newOrderRef.then(() => {
                 const orderKey = newOrderRef.key;
                 
-                // Show success with order number
-                document.getElementById('step2').style.display = 'none';
+                // Show success with order number and info
                 document.getElementById('finalOrderNo').textContent = orderNo;
-                document.getElementById('step3').style.display = 'block';
+                document.getElementById('finalCustName').textContent = name;
+                document.getElementById('finalOrderType').textContent = typeLabels[selectedType] || 'سفري';
+                
+                showStep(3);
 
                 startTracking(orderKey);
 
