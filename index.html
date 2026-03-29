@@ -1050,16 +1050,41 @@
                 <span class="bback" onclick="goStep1()">← تعديل البيانات</span>
             </div>
 
-                <div class="success-title">تم إرسال طلبك بنجاح!</div>
-                <div class="order-no-box">
-                    <div class="on-label">رقم طلبك هو</div>
-                    <div class="on-number" id="finalOrderNo">----</div>
-                    <div class="on-remind">
-                        ⚠️ <strong>الرجاء حفظ رقم طلبك</strong><br>
-                        ستحتاجه عند استلام طلبك من المطعم
+            <!-- STEP 3: SUCCESS & TRACKING -->
+            <div id="step3" style="display:none">
+                <div class="success-wrap">
+                    <div class="sicon">✅</div>
+                    <div class="stitle">تم استلام طلبك!</div>
+                    <div class="ssub">رقم طلبك هو <span id="finalOrderNo" style="color:var(--accent);font-weight:900">...</span></div>
+                    
+                    <div class="track-wrap">
+                        <div class="track-title"><i class="fas fa-clock"></i> تتبع حالة الطلب المباشرة:</div>
+                        <div class="track-steps">
+                            <div class="track-line"></div>
+                            <div class="track-progress" id="trackProgress"></div>
+                            
+                            <div class="tstep active" id="ts-new">
+                                <div class="tpoint"><i class="fas fa-paper-plane"></i></div>
+                                <div class="tlbl">وصلنا</div>
+                            </div>
+                            <div class="tstep" id="ts-prep">
+                                <div class="tpoint"><i class="fas fa-fire-burner"></i></div>
+                                <div class="tlbl">تحضير</div>
+                            </div>
+                            <div class="tstep" id="ts-shipped">
+                                <div class="tpoint"><i class="fas fa-motorcycle"></i></div>
+                                <div class="tlbl">جاهز</div>
+                            </div>
+                            <div class="tstep" id="ts-done">
+                                <div class="tpoint"><i class="fas fa-check-double"></i></div>
+                                <div class="tlbl">استلام</div>
+                            </div>
+                        </div>
+                        <div id="trackStatusText" style="font-size:0.75rem; text-align:center; margin-top:10px; color:var(--muted)">جاري تنبيه المطعم بطلبك الجديد...</div>
                     </div>
+
+                    <button class="bnext" onclick="closeModal()" style="margin-top:20px; background:var(--border); color:var(--text)">حسناً</button>
                 </div>
-                <div style="font-size:0.85rem;color:var(--muted)">شكراً لك، سيتم تحضير طلبك في أقرب وقت 🙏</div>
             </div>
         </div>
     </div>
@@ -1087,6 +1112,7 @@
         // Cart: {name, price, key} keyed by product key
         let cart = []; // array of {name, price}
         let allProducts = [];
+        let selectedType = 'takeaway';
 
         // Apply accent color from Firebase
         function applyAccent(color) {
@@ -1251,25 +1277,17 @@
         function showStep(n) {
             [0, 1, 2, 3].forEach(i => {
                 const el = document.getElementById('step' + i);
-                if (el) el.style.display = i === n ? (i === 3 ? 'block' : 'block') : 'none';
+                if (el) el.style.display = i === n ? 'block' : 'none';
             });
-            document.getElementById('step3').style.display = n === 3 ? 'block' : 'none';
-            document.querySelector('.success-wrap').style.display = n === 3 ? 'block' : 'none';
         }
 
         function goStep0() {
             buildCartSummary();
-            document.getElementById('step0').style.display = 'block';
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'none';
-            document.querySelector('.success-wrap').style.display = 'none';
+            showStep(0);
         }
 
         function goStep1() {
-            document.getElementById('step0').style.display = 'none';
-            document.getElementById('step1').style.display = 'block';
-            document.getElementById('step2').style.display = 'none';
-            document.querySelector('.success-wrap').style.display = 'none';
+            showStep(1);
         }
 
         function goStep2() {
@@ -1299,11 +1317,9 @@
                     </div>`).join('') +
                 `<div class="billtotal"><span class="btl">المجموع الكلي</span><span class="btv">${total.toFixed(2)} د.أ</span></div>`;
 
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
+        showStep(2);
         }
 
-        let selectedType = 'takeaway';
         function setType(t, el) {
             selectedType = t;
             document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
