@@ -1451,10 +1451,10 @@
             }
             document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
 
-            // History
-            const hg = document.getElementById('histGrid');
-            const hkeys = Object.keys(completed).reverse();
+            // History list (Limit to last 50 for performance)
+            const hg = document.getElementById('historyGrid');
             hg.innerHTML = '';
+            const hkeys = Object.keys(completed).sort((a, b) => b.localeCompare(a)).slice(0, 50);
             if (!hkeys.length) {
                 hg.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.2"></i><p>لا يوجد سجل مبيعات بعد</p></div>`;
             } else {

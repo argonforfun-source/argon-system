@@ -1233,9 +1233,19 @@
             el.classList.add('active');
         }
 
+        let isSending = false;
         function sendOrder() {
+            if (isSending) return;
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
+            if (!name || !phone) { alert('يرجى إكمال البيانات المطلوبة'); return; }
+
+            isSending = true;
+            const btn = document.querySelector('.bsend');
+            const origText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            btn.disabled = true;
+
             const notes = document.getElementById('orderNotes').value.trim();
             const total = cart.reduce((s, i) => s + i.price, 0);
             const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
@@ -1272,6 +1282,7 @@
 
                 cart = [];
                 updateCartUI();
+                isSending = false;
 
                 // Close after 8 seconds
                 setTimeout(() => {
@@ -1287,6 +1298,12 @@
             }).catch(err => {
                 console.error('Order error:', err);
                 alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
+                isSending = false;
+                const btn = document.querySelector('.bsend');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم';
+                }
             });
         }
 
