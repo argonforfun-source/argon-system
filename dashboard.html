@@ -305,10 +305,28 @@
             padding: 12px 0 4px;
         }
 
-        .pwby span {
-            color: var(--accent);
-            opacity: 0.7;
+        .load-meter {
+            height: 38px;
+            background: rgba(59, 130, 246, 0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            min-width: 140px;
         }
+        .lm-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--green);
+            transition: 0.5s;
+        }
+        .lm-text { font-size: 0.72rem; font-weight: 700; color: var(--text); z-index: 2; }
 
         /* MAIN AREA */
         .main-area {
@@ -894,6 +912,24 @@
             transform: scale(1.08);
         }
 
+        .sbtn {
+            flex: 1;
+            padding: 8px 4px;
+            font-size: 0.72rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 700;
+            min-width: 60px;
+        }
+        .sbtn:hover { background: var(--border); }
+        .sbtn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .wa-btn { background: #25d366; color: white; border-color: #25d366; }
+        .wa-btn:hover { background: #128c7e; }
+
         input[type="color"].hcp {
             position: absolute;
             opacity: 0;
@@ -1002,6 +1038,10 @@
             <span class="tbadge tbadge-id"><i class="fas fa-fingerprint"></i> <span id="resIdDisp"></span></span>
             <span class="tbadge" id="statusBadge"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح</span>
             <span class="clkbadge" id="clkEl">--:--</span>
+            <div class="load-meter" id="loadMeter">
+                <div class="lm-bar" id="loadBar"></div>
+                <div class="lm-text">ضغط المطبخ: <span id="loadText">هادئ</span></div>
+            </div>
             <button class="tbtn" onclick="toggleTheme()">🌓 المظهر</button>
             <button class="tbtn tbtn-prev" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:6px"></i>
                 معاينة</button>
@@ -1404,8 +1444,15 @@
                     </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد بيانات مبيعات بعد</div>';
             } catch (bsErr) { console.warn('Best sellers error:', bsErr); }
 
-            // Live orders
-            const liveKeys = Object.keys(orders);
+            // Kitchen Load
+            const activeCount = liveKeys.length;
+            const loadBar = document.getElementById('loadBar');
+            const loadText = document.getElementById('loadText');
+            const loadPerc = Math.min((activeCount / 15) * 100, 100);
+            if (loadBar) loadBar.style.width = loadPerc + '%';
+            if (activeCount > 10) { loadText.textContent = 'مرتفع 🔥'; loadBar.style.background = 'var(--red)'; }
+            else if (activeCount > 5) { loadText.textContent = 'متوسط ⚖️'; loadBar.style.background = 'var(--amber)'; }
+            else { loadText.textContent = 'هادئ ✨'; loadBar.style.background = 'var(--green)'; }
             const newCount = liveKeys.length;
             document.getElementById('liveCount').textContent = newCount;
             document.getElementById('liveCount').className = 'nbadge' + (newCount === 0 ? ' zero' : '');
@@ -1435,6 +1482,7 @@
                     const oType = o.orderType || 'سفري';
                     const otClass = oType === 'توصيل' ? 'ot-delivery' : (oType === 'في الصالة' ? 'ot-dinein' : 'ot-takeaway');
                     const otIcon = oType === 'توصيل' ? 'fa-truck' : (oType === 'في الصالة' ? 'fa-utensils' : 'fa-bag-shopping');
+                    const s = o.status || 'new';
                     
                     og.innerHTML += `
                     <div class="oc">
@@ -1542,6 +1590,22 @@
                 password: document.getElementById('resPassInp').value,
                 color: color
             }).then(() => toast('✅ تم حفظ الإعدادات بنجاح'));
+        }
+
+        function updateStatus(key, s) {
+            db.ref(`restaurants/${RES_ID}/orders/${key}/status`).set(s);
+            toast('تم تحديث حالة الطلب');
+        }
+
+        function sendWhatsApp(phone, status, orderNo, name) {
+            if (!phone) { toast('رقم الهاتف غير موجود'); return; }
+            let msg = '';
+            if (status === 'prep') msg = `مرحباً ${name}، طلبك رقم ${orderNo} جاري تحضيره الآن في مطعمنا! 👨‍🍳`;
+            else if (status === 'shipped' || status === 'ready') msg = `مرحباً ${name}، طلبك رقم ${orderNo} أصبح جاهزاً للاستلام! 📦 صحتين وعافية.`;
+            else msg = `مرحباً ${name}، بخصوص طلبك رقم ${orderNo} من مطعمنا...`;
+            
+            const url = `https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         }
 
         function completeOrder(key) {

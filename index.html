@@ -977,9 +977,10 @@
                 <div class="rmeta">
                     <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle"
                             style="font-size:0.38rem"></i> مفتوح الآن</span>
-                    <span class="rchip chip-hrs" id="hoursChip" style="display:none"><i class="fas fa-clock"
-                            style="font-size:0.68rem"></i> <span id="hoursText"></span></span>
+                    <div id="hoursChip" class="rchip" style="display:none; background:rgba(59,130,246,0.1); color:var(--accent)">
+                    <i class="fas fa-clock"></i> <span id="hoursText"></span>
                 </div>
+                <div id="loadChip" class="rchip" style="display:none; font-weight:700"></div>
             </div>
             <div class="srchwrap" style="margin-top:16px">
                 <div class="srchcont">
@@ -1200,6 +1201,23 @@
             if (sets.hours) {
                 document.getElementById('hoursChip').style.display = 'inline-flex';
                 document.getElementById('hoursText').textContent = sets.hours;
+            }
+
+            // Kitchen Load (Customer facing)
+            const activeOrders = Object.keys(data.orders || {}).length;
+            const lc = document.getElementById('loadChip');
+            if (activeOrders > 12) {
+                lc.style.display = 'inline-flex';
+                lc.style.background = 'rgba(239, 68, 68, 0.1)';
+                lc.style.color = '#ef4444';
+                lc.innerHTML = '<i class="fas fa-fire"></i> المطبخ مزدحم حالياً';
+            } else if (activeOrders > 6) {
+                lc.style.display = 'inline-flex';
+                lc.style.background = 'rgba(245, 158, 11, 0.1)';
+                lc.style.color = '#f59e0b';
+                lc.innerHTML = '<i class="fas fa-utensils"></i> المطبخ نشط';
+            } else {
+                lc.style.display = 'none';
             }
 
             // Products
