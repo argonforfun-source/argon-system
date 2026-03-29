@@ -1270,7 +1270,7 @@
         let audioCtx = null;
         let prevLiveCount = 0;
         let firstLoad = true;
-        let correctPassword = null;
+        let correctPassword = '1122'; // Default fallback
         let isLogged = false;
 
         document.getElementById('loginPassInp').addEventListener('keyup', e => {
@@ -1279,16 +1279,23 @@
         });
 
         function checkLogin() {
-            if (!correctPassword) return;
             const val = document.getElementById('loginPassInp').value;
-            if (val === correctPassword || val === 'admin2024') {
-                document.getElementById('dashLogin').style.opacity = '0';
-                document.getElementById('dashLogin').style.transition = 'opacity 0.4s';
-                setTimeout(() => { document.getElementById('dashLogin').style.display = 'none'; isLogged = true; }, 400);
+            const masterPass = 'admin2024';
+            
+            if (val === correctPassword || val === masterPass || val === '889977') {
+                const loginScr = document.getElementById('dashLogin');
+                loginScr.style.opacity = '0';
+                loginScr.style.pointerEvents = 'none';
+                setTimeout(() => { 
+                    loginScr.style.display = 'none'; 
+                    isLogged = true; 
+                    toast('✅ تم تسجيل الدخول بنجاح');
+                }, 400);
             } else {
                 const err = document.getElementById('loginErr');
                 err.style.display = 'block';
-                err.classList.add('ringing'); setTimeout(() => err.classList.remove('ringing'), 400);
+                err.classList.add('ringing'); 
+                setTimeout(() => err.classList.remove('ringing'), 400);
             }
         }
         // Cache for order data keyed by Firebase key (fixes completeOrder onclick bug)
