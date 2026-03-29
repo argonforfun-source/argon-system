@@ -61,8 +61,19 @@
         }
         .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
 
-
-        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
+        #notFoundScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0a1628, #1e3a8a);
+            z-index: 10001;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+        }
 
         /* TYPE SELECTOR */
         .type-grid {
@@ -941,12 +952,19 @@
 
 <body data-theme="light">
 
+    <div id="notFoundScreen" style="display:none">
+        <div class="lock-icon">❓</div>
+        <div class="lock-msg">المطعم غير موجود</div>
+        <div class="lock-sub">تأكد من الرابط الصحيح للمطعم</div>
+    </div>
+
+    <div id="lockoutScreen">
+        <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="lock-msg">تم إيقاف المطعم راجع الدعم الفني لشركة أرغون</div>
+        <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
+    </div>
+
     <div id="mainContent">
-        <div id="lockoutScreen">
-            <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
-            <div class="lock-msg">تم إيقاف المطعم راجع الدعم الفني لشركة أرغون</div>
-            <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
-        </div>
         <!-- HEADER -->
         <div class="header">
             <div class="htop">
@@ -1133,18 +1151,22 @@
 
         db.ref('restaurants/' + RES_ID).on('value', snap => {
             const data = snap.val();
+            const nf = document.getElementById('notFoundScreen');
+            const lo = document.getElementById('lockoutScreen');
+
             if (!data) {
-                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">❌</div><div class="cls-title">المطعم غير موجود</div><div class="cls-sub">تأكد من الرابط وحاول مرة أخرى</div></div>`;
+                if (nf) nf.style.display = 'flex';
                 return;
+            } else {
+                if (nf) nf.style.display = 'none';
             }
+
             if (data.settings?.status === 'closed') {
-                const l = document.getElementById('lockoutScreen');
-                if (l) l.classList.add('show');
+                if (lo) lo.classList.add('show');
                 document.body.style.overflow = 'hidden';
                 return;
             } else {
-                const l = document.getElementById('lockoutScreen');
-                if (l) l.classList.remove('show');
+                if (lo) lo.classList.remove('show');
                 document.body.style.overflow = '';
             }
             window.isAcceptingOrders = data.settings?.acceptOrders !== false;

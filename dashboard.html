@@ -1217,7 +1217,7 @@
         const db = firebase.database();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const RES_ID = urlParams.get('id') || '99';
+        const RES_ID = urlParams.get('id') || '1';
         document.getElementById('resIdDisp').textContent = RES_ID;
 
         // CLOCK
@@ -1383,7 +1383,10 @@
                         itms.split(' + ').forEach(i => { i = i.trim(); if (i) salesMap[i] = (salesMap[i] || 0) + 1; });
                     }
                 }
-            } catch (revErr) { console.warn('Revenue calculation error:', revErr); }
+            } catch (revErr) { 
+                console.warn('Revenue calculation error:', revErr);
+                toast('⚠️ فشل في معالجة بعض إحصائيات المبيعات');
+            }
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
             document.getElementById('statCompleted').textContent = cnt;
             document.getElementById('avgOrder').textContent = cnt > 0 ? (totalRev / cnt).toFixed(2) : '0.00';
@@ -1458,33 +1461,37 @@
             document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
 
             // History list (Limit to last 50 for performance)
-            const hg = document.getElementById('historyGrid');
-            hg.innerHTML = '';
-            const hkeys = Object.keys(completed).sort((a, b) => b.localeCompare(a)).slice(0, 50);
-            if (!hkeys.length) {
-                hg.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.2"></i><p>لا يوجد سجل مبيعات بعد</p></div>`;
-            } else {
-                hkeys.forEach(k => {
-                    const o = completed[k];
-                    const oType = o.orderType || 'سفري';
-                    const otClass = oType === 'توصيل' ? 'ot-delivery' : (oType === 'في الصالة' ? 'ot-dinein' : 'ot-takeaway');
-                    const otIcon = oType === 'توصيل' ? 'fa-truck' : (oType === 'في الصالة' ? 'fa-utensils' : 'fa-bag-shopping');
-                    
-                    hg.innerHTML += `
-                    <div class="hcard">
-                        <div>
-                            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);margin-bottom:4px">${o.orderNo} · ${o.date || ''} · ${o.time || ''}</div>
-                            <div class="ot-badge ${otClass}" style="margin:2px 0 8px; transform:scale(0.85); transform-origin:right">
-                                <i class="fas ${otIcon}"></i> ${oType}
-                            </div>
-                            <div style="font-size:0.88rem;font-weight:700">${o.custName}</div>
-                            <div style="margin-top:5px">${fmtItems(o.items)}</div>
-                            ${o.notes ? `<div style="font-size:0.74rem;color:var(--amber);margin-top:4px">📝 ${o.notes}</div>` : ''}
-                        </div>
-                        <div style="font-family:'IBM Plex Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--green);white-space:nowrap">${o.total} د.أ</div>
-                    </div>`;
-                });
-            }
+            try {
+                const hg = document.getElementById('histGrid');
+                if (hg) {
+                    hg.innerHTML = '';
+                    const hkeys = Object.keys(completed).sort((a, b) => b.localeCompare(a)).slice(0, 50);
+                    if (!hkeys.length) {
+                        hg.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.2"></i><p>لا يوجد سجل مبيعات بعد</p></div>`;
+                    } else {
+                        hkeys.forEach(k => {
+                            const o = completed[k];
+                            const oType = o.orderType || 'سفري';
+                            const otClass = oType === 'توصيل' ? 'ot-delivery' : (oType === 'في الصالة' ? 'ot-dinein' : 'ot-takeaway');
+                            const otIcon = oType === 'توصيل' ? 'fa-truck' : (oType === 'في الصالة' ? 'fa-utensils' : 'fa-bag-shopping');
+                            
+                            hg.innerHTML += `
+                            <div class="hcard">
+                                <div>
+                                    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);margin-bottom:4px">${o.orderNo || '—'} · ${o.date || ''} · ${o.time || ''}</div>
+                                    <div class="ot-badge ${otClass}" style="margin:2px 0 8px; transform:scale(0.85); transform-origin:right">
+                                        <i class="fas ${otIcon}"></i> ${oType}
+                                    </div>
+                                    <div style="font-size:0.88rem;font-weight:700">${o.custName || 'زبون'}</div>
+                                    <div style="margin-top:5px">${fmtItems(o.items)}</div>
+                                    ${o.notes ? `<div style="font-size:0.74rem;color:var(--amber);margin-top:4px">📝 ${o.notes}</div>` : ''}
+                                </div>
+                                <div style="font-family:'IBM Plex Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--green);white-space:nowrap">${parseFloat(o.total || 0).toFixed(2)} د.أ</div>
+                            </div>`;
+                        });
+                    }
+                }
+            } catch (hErr) { console.warn('History rendering error:', hErr); }
 
             // Menu management
             try {
