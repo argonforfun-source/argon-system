@@ -28,6 +28,48 @@
             /* dynamic from Firebase */
         }
 
+        #lockoutScreen {
+            position: fixed;
+            inset: 0;
+            background: #030712;
+            z-index: 20000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+        }
+        #lockoutScreen.show { display: flex !important; }
+        .lock-icon { font-size: 80px; color: #ef4444; margin-bottom: 24px; opacity: 0.9; }
+        .lock-msg { font-size: 28px; font-weight: 800; margin-bottom: 16px; line-height: 1.5; }
+        .lock-sub { font-size: 18px; opacity: 0.7; margin-bottom: 30px; }
+        .btn-support { 
+            background: #3b82f6; color: #fff; text-decoration: none; padding: 14px 28px; 
+            border-radius: 12px; font-weight: 700; transition: 0.3s;
+        }
+        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
+        .bdel:hover { background: #ef4444; color: white; transform: translateY(-2px); }
+
+        /* ORDER TYPE BADGES */
+        .ot-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin: 8px 0;
+            border-width: 1px;
+            border-style: solid;
+        }
+        .ot-delivery { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border-color: rgba(59, 130, 246, 0.25); }
+        .ot-dinein { background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.25); }
+        .ot-takeaway { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.25); }
+
+
         * {
             margin: 0;
             padding: 0;
@@ -942,6 +984,13 @@
         </div>
     </div>
 
+    <div id="lockoutScreen">
+        <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="lock-msg">تم إيقاف حساب المطعم</div>
+        <div class="lock-sub">يرجى مراجعة الدعم الفني لشركة أرغون لتفعيل الحساب</div>
+        <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
+    </div>
+
     <div class="topbar">
         <div class="tb-l">
             <span class="tb-logo">ARGON</span>
@@ -1269,6 +1318,14 @@
         db.ref('restaurants/' + RES_ID).on('value', snap => {
             const data = snap.val() || {};
             const sets = data.settings || {};
+
+            // Global Lockout Check
+            const lockEl = document.getElementById('lockoutScreen');
+            if (sets.status === 'closed') {
+                if (lockEl) lockEl.classList.add('show');
+            } else {
+                if (lockEl) lockEl.classList.remove('show');
+            }
             const orders = data.orders || {};
             const completed = data.completedOrders || {};
             const products = data.products || {};
@@ -1366,11 +1423,18 @@
                     const o = orders[k];
                     pendRev += parseFloat(o.total || 0);
                     const note = o.notes ? `<div class="onote">📝 ${o.notes}</div>` : '';
+                    const oType = o.orderType || 'سفري';
+                    const otClass = oType === 'توصيل' ? 'ot-delivery' : (oType === 'في الصالة' ? 'ot-dinein' : 'ot-takeaway');
+                    const otIcon = oType === 'توصيل' ? 'fa-truck' : (oType === 'في الصالة' ? 'fa-utensils' : 'fa-bag-shopping');
+                    
                     og.innerHTML += `
                     <div class="oc">
                         <div class="oheader">
                             <span class="ono">${o.orderNo || '—'}</span>
                             <span class="otm">${o.time || ''}</span>
+                        </div>
+                        <div class="ot-badge ${otClass}">
+                            <i class="fas ${otIcon}"></i> ${oType}
                         </div>
                         <div class="ocust">${o.custName || 'زبون'}</div>
                         <div class="ophone">${o.custPhone || ''}</div>
@@ -1396,10 +1460,17 @@
             } else {
                 hkeys.forEach(k => {
                     const o = completed[k];
+                    const oType = o.orderType || 'سفري';
+                    const otClass = oType === 'توصيل' ? 'ot-delivery' : (oType === 'في الصالة' ? 'ot-dinein' : 'ot-takeaway');
+                    const otIcon = oType === 'توصيل' ? 'fa-truck' : (oType === 'في الصالة' ? 'fa-utensils' : 'fa-bag-shopping');
+                    
                     hg.innerHTML += `
                     <div class="hcard">
                         <div>
                             <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);margin-bottom:4px">${o.orderNo} · ${o.date || ''} · ${o.time || ''}</div>
+                            <div class="ot-badge ${otClass}" style="margin:2px 0 8px; transform:scale(0.85); transform-origin:right">
+                                <i class="fas ${otIcon}"></i> ${oType}
+                            </div>
                             <div style="font-size:0.88rem;font-weight:700">${o.custName}</div>
                             <div style="margin-top:5px">${fmtItems(o.items)}</div>
                             ${o.notes ? `<div style="font-size:0.74rem;color:var(--amber);margin-top:4px">📝 ${o.notes}</div>` : ''}

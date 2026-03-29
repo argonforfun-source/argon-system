@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>أرغون | المنيو الذكي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -17,8 +20,8 @@
             --header-to: #3b82f6;
             --text: #0f172a;
             --muted: #64748b;
-            --border: rgba(0,0,0,0.07);
-            --shadow: rgba(0,0,0,0.06);
+            --border: rgba(0, 0, 0, 0.07);
+            --shadow: rgba(0, 0, 0, 0.06);
             --green: #10b981;
             --red: #ef4444;
             --amber: #f59e0b;
@@ -31,8 +34,62 @@
             --header-to: #1e3a8a;
             --text: #e2e8f0;
             --muted: #64748b;
-            --border: rgba(255,255,255,0.06);
-            --shadow: rgba(0,0,0,0.3);
+            --border: rgba(255, 255, 255, 0.06);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        #lockoutScreen {
+            position: fixed;
+            inset: 0;
+            background: #070d1a;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+        }
+        #lockoutScreen.show { display: flex !important; }
+        .lock-icon { font-size: 80px; color: #ef4444; margin-bottom: 24px; opacity: 0.9; }
+        .lock-msg { font-size: 24px; font-weight: 800; margin-bottom: 16px; line-height: 1.5; }
+        .lock-sub { font-size: 16px; opacity: 0.7; margin-bottom: 30px; }
+        .btn-support { 
+            background: #3b82f6; color: #fff; text-decoration: none; padding: 14px 28px; 
+            border-radius: 12px; font-weight: 700; transition: 0.3s;
+        }
+        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
+
+
+        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
+
+        /* TYPE SELECTOR */
+        .type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .type-btn {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--muted);
+        }
+        .type-btn i { font-size: 1.2rem; }
+        .type-btn span { font-size: 0.75rem; font-weight: 700; }
+        .type-btn:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.04);
+            transform: translateY(-2px);
         }
 
         * {
@@ -42,29 +99,29 @@
         }
 
         body {
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            transition: background 0.3s,color 0.3s;
+            transition: background 0.3s, color 0.3s;
             padding-bottom: 110px;
         }
 
         /* HEADER */
         .header {
-            background: linear-gradient(135deg,var(--header-from),var(--header-to));
+            background: linear-gradient(135deg, var(--header-from), var(--header-to));
             padding: 0 0 22px;
             position: relative;
             overflow: hidden;
         }
 
-            .header::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background-image: radial-gradient(circle at 20% 50%,rgba(34,211,238,0.12) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(139,92,246,0.12) 0%,transparent 40%);
-                pointer-events: none;
-            }
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 50%, rgba(34, 211, 238, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%);
+            pointer-events: none;
+        }
 
         .htop {
             display: flex;
@@ -74,28 +131,28 @@
         }
 
         .argon-mark {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.6rem;
             letter-spacing: 2px;
-            color: rgba(255,255,255,0.45);
+            color: rgba(255, 255, 255, 0.45);
             text-transform: uppercase;
         }
 
         .theme-tog {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
             padding: 6px 13px;
             border-radius: 20px;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.76rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-            .theme-tog:hover {
-                background: rgba(255,255,255,0.18);
-            }
+        .theme-tog:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
 
         .hmain {
             text-align: center;
@@ -106,8 +163,8 @@
         .rlogo {
             width: 70px;
             height: 70px;
-            background: rgba(255,255,255,0.12);
-            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -143,21 +200,21 @@
         }
 
         .chip-open {
-            background: rgba(16,185,129,0.2);
+            background: rgba(16, 185, 129, 0.2);
             color: #6ee7b7;
-            border: 1px solid rgba(16,185,129,0.3);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .chip-closed {
-            background: rgba(239,68,68,0.2);
+            background: rgba(239, 68, 68, 0.2);
             color: #fca5a5;
-            border: 1px solid rgba(239,68,68,0.3);
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .chip-hrs {
-            background: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         /* SEARCH */
@@ -171,34 +228,34 @@
         }
 
         .srchbox {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 13px;
             padding: 11px 15px 11px 44px;
             width: 100%;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.93rem;
             outline: none;
             backdrop-filter: blur(10px);
             transition: all 0.25s;
         }
 
-            .srchbox::placeholder {
-                color: rgba(255,255,255,0.4);
-            }
+        .srchbox::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
 
-            .srchbox:focus {
-                background: rgba(255,255,255,0.18);
-                border-color: rgba(255,255,255,0.3);
-            }
+        .srchbox:focus {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
 
         .srchico {
             position: absolute;
             left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.88rem;
             pointer-events: none;
         }
@@ -215,7 +272,7 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             margin-bottom: 13px;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .mgrid {
@@ -234,9 +291,9 @@
             position: relative;
         }
 
-            .icard:active {
-                transform: scale(0.97);
-            }
+        .icard:active {
+            transform: scale(0.97);
+        }
 
         .iimgwrap {
             position: relative;
@@ -283,7 +340,7 @@
         }
 
         .iprice {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.9rem;
             font-weight: 600;
             color: var(--accent);
@@ -297,7 +354,7 @@
             border-radius: 10px;
             padding: 8px;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.83rem;
             font-weight: 700;
             cursor: pointer;
@@ -308,13 +365,13 @@
             gap: 5px;
         }
 
-            .addbtn:active {
-                transform: scale(0.96);
-            }
+        .addbtn:active {
+            transform: scale(0.96);
+        }
 
-            .addbtn.added {
-                background: var(--green);
-            }
+        .addbtn.added {
+            background: var(--green);
+        }
 
         /* CART FAB */
         .cartfab {
@@ -327,7 +384,7 @@
         .cartbtn {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg,var(--accent),#6366f1);
+            background: linear-gradient(135deg, var(--accent), #6366f1);
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -335,15 +392,15 @@
             font-size: 1.45rem;
             color: white;
             cursor: pointer;
-            box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
             transition: all 0.3s;
             position: relative;
             border: none;
         }
 
-            .cartbtn:active {
-                transform: scale(0.92);
-            }
+        .cartbtn:active {
+            transform: scale(0.92);
+        }
 
         .cartcnt {
             position: absolute;
@@ -360,7 +417,7 @@
             align-items: center;
             justify-content: center;
             border: 2px solid var(--bg);
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .cartlbl {
@@ -378,7 +435,7 @@
         .moverlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
             z-index: 1000;
             display: none;
@@ -386,9 +443,9 @@
             justify-content: center;
         }
 
-            .moverlay.show {
-                display: flex;
-            }
+        .moverlay.show {
+            display: flex;
+        }
 
         .msheet {
             background: var(--card);
@@ -396,7 +453,7 @@
             padding: 26px 20px 30px;
             width: 100%;
             max-width: 500px;
-            animation: sup 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            animation: sup 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         @keyframes sup {
@@ -414,13 +471,13 @@
         .shandle {
             width: 34px;
             height: 4px;
-            background: rgba(0,0,0,0.12);
+            background: rgba(0, 0, 0, 0.12);
             border-radius: 2px;
             margin: 0 auto 18px;
         }
 
         [data-theme="dark"] .shandle {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .stitle {
@@ -432,8 +489,8 @@
 
         /* CART SUMMARY (step 0) */
         .cart-summary {
-            background: rgba(59,130,246,0.04);
-            border: 1px solid rgba(59,130,246,0.1);
+            background: rgba(59, 130, 246, 0.04);
+            border: 1px solid rgba(59, 130, 246, 0.1);
             border-radius: 14px;
             padding: 14px;
             margin-bottom: 16px;
@@ -442,7 +499,7 @@
         }
 
         [data-theme="dark"] .cart-summary {
-            background: rgba(59,130,246,0.06);
+            background: rgba(59, 130, 246, 0.06);
         }
 
         .cart-item-row {
@@ -453,9 +510,9 @@
             border-bottom: 1px solid var(--border);
         }
 
-            .cart-item-row:last-child {
-                border-bottom: none;
-            }
+        .cart-item-row:last-child {
+            border-bottom: none;
+        }
 
         .ci-left {
             display: flex;
@@ -474,7 +531,7 @@
             justify-content: center;
             font-size: 0.7rem;
             font-weight: 700;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             flex-shrink: 0;
         }
 
@@ -484,7 +541,7 @@
         }
 
         .ci-price {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.82rem;
             color: var(--accent);
             font-weight: 600;
@@ -500,9 +557,9 @@
             border-radius: 5px;
         }
 
-            .ci-remove:hover {
-                background: rgba(239,68,68,0.08);
-            }
+        .ci-remove:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
 
         .cart-total-row {
             display: flex;
@@ -510,7 +567,7 @@
             align-items: center;
             margin-top: 12px;
             padding-top: 10px;
-            border-top: 2px solid rgba(59,130,246,0.15);
+            border-top: 2px solid rgba(59, 130, 246, 0.15);
         }
 
         .ct-label {
@@ -519,7 +576,7 @@
         }
 
         .ct-val {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 1.2rem;
             font-weight: 800;
             color: var(--green);
@@ -533,7 +590,7 @@
             border-radius: 11px;
             padding: 12px 14px;
             color: var(--text);
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 0.97rem;
             outline: none;
             margin-bottom: 10px;
@@ -541,16 +598,16 @@
             transition: all 0.2s;
         }
 
-            .minp:focus {
-                border-color: var(--accent);
-            }
+        .minp:focus {
+            border-color: var(--accent);
+        }
 
         /* BILL */
         .billbox {
             background: var(--bg);
             border-radius: 15px;
             padding: 16px;
-            border: 1.5px dashed rgba(59,130,246,0.2);
+            border: 1.5px dashed rgba(59, 130, 246, 0.2);
             margin-bottom: 16px;
         }
 
@@ -561,7 +618,7 @@
             margin-bottom: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .billrow {
@@ -572,16 +629,16 @@
             border-bottom: 1px solid var(--border);
         }
 
-            .billrow:last-of-type {
-                border-bottom: none;
-            }
+        .billrow:last-of-type {
+            border-bottom: none;
+        }
 
         .bname {
             font-size: 0.86rem;
         }
 
         .bprice {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.84rem;
             font-weight: 600;
             color: var(--accent);
@@ -593,7 +650,7 @@
             align-items: center;
             padding-top: 11px;
             margin-top: 3px;
-            border-top: 2px solid rgba(59,130,246,0.13);
+            border-top: 2px solid rgba(59, 130, 246, 0.13);
         }
 
         .btl {
@@ -602,7 +659,7 @@
         }
 
         .btv {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 1.25rem;
             font-weight: 800;
             color: var(--green);
@@ -612,41 +669,41 @@
         .bnext {
             width: 100%;
             padding: 13px;
-            background: linear-gradient(135deg,var(--accent),#6366f1);
+            background: linear-gradient(135deg, var(--accent), #6366f1);
             border: none;
             border-radius: 13px;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             margin-bottom: 9px;
-            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
         }
 
-            .bnext:active {
-                transform: scale(0.98);
-            }
+        .bnext:active {
+            transform: scale(0.98);
+        }
 
         .bsend {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg,var(--green),#059669);
+            background: linear-gradient(135deg, var(--green), #059669);
             border: none;
             border-radius: 13px;
             color: white;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             font-size: 1rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
         }
 
-            .bsend:active {
-                transform: scale(0.98);
-            }
+        .bsend:active {
+            transform: scale(0.98);
+        }
 
         .bback {
             display: block;
@@ -668,7 +725,7 @@
             margin-top: 3px;
             border: none;
             background: transparent;
-            font-family: 'Tajawal',sans-serif;
+            font-family: 'Tajawal', sans-serif;
         }
 
         /* SUCCESS / ORDER NUMBER */
@@ -681,8 +738,8 @@
         .success-icon {
             width: 68px;
             height: 68px;
-            background: rgba(16,185,129,0.1);
-            border: 2px solid rgba(16,185,129,0.3);
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -699,8 +756,8 @@
         }
 
         .order-no-box {
-            background: rgba(59,130,246,0.06);
-            border: 1.5px dashed rgba(59,130,246,0.25);
+            background: rgba(59, 130, 246, 0.06);
+            border: 1.5px dashed rgba(59, 130, 246, 0.25);
             border-radius: 14px;
             padding: 18px;
             margin: 14px 0;
@@ -711,12 +768,12 @@
             font-weight: 700;
             color: var(--muted);
             letter-spacing: 1px;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             margin-bottom: 6px;
         }
 
         .on-number {
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 2rem;
             font-weight: 800;
             color: var(--accent);
@@ -730,9 +787,9 @@
             line-height: 1.5;
         }
 
-            .on-remind strong {
-                color: var(--accent);
-            }
+        .on-remind strong {
+            color: var(--accent);
+        }
 
         /* CLOSED SCREEN */
         .closed-scr {
@@ -743,7 +800,7 @@
             justify-content: center;
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg,#0a1628,#1e3a8a);
+            background: linear-gradient(135deg, #0a1628, #1e3a8a);
             color: white;
         }
 
@@ -759,7 +816,7 @@
         }
 
         .cls-sub {
-            color: rgba(255,255,255,0.55);
+            color: rgba(255, 255, 255, 0.55);
             font-size: 0.88rem;
         }
 
@@ -770,32 +827,38 @@
             color: var(--muted);
         }
 
-            .empty-s i {
-                font-size: 2.4rem;
-                display: block;
-                margin-bottom: 12px;
-                opacity: 0.25;
-            }
+        .empty-s i {
+            font-size: 2.4rem;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.25;
+        }
 
         /* POWERED BY */
         .pwby-foot {
             text-align: center;
-            font-family: 'IBM Plex Mono',monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.58rem;
-            color: rgba(100,116,139,0.45);
+            color: rgba(100, 116, 139, 0.45);
             letter-spacing: 1.5px;
             padding: 20px 0 6px;
         }
 
-            .pwby-foot span {
-                color: var(--accent);
-                opacity: 0.7;
-            }
+        .pwby-foot span {
+            color: var(--accent);
+            opacity: 0.7;
+        }
     </style>
 </head>
+
 <body data-theme="light">
 
     <div id="mainContent">
+        <div id="lockoutScreen">
+            <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="lock-msg">تم إيقاف المطعم راجع الدعم الفني لشركة أرغون</div>
+            <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
+        </div>
         <!-- HEADER -->
         <div class="header">
             <div class="htop">
@@ -806,14 +869,17 @@
                 <div class="rlogo">🍽️</div>
                 <div class="rname" id="resName">جاري التحميل...</div>
                 <div class="rmeta">
-                    <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن</span>
-                    <span class="rchip chip-hrs" id="hoursChip" style="display:none"><i class="fas fa-clock" style="font-size:0.68rem"></i> <span id="hoursText"></span></span>
+                    <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle"
+                            style="font-size:0.38rem"></i> مفتوح الآن</span>
+                    <span class="rchip chip-hrs" id="hoursChip" style="display:none"><i class="fas fa-clock"
+                            style="font-size:0.68rem"></i> <span id="hoursText"></span></span>
                 </div>
             </div>
             <div class="srchwrap" style="margin-top:16px">
                 <div class="srchcont">
                     <i class="fas fa-magnifying-glass srchico"></i>
-                    <input type="text" class="srchbox" id="searchBox" placeholder="ابحث عن صنف..." oninput="filterMenu()">
+                    <input type="text" class="srchbox" id="searchBox" placeholder="ابحث عن صنف..."
+                        oninput="filterMenu()">
                 </div>
             </div>
         </div>
@@ -822,7 +888,9 @@
         <div class="menu-sec">
             <div class="sec-lbl">قائمة الطعام</div>
             <div class="mgrid" id="menuGrid">
-                <div class="empty-s" style="grid-column:1/-1"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل القائمة...</p></div>
+                <div class="empty-s" style="grid-column:1/-1"><i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل القائمة...</p>
+                </div>
             </div>
         </div>
 
@@ -856,9 +924,27 @@
             <!-- STEP 1: INFO -->
             <div id="step1" style="display:none">
                 <div class="stitle">📋 أدخل بياناتك</div>
+                
+                <div style="font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:10px; text-align:right">نوع الطلب *</div>
+                <div class="type-grid">
+                    <div class="type-btn active" onclick="setType('takeaway', this)">
+                        <i class="fas fa-bag-shopping"></i>
+                        <span>سفري</span>
+                    </div>
+                    <div class="type-btn" onclick="setType('delivery', this)">
+                        <i class="fas fa-truck"></i>
+                        <span>توصيل</span>
+                    </div>
+                    <div class="type-btn" onclick="setType('dinein', this)">
+                        <i class="fas fa-utensils"></i>
+                        <span>في الصالة</span>
+                    </div>
+                </div>
+
                 <input type="text" id="custName" class="minp" placeholder="اسمك الكريم *">
                 <input type="tel" id="custPhone" class="minp" placeholder="رقم هاتفك *">
-                <textarea id="orderNotes" class="minp" rows="2" placeholder="ملاحظات إضافية (اختياري)" style="resize:none"></textarea>
+                <textarea id="orderNotes" class="minp" rows="2" placeholder="ملاحظات إضافية (اختياري)"
+                    style="resize:none"></textarea>
                 <button class="bnext" onclick="goStep2()">
                     <i class="fas fa-receipt" style="margin-left:7px"></i> عرض الفاتورة
                 </button>
@@ -934,8 +1020,14 @@
                 return;
             }
             if (data.settings?.status === 'closed') {
-                document.body.innerHTML = `<div class="closed-scr"><div class="cls-icon">🔒</div><div class="cls-title">عذراً، المطعم مغلق</div><div class="cls-sub">سيعود قريباً، شكراً لتفهمك</div></div>`;
+                const l = document.getElementById('lockoutScreen');
+                if (l) l.classList.add('show');
+                document.body.style.overflow = 'hidden';
                 return;
+            } else {
+                const l = document.getElementById('lockoutScreen');
+                if (l) l.classList.remove('show');
+                document.body.style.overflow = '';
             }
             window.isAcceptingOrders = data.settings?.acceptOrders !== false;
 
@@ -988,7 +1080,7 @@
                     <div class="ibody">
                         <div class="iname">${p.name}</div>
                         <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} د.أ</div>
-                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${(p.name||'').replace(/'/g, "\\'")}',${p.price},'${p.key}')">
+                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${(p.name || '').replace(/'/g, "\\'")}',${p.price},'${p.key}')">
                             <i class="fas fa-plus"></i> أضف للسلة
                         </button>
                     </div>
@@ -1041,7 +1133,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:8px">
                             <span class="ci-price">${(it.price * it.qty).toFixed(2)} د.أ</span>
-                            <button class="ci-remove" onclick="removeFromCart('${(it.name||'').replace(/'/g, "\\'")}')"><i class="fas fa-minus"></i></button>
+                            <button class="ci-remove" onclick="removeFromCart('${(it.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-minus"></i></button>
                         </div>
                     </div>`).join('') +
                 `<div class="cart-total-row">
@@ -1057,7 +1149,12 @@
         }
 
         function openModal() {
-            if (!cart.length) { alert('سلة مشترياتك فارغة! أضف أصنافاً أولاً'); return; }
+            if (cart.length === 0) return;
+            selectedType = 'takeaway';
+            const btns = document.querySelectorAll('.type-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if (btns[0]) btns[0].classList.add('active');
+
             goStep0();
             document.getElementById('orderModal').classList.add('show');
         }
@@ -1121,12 +1218,22 @@
             document.getElementById('step2').style.display = 'block';
         }
 
+        let selectedType = 'takeaway';
+        function setType(t, el) {
+            selectedType = t;
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
         function sendOrder() {
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
             const notes = document.getElementById('orderNotes').value.trim();
             const total = cart.reduce((s, i) => s + i.price, 0);
             const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
+
+            // Translate type for dashboard
+            const typeLabels = { 'takeaway': 'سفري', 'delivery': 'توصيل', 'dinein': 'في الصالة' };
 
             // Build structured items array
             const counts = {};
@@ -1143,6 +1250,7 @@
                 items: structuredItems,
                 total: total.toFixed(2),
                 orderNo: orderNo,
+                orderType: typeLabels[selectedType] || 'سفري',
                 status: 'new',
                 time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
                 date: new Date().toLocaleDateString('ar-EG')
@@ -1192,4 +1300,5 @@
         });
     </script>
 </body>
+
 </html>
