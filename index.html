@@ -1059,7 +1059,8 @@
                     
                     <div style="margin:15px 0; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:12px; font-size:0.85rem; text-align:right">
                         <div>👤 الاسم: <span id="finalCustName" style="font-weight:700"></span></div>
-                        <div style="margin-top:5px">🚚 النوع: <span id="finalOrderType" style="font-weight:700"></span></div>
+                        <div style="margin-top:5px">📦 النوع: <span id="finalOrderType" style="font-weight:700"></span></div>
+                        <div style="margin-top:5px; padding-top:5px; border-top:1px dashed var(--border); color:var(--green); font-weight:800">💰 المجموع: <span id="finalTotal"></span> د.أ</div>
                     </div>
 
                     <div class="track-wrap">
@@ -1381,6 +1382,7 @@
                 document.getElementById('finalOrderNo').textContent = orderNo;
                 document.getElementById('finalCustName').textContent = name;
                 document.getElementById('finalOrderType').textContent = typeLabels[selectedType] || 'سفري';
+                document.getElementById('finalTotal').textContent = total.toFixed(2);
                 
                 showStep(3);
 

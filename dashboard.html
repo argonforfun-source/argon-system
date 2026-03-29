@@ -1360,41 +1360,46 @@
                 sb.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح';
             }
 
-            // Revenue
+            // Revenue & Sales Analytics
             let totalRev = 0, cnt = 0;
             const salesMap = {};
-            for (let k in completed) {
-                totalRev += parseFloat(completed[k].total || 0); cnt++;
-                const itms = completed[k].items;
-                if (Array.isArray(itms)) {
-                    itms.forEach(i => {
-                        if (i && typeof i === 'object') {
-                            const n = i.name || i.n;
-                            const q = parseInt(i.qty || i.q || 1);
-                            if (n) salesMap[n] = (salesMap[n] || 0) + q;
-                        } else if (typeof i === 'string') {
-                            const trimmed = i.trim();
-                            if (trimmed) salesMap[trimmed] = (salesMap[trimmed] || 0) + 1;
-                        }
-                    });
-                } else if (typeof itms === 'string') {
-                    itms.split(' + ').forEach(i => { i = i.trim(); if (i) salesMap[i] = (salesMap[i] || 0) + 1; });
+            try {
+                for (let k in completed) {
+                    const orderData = completed[k];
+                    totalRev += parseFloat(orderData.total || 0); cnt++;
+                    const itms = orderData.items;
+                    if (Array.isArray(itms)) {
+                        itms.forEach(i => {
+                            if (i && typeof i === 'object') {
+                                const n = i.name || i.n;
+                                const q = parseInt(i.qty || i.q || 1);
+                                if (n) salesMap[n] = (salesMap[n] || 0) + q;
+                            } else if (typeof i === 'string') {
+                                const trimmed = i.trim();
+                                if (trimmed) salesMap[trimmed] = (salesMap[trimmed] || 0) + 1;
+                            }
+                        });
+                    } else if (typeof itms === 'string') {
+                        itms.split(' + ').forEach(i => { i = i.trim(); if (i) salesMap[i] = (salesMap[i] || 0) + 1; });
+                    }
                 }
-            }
+            } catch (revErr) { console.warn('Revenue calculation error:', revErr); }
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
             document.getElementById('statCompleted').textContent = cnt;
             document.getElementById('avgOrder').textContent = cnt > 0 ? (totalRev / cnt).toFixed(2) : '0.00';
 
             // Best sellers
-            const bsl = document.getElementById('bestSellerList');
-            const sorted = Object.entries(salesMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            bsl.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
-                <div class="bsc">
-                    <div class="bsrank">#${i + 1} BESTSELLER</div>
-                    <div class="bsname">${n}</div>
-                    <div class="bscnt">${c}</div>
-                    <div style="font-size:0.66rem;color:var(--muted)">طلب</div>
-                </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد بيانات مبيعات بعد</div>';
+            try {
+                const bsl = document.getElementById('bestSellerList');
+                const sorted = Object.entries(salesMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+                bsl.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
+                    <div class="bsc">
+                        <div class="bsrank">#${i + 1} BESTSELLER</div>
+                        <div class="bsname">${n}</div>
+                        <div class="bscnt">${c}</div>
+                        <div style="font-size:0.66rem;color:var(--muted)">طلب</div>
+                    </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد بيانات مبيعات بعد</div>';
+            } catch (bsErr) { console.warn('Best sellers error:', bsErr); }
 
             // Live orders
             const liveKeys = Object.keys(orders);
@@ -1481,24 +1486,33 @@
                 });
             }
 
-            // Menu
-            const mg = document.getElementById('menuGrid');
-            mg.innerHTML = '';
-            for (let k in products) {
-                const p = products[k];
-                mg.innerHTML += `
-                <div class="mic">
-                    ${p.img ? `<img src="${p.img}" class="mimg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
-                    <div class="mip" style="${p.img ? 'display:none' : ''}">🍽️</div>
-                    <div class="mbody">
-                        <div class="miname">${p.name}</div>
-                        <div class="miprice">${p.price} د.أ</div>
-                    </div>
-                    <button class="bdel" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">
-                        <i class="fas fa-trash" style="margin-left:5px"></i> حذف الصنف
-                    </button>
-                </div>`;
-            }
+            // Menu management
+            try {
+                const mg = document.getElementById('menuGrid');
+                if (mg) {
+                    mg.innerHTML = '';
+                    const pKeys = Object.keys(products);
+                    if (pKeys.length === 0) {
+                        mg.innerHTML = '<div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:20px">لا توجد أصناف في المنيو حالياً</div>';
+                    } else {
+                        pKeys.forEach(k => {
+                            const p = products[k];
+                            mg.innerHTML += `
+                            <div class="mic">
+                                ${p.img ? `<img src="${p.img}" class="mimg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                                <div class="mip" style="${p.img ? 'display:none' : ''}">🍽️</div>
+                                <div class="mbody">
+                                    <div class="miname">${p.name}</div>
+                                    <div class="miprice">${p.price} د.أ</div>
+                                </div>
+                                <button class="bdel" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()">
+                                    <i class="fas fa-trash" style="margin-left:5px"></i> حذف الصنف
+                                </button>
+                            </div>`;
+                        });
+                    }
+                }
+            } catch (menuErr) { console.warn('Menu rendering error:', menuErr); }
 
             firstLoad = false;
         }, err => {
