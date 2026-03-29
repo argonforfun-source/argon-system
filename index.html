@@ -440,6 +440,86 @@
         }
 
         /* MODAL OVERLAY */
+        /* TRACKER */
+        .track-wrap {
+            margin-top: 25px;
+            padding: 18px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed var(--accent);
+            border-radius: 16px;
+            text-align: right;
+        }
+        .track-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .track-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 20px 0 10px;
+        }
+        .track-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+        .track-progress {
+            position: absolute;
+            top: 15px;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            z-index: 2;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .tstep {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 25%;
+        }
+        .tpoint {
+            width: 32px;
+            height: 32px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            transition: 0.3s;
+        }
+        .tstep.active .tpoint {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+        .tlbl {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+        .tstep.active .tlbl {
+            color: var(--accent);
+        }
+
         .moverlay {
             position: fixed;
             inset: 0;
@@ -970,9 +1050,6 @@
                 <span class="bback" onclick="goStep1()">← تعديل البيانات</span>
             </div>
 
-            <!-- STEP 3: SUCCESS + ORDER NUMBER -->
-            <div class="success-wrap" id="step3">
-                <div class="success-icon">✅</div>
                 <div class="success-title">تم إرسال طلبك بنجاح!</div>
                 <div class="order-no-box">
                     <div class="on-label">رقم طلبك هو</div>
@@ -1274,27 +1351,23 @@
                 date: new Date().toLocaleDateString('ar-EG')
             };
 
-            db.ref(`restaurants/${RES_ID}/orders`).push(order).then(() => {
+            const newOrderRef = db.ref(`restaurants/${RES_ID}/orders`).push(order);
+            newOrderRef.then(() => {
+                const orderKey = newOrderRef.key;
+                
                 // Show success with order number
                 document.getElementById('step2').style.display = 'none';
                 document.getElementById('finalOrderNo').textContent = orderNo;
-                document.querySelector('.success-wrap').style.display = 'block';
+                document.getElementById('step3').style.display = 'block';
+
+                startTracking(orderKey);
 
                 cart = [];
                 updateCartUI();
                 isSending = false;
 
-                // Close after 8 seconds
-                setTimeout(() => {
-                    closeModal();
-                    setTimeout(() => {
-                        document.querySelector('.success-wrap').style.display = 'none';
-                        document.getElementById('step0').style.display = 'block';
-                        document.getElementById('custName').value = '';
-                        document.getElementById('custPhone').value = '';
-                        document.getElementById('orderNotes').value = '';
-                    }, 500);
-                }, 8000);
+                // Don't auto-close quickly, let them see tracking
+                // setTimeout(closeModal, 15000); 
             }).catch(err => {
                 console.error('Order error:', err);
                 alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
@@ -1305,6 +1378,62 @@
                     btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم';
                 }
             });
+        }
+
+        let trackListener = null;
+        function startTracking(key) {
+            if (trackListener) db.ref(`restaurants/${RES_ID}/orders/${key}`).off('value', trackListener);
+
+            const updateUI = (status) => {
+                const steps = { 'new': 0, 'prep': 1, 'shipped': 2, 'done': 3, 'completed': 3 };
+                const labels = {
+                    'new': 'وصل الطلب للمطعم بنجاح',
+                    'prep': 'المطعم يقوم بتحضير طلبك الآن 👨‍🍳',
+                    'shipped': 'طلبك جاهز للتسليم/التوصيل! 📦',
+                    'done': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️',
+                    'completed': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️'
+                };
+                
+                const idx = steps[status] || 0;
+                const progress = (idx / 3) * 100;
+                document.getElementById('trackProgress').style.width = progress + '%';
+                
+                const ids = ['ts-new', 'ts-prep', 'ts-shipped', 'ts-done'];
+                ids.forEach((id, i) => {
+                    const el = document.getElementById(id);
+                    if (i <= idx) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+
+                document.getElementById('trackStatusText').textContent = labels[status] || labels.new;
+            };
+
+            trackListener = db.ref(`restaurants/${RES_ID}/orders/${key}`).on('value', snap => {
+                const val = snap.val();
+                if (val) {
+                    updateUI(val.status || 'new');
+                } else {
+                    // Logic: If order is gone from 'orders', it might be in 'completedOrders'
+                    db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).once('value').then(cSnap => {
+                        const cVal = cSnap.val();
+                        if (cVal) updateUI('done');
+                    });
+                }
+            });
+        }
+
+        function closeModal() {
+            if (trackListener) {
+                // We keep it active as long as the modal is open
+            }
+            document.getElementById('orderModal').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('step3').style.display = 'none';
+                document.getElementById('step0').style.display = 'block';
+                document.getElementById('custName').value = '';
+                document.getElementById('custPhone').value = '';
+                document.getElementById('orderNotes').value = '';
+            }, 300);
         }
 
         function toggleTheme() {
