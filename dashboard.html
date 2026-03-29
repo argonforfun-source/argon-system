@@ -1068,6 +1068,9 @@
                 <div class="ni" onclick="showSec('settingsSec',this)">
                     <i class="fas fa-gear"></i> الإعدادات
                 </div>
+                <div class="ni" onclick="openRep()" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.2); margin-top:10px; color:var(--accent)">
+                    <i class="fas fa-file-invoice-dollar"></i> أصدر تقرير PDF
+                </div>
             </div>
             <div style="margin-top:auto;padding:12px 9px;border-top:1px solid var(--border)">
                 <div class="pwby">POWERED BY <span>ARGON</span></div>
@@ -1171,6 +1174,47 @@
                         <button class="badd" onclick="addItem()"><i class="fas fa-plus" style="margin-left:5px"></i>
                             إضافة</button>
                     </div>
+
+        <!-- REPORTS MODAL -->
+        <div id="repModal" class="modal">
+            <div class="mcont" style="width:95%; max-width:700px">
+                <div class="mh">
+                    <div class="mheader-title">📊 التقارير المالية والتحليلية</div>
+                    <button class="mclose" onclick="closeRep()">×</button>
+                </div>
+                <div class="mb" style="max-height:85vh; overflow-y:auto; padding:20px">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px; margin-bottom:25px">
+                        <div class="sb2" style="background:var(--bg); border:1px solid var(--border)">
+                            <div class="slb">إجمالي المبيعات</div>
+                            <div class="sv" id="repRev" style="font-size:1.5rem">0</div>
+                        </div>
+                        <div class="sb2" style="background:var(--bg); border:1px solid var(--border)">
+                            <div class="slb">عدد الطلبات</div>
+                            <div class="sv" id="repCnt" style="font-size:1.5rem">0</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:25px">
+                        <div class="ph"><div class="pt" style="font-size:1rem">⏰ ساعات الذروة (الضغط)</div></div>
+                        <div id="peakGraf" style="margin-top:15px; background:var(--bg); padding:15px; border-radius:15px; border:1px solid var(--border)">
+                            <!-- Peak hour bars go here -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="ph"><div class="pt" style="font-size:1rem">📈 الأصناف الأكثر مبيعاً</div></div>
+                        <div id="repBest" style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                            <!-- Best items go here -->
+                        </div>
+                    </div>
+                    
+                    <button class="bcomplete" onclick="exportPDF()" style="margin-top:30px; width:100%; height:50px; font-size:1.1rem; background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                        <i class="fas fa-file-pdf" style="margin-left:8px"></i> تصدير التقرير كـ PDF 
+                    </button>
+                    <p style="text-align:center; color:var(--muted); font-size:0.75rem; margin-top:10px">سيتم تنزيل ملف PDF يحتوي على كافة الإحصائيات الحالية</p>
+                </div>
+            </div>
+        </div>
                 </div>
                 <div class="mg" id="menuGrid"></div>
             </div>
@@ -1241,8 +1285,9 @@
 
     <div id="toast"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
@@ -1272,6 +1317,7 @@
         let firstLoad = true;
         let correctPassword = '1122'; // Default fallback
         let isLogged = false;
+        let globalCompleted = {};
 
         document.getElementById('loginPassInp').addEventListener('keyup', e => {
             if (e.key === 'Enter') checkLogin();
@@ -1367,6 +1413,7 @@
             const orders = data.orders || {};
             const completed = data.completedOrders || {};
             const products = data.products || {};
+            globalCompleted = completed;
 
             // 1. GLOBAL LOCKOUT & THEME
             const lockEl = document.getElementById('lockoutScreen');
@@ -1519,9 +1566,112 @@
 
         function showSec(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
 
-        function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('prevModal').style.display = 'flex'; }
-        function closePreview() { document.getElementById('prevModal').style.display = 'none'; document.getElementById('prevFrame').src = ''; }
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+        function openRep() {
+            document.getElementById('repModal').style.display = 'flex';
+            renderRep();
+        }
+        function closeRep() { document.getElementById('repModal').style.display = 'none'; }
+
+        function renderRep() {
+            const rev = document.getElementById('totalRevenue').textContent;
+            const cnt = document.getElementById('statCompleted').textContent;
+            document.getElementById('repRev').textContent = rev + ' د.أ';
+            document.getElementById('repCnt').textContent = cnt;
+
+            // Peak Hours
+            const hourMap = {};
+            for (let i = 0; i < 24; i++) hourMap[i] = 0;
+            
+            for (let k in globalCompleted) {
+                const o = globalCompleted[k];
+                if (o.time) {
+                    const h = parseInt(o.time.split(':')[0]);
+                    if (!isNaN(h)) hourMap[h]++;
+                }
+            }
+
+            const pg = document.getElementById('peakGraf');
+            pg.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">توزيع الطلبات حسب الساعة (Peak Hours):</div>';
+            
+            const max = Math.max(...Object.values(hourMap), 1);
+            for(let h=0; h<24; h++) {
+                if (hourMap[h] === 0 && (h < 9 || h > 23)) continue; // Skip empty late night
+                const perc = (hourMap[h] / max) * 100;
+                pg.innerHTML += `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                    <span style="width:50px;font-size:0.75rem;font-weight:700;color:var(--muted)">${h}:00</span>
+                    <div style="flex:1;height:14px;background:rgba(59,130,246,0.05);border-radius:7px;overflow:hidden;border:1px solid var(--border)">
+                        <div style="width:${perc}%;height:100%;background:linear-gradient(90deg,var(--accent),#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.3)"></div>
+                    </div>
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--accent);min-width:20px">${hourMap[h]}</span>
+                </div>`;
+            }
+
+            // Best Items
+            try {
+                const rb = document.getElementById('repBest');
+                const sMap = {};
+                for (let k in globalCompleted) {
+                    const o = globalCompleted[k];
+                    if (Array.isArray(o.items)) {
+                        o.items.forEach(i => {
+                            const n = i.name || i.n;
+                            const q = parseInt(i.qty || i.q || 1);
+                            if (n) sMap[n] = (sMap[n] || 0) + q;
+                        });
+                    }
+                }
+                const sorted = Object.entries(sMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                rb.innerHTML = sorted.map(([n,c]) => `
+                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(59,130,246,0.03);border-radius:10px;border:1px solid var(--border)">
+                    <span style="font-weight:700">${n}</span>
+                    <span style="color:var(--accent);font-weight:800">${c} طلب</span>
+                </div>`).join('');
+            } catch(e) {}
+        }
+
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            toast('⏳ جاري إنشاء التقرير... يرجى الانتظار');
+            
+            const name = document.getElementById('resNameTop').textContent;
+            const rev = document.getElementById('repRev').textContent;
+            const cnt = document.getElementById('repCnt').textContent;
+
+            // Header & Branding
+            doc.setFillColor(59, 130, 246);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.text("ARGON SYSTEM", 10, 20);
+            doc.setFontSize(10);
+            doc.text("Professional Restaurant Management", 10, 28);
+
+            // Report Info
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(18);
+            doc.text(`Sales Report: ${name}`, 10, 55);
+            doc.setDrawColor(200, 200, 200);
+            doc.line(10, 60, 200, 60);
+
+            // Stats Table
+            doc.autoTable({
+                startY: 70,
+                head: [['Statistic', 'Value']],
+                body: [
+                    ['Total Sales', rev],
+                    ['Total Orders Completed', cnt],
+                    ['Generated On', new Date().toLocaleString()],
+                    ['Report Type', 'Manual Export (Dashboard)']
+                ],
+                theme: 'striped',
+                headStyles: { fillColor: [59, 130, 246] }
+            });
+
+            doc.save(`Argon_Report_${name}_${new Date().toISOString().split('T')[0]}.pdf`);
+            toast('✅ تم تحميل تقرير PDF بنجاح');
+        }
 
         function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
