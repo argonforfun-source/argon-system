@@ -1345,8 +1345,8 @@
                 setTimeout(() => err.classList.remove('ringing'), 400);
             }
         }
-        // Cache for order data keyed by Firebase key (fixes completeOrder onclick bug)
-        const ordersCache = {};
+        // Cache for order data keyed by Firebase key
+        let ordersCache = {};
 
         function getAudioCtx() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1546,36 +1546,52 @@
 
                 // B. HISTORY
                 const hg = document.getElementById('histGrid');
-                hg.innerHTML = `<div class="htable-wrap">
-                    <table class="htable">
-                        <thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th>المبلغ</th><th>النوع</th></tr></thead>
-                        <tbody>
-                            ${doneKeys.reverse().slice(0, 50).map(k => {
-                                const o = completed[k];
-                                return `<tr>
-                                    <td><div style="font-weight:700">${o.time || '-'}</div><div style="font-size:0.7rem;opacity:0.6">${o.date || '-'}</div></td>
-                                    <td><b>${o.custName || '-'}</b><br><small>${o.custPhone || '-'}</small></td>
-                                    <td>${fmtItems(o.items)}</td>
-                                    <td style="color:var(--green);font-weight:800">${o.total}</td>
-                                    <td><span class="tbadge tbadge-id" style="font-size:0.65rem">${o.orderType || '-'}</span></td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>`;
+                if (hg) {
+                    if (doneKeys.length === 0) {
+                        hg.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);background:var(--panel);border-radius:20px;border:1px solid var(--border)"><i class="fas fa-history" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد مبيعات في السجل حالياً</div>';
+                    } else {
+                        hg.innerHTML = `<div class="htable-wrap">
+                            <table class="htable">
+                                <thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th>المبلغ</th><th>النوع</th></tr></thead>
+                                <tbody>
+                                    ${doneKeys.reverse().slice(0, 50).map(k => {
+                                        const o = completed[k];
+                                        if (!o) return '';
+                                        return `<tr>
+                                            <td><div style="font-weight:700">${o.time || '-'}</div><div style="font-size:0.7rem;opacity:0.6">${o.date || '-'}</div></td>
+                                            <td><b>${o.custName || '-'}</b><br><small>${o.custPhone || '-'}</small></td>
+                                            <td>${fmtItems(o.items)}</td>
+                                            <td style="color:var(--green);font-weight:800">${o.total || '0.00'}</td>
+                                            <td><span class="tbadge tbadge-id" style="font-size:0.65rem">${o.orderType || '-'}</span></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>`;
+                    }
+                }
 
                 // C. MENU
                 const mg = document.getElementById('menuGrid');
-                mg.innerHTML = pKeys.map(k => {
-                    const p = products[k];
-                    return `
-                    <div class="pb">
-                        <img src="${p.img || 'https://via.placeholder.com/150'}" class="pi">
-                        <div class="pt">${p.name}</div>
-                        <div class="pp">${p.price} د.أ</div>
-                        <button class="bdel" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()"><i class="fas fa-trash"></i></button>
-                    </div>`;
-                }).join('');
+                if (mg) {
+                    mg.innerHTML = pKeys.map(k => {
+                        const p = products[k];
+                        return `
+                        <div class="pb" style="background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.05); border-radius:20px; overflow:hidden; transition: 0.3s; position:relative;">
+                            <div style="height:140px; overflow:hidden; position:relative;">
+                                <img src="${p.img || 'https://via.placeholder.com/150'}" style="width:100%; height:100%; object-fit:cover;">
+                                <div style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.6); backdrop-filter:blur(5px); color:#fff; padding:4px 10px; border-radius:10px; font-weight:800; font-size:0.85rem;">${p.price} د.أ</div>
+                            </div>
+                            <div style="padding:15px;">
+                                <div style="font-weight:800; font-size:1rem; color:var(--text); margin-bottom:12px;">${p.name}</div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="bdel" style="flex:1; border-radius:10px; padding:10px; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2);" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()"><i class="fas fa-trash"></i> حذف الصنف</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                    if (!pKeys.length) mg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">لا توجد أصناف في المنيو</div>';
+                }
             } catch (renderErr) { console.warn('Render error:', renderErr); }
 
             firstLoad = false;
@@ -1651,7 +1667,6 @@
             document.getElementById('repRev').textContent = rev + ' د.أ';
             document.getElementById('repCnt').textContent = cnt;
 
-            // Peak Hours
             const hourMap = {};
             for (let i = 0; i < 24; i++) hourMap[i] = 0;
             
@@ -1746,37 +1761,24 @@
             toast('✅ تم تحميل تقرير PDF بنجاح');
         }
 
+        function showSec(id, el) { 
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); 
+            if(el) el.classList.add('active'); 
+        }
+
+        function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('prevModal').style.display = 'flex'; }
+        function closePreview() { document.getElementById('prevModal').style.display = 'none'; document.getElementById('prevFrame').src = ''; }
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+
         function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
         // Unlock audio on first interaction
         document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
-        function generateReport() {
-            const stats = {
-                rev: document.getElementById('totalRevenue').textContent,
-                cnt: document.getElementById('statCompleted').textContent,
-                name: document.getElementById('resName').textContent,
-                date: new Date().toLocaleDateString('ar-JO')
-            };
-
-            // Prep Template
-            document.getElementById('repResName').textContent = stats.name;
-            document.getElementById('repDate').textContent = stats.date;
-            document.getElementById('repTotalRev').textContent = stats.rev + ' د.أ';
-            document.getElementById('repCount').textContent = stats.cnt;
-
-            // Products
-            const bsl = Array.from(document.querySelectorAll('.bsc')).map(el => {
-                return {
-                    name: el.querySelector('.bsname').textContent,
-                    cnt: el.querySelector('.bscnt').textContent
-                };
-            }).slice(0, 5);
-            
-            document.getElementById('repBest').innerHTML = bsl.map(i => `
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                    <span>${i.name}</span>
-                    <span style="font-weight:700;">${i.cnt} طلب</span>
-                </div>
+    </script>
+</body>
+</html>
             `).join('');
 
             // Peek Hours
