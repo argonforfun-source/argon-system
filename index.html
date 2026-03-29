@@ -89,8 +89,16 @@
         .type-btn:hover {
             border-color: rgba(59, 130, 246, 0.3);
             background: rgba(59, 130, 246, 0.04);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
+        .type-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .type-btn.active i { color: #fff; }
+        .type-btn.active span { color: #fff; }
 
         * {
             margin: 0;
