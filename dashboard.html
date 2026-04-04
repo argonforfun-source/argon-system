@@ -1377,6 +1377,16 @@
         });
         window.addEventListener('online', () => { db.goOnline(); });
         window.addEventListener('offline', () => { isConnected = false; updateConnBar(); });
+        
+        // ── MOBILE FIX: Force fast reconnect when screen unlocks or tab becomes visible ──
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                setTimeout(() => {
+                    db.goOffline();
+                    db.goOnline();
+                }, 500); // 500ms delay to let device network stabilize
+            }
+        });
 
         function updateConnBar() {
             const bar = document.getElementById('connBar');
