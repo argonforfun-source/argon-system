@@ -1841,6 +1841,7 @@
             // Best Items
             try {
                 const rb = document.getElementById('repBest');
+                const prb = document.getElementById('printRepBest');
                 const sMap = {};
                 for (let k in globalCompleted) {
                     const o = globalCompleted[k];
@@ -1853,11 +1854,21 @@
                     }
                 }
                 const sorted = Object.entries(sMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                rb.innerHTML = sorted.map(([n,c]) => `
+                const html = sorted.map(([n,c]) => `
                 <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(59,130,246,0.03);border-radius:10px;border:1px solid var(--border)">
                     <span style="font-weight:700">${n}</span>
                     <span style="color:var(--accent);font-weight:800">${c} طلب</span>
                 </div>`).join('');
+                
+                if(rb) rb.innerHTML = html;
+                if(prb) prb.innerHTML = html;
+
+                // Sync Peak Hours to Print Template
+                const prp = document.getElementById('printRepPeak');
+                if (prp) {
+                    const peaks = Object.entries(hourMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                    prp.innerHTML = peaks.map(([h, c]) => `• الساعة <b>${h}:00</b> سجلت <b>${c} طلبات</b>`).join('<br>');
+                }
             } catch(e) {}
         }
 
@@ -1929,12 +1940,12 @@
 
         <div style="margin-bottom:30px;">
             <h3 style="color:#111; border-right:4px solid #3b82f6; padding-right:10px;">⭐ أفضل الأصناف مبيعاً</h3>
-            <div id="repBest" style="margin-top:10px;"></div>
+            <div id="printRepBest" style="margin-top:10px;"></div>
         </div>
 
         <div style="margin-bottom:30px;">
             <h3 style="color:#111; border-right:4px solid #3b82f6; padding-right:10px;">🕒 ساعات الذروة</h3>
-            <div id="repPeak" style="margin-top:10px; font-size:14px; line-height:1.6;"></div>
+            <div id="printRepPeak" style="margin-top:10px; font-size:14px; line-height:1.6;"></div>
         </div>
 
         <div style="text-align:center; font-size:10px; color:#999; margin-top:50px; border-top:1px solid #eee; padding-top:20px;">
