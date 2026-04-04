@@ -1744,22 +1744,35 @@
 
         // ══ CONNECTION MONITOR ══
         let _isOnline = true;
+        let _connTimer = null;
+        
         db.ref('.info/connected').on('value', s => {
             const was = !_isOnline;
             _isOnline = s.val() === true;
-            if (_isOnline && was) toast('✅ تم إعادة الاتصال', 'ok');
-            if (!_isOnline) toast('⚠️ فقد الاتصال — جاري إعادة الربط...', 'err');
+            if (_isOnline && was) {
+                toast('✅ تم إعادة الاتصال بقاعدة البيانات', 'ok');
+                document.getElementById('resGrid').classList.remove('offline-dim');
+            }
+            if (!_isOnline) {
+                toast('⚠️ جاري محاولة الاتصال بالشبكة...', 'err');
+            }
         });
-        window.addEventListener('online', () => { db.goOnline(); });
-        window.addEventListener('offline', () => { _isOnline = false; });
+
+        // Handle OS network online/offline events
+        window.addEventListener('online', () => { 
+            setTimeout(() => db.goOnline(), 1000); 
+        });
+        window.addEventListener('offline', () => { 
+            _isOnline = false; 
+            db.goOffline();
+        });
         
-        // ── MOBILE FIX: Force fast reconnect when screen unlocks or tab becomes visible ──
+        // ── Gentle Mobile Fix ──
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                setTimeout(() => {
-                    db.goOffline();
-                    db.goOnline();
-                }, 500);
+            if (document.visibilityState === 'visible' && !_isOnline) {
+                // Only force reconnect if we know we are disconnected
+                db.goOffline();
+                setTimeout(() => db.goOnline(), 1000);
             }
         });
 

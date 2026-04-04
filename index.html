@@ -1134,7 +1134,48 @@
             databaseURL: "https://argon-system-default-rtdb.europe-west1.firebasedatabase.app"
         };
         firebase.initializeApp(firebaseConfig);
+        
         const db = firebase.database();
+
+        // ══════════════════════════════════════════════
+        // CONNECTION MONITOR
+        // ══════════════════════════════════════════════
+        let isConnected = true;
+        let firstLoad = true;
+        db.ref('.info/connected').on('value', snap => {
+            const wasOff = !isConnected;
+            isConnected = snap.val() === true;
+            updateConnBar();
+            if (isConnected && wasOff && !firstLoad) {
+                toast('✅ تم إعادة الاتصال بالخادم');
+            }
+            firstLoad = false;
+        });
+        window.addEventListener('online', () => { setTimeout(() => db.goOnline(), 1000); });
+        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); db.goOffline(); });
+
+        // ── Gentle Mobile Fix ──
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !isConnected) {
+                db.goOffline();
+                setTimeout(() => db.goOnline(), 1000);
+            }
+        });
+
+        function updateConnBar() {
+            const bar = document.getElementById('connBar');
+            if(!bar) return;
+            if (isConnected) {
+                bar.className = 'conn-bar conn-ok';
+                bar.innerHTML = '<i class="fas fa-wifi"></i> متصل';
+                bar.style.display = 'flex';
+                setTimeout(() => { if (isConnected) bar.style.display = 'none'; }, 2500);
+            } else {
+                bar.style.display = 'flex';
+                bar.className = 'conn-bar conn-off';
+                bar.innerHTML = '<i class="fas fa-exclamation-triangle"></i> اتصال ضعيف — جاري المحاولة...';
+            }
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         let RES_ID = urlParams.get('id');
@@ -1147,16 +1188,6 @@
         let cart = []; // array of {name, price}
         let allProducts = [];
         let selectedType = 'takeaway';
-
-        // ══════════════════════════════════════════════
-        // CONNECTION MONITOR — prevents blank/frozen screen
-        // ══════════════════════════════════════════════
-        let _isConnected = true;
-        db.ref('.info/connected').on('value', snap => {
-            _isConnected = snap.val() === true;
-        });
-        window.addEventListener('online', () => { db.goOnline(); });
-        window.addEventListener('offline', () => { _isConnected = false; });
 
         // Apply accent color from Firebase
         function applyAccent(color) {

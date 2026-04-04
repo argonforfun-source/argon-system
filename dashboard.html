@@ -121,6 +121,7 @@
             font-weight: 600;
             background: linear-gradient(135deg, #fff, var(--accent));
             -webkit-background-clip: text;
+        background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 3px;
         }
@@ -1375,16 +1376,14 @@
                 toast('✅ تم إعادة الاتصال بالخادم');
             }
         });
-        window.addEventListener('online', () => { db.goOnline(); });
-        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); });
+        window.addEventListener('online', () => { setTimeout(() => db.goOnline(), 1000); });
+        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); db.goOffline(); });
         
-        // ── MOBILE FIX: Force fast reconnect when screen unlocks or tab becomes visible ──
+        // ── Gentle Mobile Fix ──
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                setTimeout(() => {
-                    db.goOffline();
-                    db.goOnline();
-                }, 500); // 500ms delay to let device network stabilize
+            if (document.visibilityState === 'visible' && !isConnected) {
+                db.goOffline();
+                setTimeout(() => db.goOnline(), 1000);
             }
         });
 
