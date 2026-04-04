@@ -938,6 +938,32 @@
             height: 0;
         }
 
+        /* REEP MODAL */
+        #repModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .rep-card {
+            width: 100%;
+            max-width: 600px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
         /* TOAST */
         #toast {
             position: fixed;
@@ -1313,6 +1339,41 @@
             <button class="bclose-prev" onclick="closePreview()"><i class="fas fa-xmark" style="margin-left:6px"></i>
                 إغلاق المعاينة</button>
             <div class="pfr"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div id="repModal">
+        <div class="rep-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <div>
+                    <h2 style="font-weight:900; color:var(--accent);">📑 تقرير المبيعات الذكي</h2>
+                    <p style="color:var(--muted); font-size:0.8rem;">تحليل الشامل لأداء المطعم</p>
+                </div>
+                <button onclick="closeRep()" style="background:rgba(255,255,255,0.05); border:none; color:white; width:35px; height:35px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
+                <div style="background:rgba(59,130,246,0.05); padding:15px; border-radius:15px; border:1px solid rgba(59,130,246,0.1);">
+                    <div style="font-size:0.7rem; color:var(--muted);">إجمالي المبيعات</div>
+                    <div id="repRev" style="font-size:1.4rem; font-weight:900; color:var(--accent);">0.00</div>
+                </div>
+                <div style="background:rgba(16,185,129,0.05); padding:15px; border-radius:15px; border:1px solid rgba(16,185,129,0.1);">
+                    <div style="font-size:0.7rem; color:var(--muted);">عدد الطلبات المكتملة</div>
+                    <div id="repCnt" style="font-size:1.4rem; font-weight:900; color:var(--green);">0</div>
+                </div>
+            </div>
+
+            <div id="peakGraf" style="margin-bottom:25px;"></div>
+            
+            <div style="margin-bottom:25px;">
+                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">أكثر 10 أصناف مبيعاً:</div>
+                <div id="repBest" style="display:grid; gap:8px;"></div>
+            </div>
+
+            <button onclick="exportPDF()" style="width:100%; padding:15px; background:linear-gradient(135deg, var(--accent), var(--purple)); border:none; border-radius:15px; color:white; font-weight:800; cursor:pointer; font-size:1rem; box-shadow: 0 10px 20px rgba(59,130,246,0.2);">
+                <i class="fas fa-file-pdf" style="margin-left:10px;"></i> تحميل التقرير بصيغة PDF
+            </button>
         </div>
     </div>
 
@@ -1801,46 +1862,29 @@
         }
 
         async function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            toast('⏳ جاري إنشاء التقرير... يرجى الانتظار');
+            toast('⏳ جاري تجهيز التقرير... يرجى الانتظار');
             
-            const name = document.getElementById('resNameTop').textContent;
-            const rev = document.getElementById('repRev').textContent;
-            const cnt = document.getElementById('repCnt').textContent;
+            const element = document.getElementById('reportTemplate');
+            element.style.display = 'block'; // Temporary show for capture
+            
+            // Populate template data
+            document.getElementById('repResName').textContent = document.getElementById('resNameTop').textContent;
+            document.getElementById('repDate').textContent = new Date().toLocaleString('ar-JO');
+            document.getElementById('repTotalRev').textContent = document.getElementById('totalRevenue').textContent + ' دينار أردني';
+            document.getElementById('repCount').textContent = document.getElementById('statCompleted').textContent;
+            
+            const opt = {
+                margin: 10,
+                filename: `Report_${document.getElementById('resNameTop').textContent}_${new Date().toLocaleDateString()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-            // Header & Branding
-            doc.setFillColor(59, 130, 246);
-            doc.rect(0, 0, 210, 40, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.text("ARGON SYSTEM", 10, 20);
-            doc.setFontSize(10);
-            doc.text("Professional Restaurant Management", 10, 28);
-
-            // Report Info
-            doc.setTextColor(40, 40, 40);
-            doc.setFontSize(18);
-            doc.text(`Sales Report: ${name}`, 10, 55);
-            doc.setDrawColor(200, 200, 200);
-            doc.line(10, 60, 200, 60);
-
-            // Stats Table
-            doc.autoTable({
-                startY: 70,
-                head: [['Statistic', 'Value']],
-                body: [
-                    ['Total Sales', rev],
-                    ['Total Orders Completed', cnt],
-                    ['Generated On', new Date().toLocaleString()],
-                    ['Report Type', 'Manual Export (Dashboard)']
-                ],
-                theme: 'striped',
-                headStyles: { fillColor: [59, 130, 246] }
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none';
+                toast('✅ تم تحميل تقرير مبيعاتك بنجاح');
             });
-
-            doc.save(`Argon_Report_${name}_${new Date().toISOString().split('T')[0]}.pdf`);
-            toast('✅ تم تحميل تقرير PDF بنجاح');
         }
 
         function showSec(id, el) { 
