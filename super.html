@@ -415,7 +415,20 @@ firebase.initializeApp(FC);
 const db = firebase.database();
 const ADMIN = { u:'admin', p:'admin2024' };
 let data = [], curF = 'all';
-let _listener = null;
+let _listeners = { added: null, changed: null, removed: null };
+let _dataMap = {}; // keyed by restaurant ID for fast updates
+let _renderTimer = null;
+
+// ── CONNECTION MONITOR ──
+let _isOnline = true;
+db.ref('.info/connected').on('value', s => {
+    const was = !_isOnline;
+    _isOnline = s.val() === true;
+    if (_isOnline && was) toast('✅ تم إعادة الاتصال','ok');
+    if (!_isOnline) toast('⚠️ فقد الاتصال — جاري إعادة الربط...','err');
+});
+window.addEventListener('online', () => { db.goOnline(); });
+window.addEventListener('offline', () => { _isOnline = false; });
 
 // ── CLOCK ──
 setInterval(()=>{
@@ -443,7 +456,9 @@ function doLogin(){
 document.getElementById('lu').addEventListener('keyup',e=>{if(e.key==='Enter')document.getElementById('lp').focus();});
 
 function logout(){
-    if(_listener){db.ref('restaurants').off('value',_listener);_listener=null;}
+    // Remove all child listeners
+    try { db.ref('restaurants').off(); } catch(e) {}
+    _dataMap = {};
     data=[];
     document.getElementById('mainApp').style.display='none';
     document.getElementById('loginPage').style.cssText='display:flex;opacity:1';
@@ -459,58 +474,27 @@ function toggleAddPanel(){
 }
 setTimeout(()=>toggleAddPanel(),100);
 
-// ── LOAD DATA ── الإصلاح الجذري: استخدام callback مباشر وليس listener متراكم
+// ══════════════════════════════════════════════════════════
+// LOAD DATA — uses child events instead of on('value')
+// With 1000 restaurants, on('value') re-downloads ALL data
+// on every single change. child events only send changed data.
+// ══════════════════════════════════════════════════════════
 function loadData(){
-    // ألغِ أي listener قديم
-    if(_listener){
-        try{db.ref('restaurants').off('value',_listener);}catch(e){}
-        _listener=null;
-    }
-    data=[];
+    // Clear old listeners
+    try { db.ref('restaurants').off(); } catch(e) {}
+    _dataMap = {};
+    data = [];
     document.getElementById('resGrid').innerHTML='<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
 
-    _listener = function(snap){
-        // ── اقرأ كل المطاعم من snap بشكل صريح ──
-        data=[];
-        if(snap.exists()){
-            snap.forEach(function(child){
-                // كل child هو مطعم واحد
-                const val = child.val();
-                if(val && typeof val === 'object'){
-                    data.push({ id: child.key, ...val });
-                }
-            });
+    // child_added: fires once per existing child, then for new ones
+    db.ref('restaurants').on('child_added', snap => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+            _dataMap[snap.key] = { id: snap.key, ...val };
+            scheduleRender();
         }
-
-        console.log('Loaded restaurants:', data.length, data.map(r=>r.id));
-
-        const today=new Date().toDateString();
-        const todayStrEG=new Date().toLocaleDateString('ar-EG');
-
-        document.getElementById('s-tot').textContent=data.length;
-        document.getElementById('s-on').textContent=data.filter(r=>(r.settings?.status||'active')!=='closed').length;
-        document.getElementById('s-off').textContent=data.filter(r=>r.settings?.status==='closed').length;
-        document.getElementById('s-today').textContent=data.filter(r=>{
-            const cr=r.settings?.createdAt||r.settings?.created_at;
-            if(!cr)return false;
-            return new Date(cr).toDateString()===today;
-        }).length;
-
-        let totalOrders=0;
-        data.forEach(r=>{
-            const allOrds=[...Object.values(r.orders||{}),...Object.values(r.completedOrders||{})];
-            allOrds.forEach(o=>{
-                if(!o||typeof o!=='object')return;
-                if((o.createdAt&&new Date(o.createdAt).toDateString()===today)||(o.date===todayStrEG))totalOrders++;
-            });
-        });
-        document.getElementById('s-orders').textContent=totalOrders;
-
-        filterList();
-    };
-
-    db.ref('restaurants').on('value', _listener, function(err){
-        console.error('Firebase error:',err.code,err.message);
+    }, err => {
+        console.error('Firebase error:', err.code, err.message);
         let msg='خطأ في تحميل البيانات';
         if(err.code==='PERMISSION_DENIED') msg='🔒 خطأ في صلاحيات Firebase — افتح Rules';
         document.getElementById('resGrid').innerHTML=`
@@ -518,19 +502,60 @@ function loadData(){
                 <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i>
                 <p style="color:var(--red)">${msg}</p>
                 <small>${err.message}</small>
-                <div style="margin-top:18px;background:rgba(232,64,80,.08);border:1px solid rgba(232,64,80,.2);border-radius:12px;padding:16px;max-width:500px;direction:ltr;text-align:right">
-                    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center">انسخ هذه القواعد في Firebase Console → Rules</div>
-                    <pre style="font-size:12px;color:var(--g1);line-height:1.7">{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}</pre>
-                </div>
                 <button onclick="loadData()" style="margin-top:14px;background:var(--g1);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">🔄 إعادة المحاولة</button>
             </div>`;
         toast(msg,'err');
     });
+
+    // child_changed: only fires when a specific restaurant changes
+    db.ref('restaurants').on('child_changed', snap => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+            _dataMap[snap.key] = { id: snap.key, ...val };
+            scheduleRender();
+        }
+    });
+
+    // child_removed: restaurant deleted
+    db.ref('restaurants').on('child_removed', snap => {
+        delete _dataMap[snap.key];
+        scheduleRender();
+    });
+}
+
+// Debounce rendering to batch rapid updates (e.g. initial load)
+function scheduleRender() {
+    if (_renderTimer) clearTimeout(_renderTimer);
+    _renderTimer = setTimeout(() => {
+        data = Object.values(_dataMap);
+        console.log('Loaded restaurants:', data.length, data.map(r=>r.id));
+        updateStats();
+        filterList();
+    }, 150);
+}
+
+function updateStats() {
+    const today=new Date().toDateString();
+    const todayStrEG=new Date().toLocaleDateString('ar-EG');
+
+    document.getElementById('s-tot').textContent=data.length;
+    document.getElementById('s-on').textContent=data.filter(r=>(r.settings?.status||'active')!=='closed').length;
+    document.getElementById('s-off').textContent=data.filter(r=>r.settings?.status==='closed').length;
+    document.getElementById('s-today').textContent=data.filter(r=>{
+        const cr=r.settings?.createdAt||r.settings?.created_at;
+        if(!cr)return false;
+        return new Date(cr).toDateString()===today;
+    }).length;
+
+    let totalOrders=0;
+    data.forEach(r=>{
+        const allOrds=[...Object.values(r.orders||{}),...Object.values(r.completedOrders||{})];
+        allOrds.forEach(o=>{
+            if(!o||typeof o!=='object')return;
+            if((o.createdAt&&new Date(o.createdAt).toDateString()===today)||(o.date===todayStrEG))totalOrders++;
+        });
+    });
+    document.getElementById('s-orders').textContent=totalOrders;
 }
 
 // ── FILTER ──

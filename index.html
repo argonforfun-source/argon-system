@@ -1141,34 +1141,49 @@
         if (!RES_ID) { RES_ID = localStorage.getItem('argon_store_id') || '1'; }
         else { localStorage.setItem('argon_store_id', RES_ID); }
 
+        const BASE = 'restaurants/' + RES_ID;
+
         // Cart: {name, price, key} keyed by product key
         let cart = []; // array of {name, price}
         let allProducts = [];
         let selectedType = 'takeaway';
 
+        // ══════════════════════════════════════════════
+        // CONNECTION MONITOR — prevents blank/frozen screen
+        // ══════════════════════════════════════════════
+        let _isConnected = true;
+        db.ref('.info/connected').on('value', snap => {
+            _isConnected = snap.val() === true;
+        });
+        window.addEventListener('online', () => { db.goOnline(); });
+        window.addEventListener('offline', () => { _isConnected = false; });
+
         // Apply accent color from Firebase
         function applyAccent(color) {
             const root = document.documentElement;
             root.style.setProperty('--accent', color);
-            // Compute darker shade for accent-dark
             root.style.setProperty('--accent-dark', color);
-            // Update header gradient
             root.style.setProperty('--header-to', color);
         }
 
-        db.ref('restaurants/' + RES_ID).on('value', snap => {
-            const data = snap.val();
+        // ══════════════════════════════════════════════
+        // SPLIT LISTENERS — instead of one giant listener
+        // ══════════════════════════════════════════════
+
+        // 1️⃣ SETTINGS — name, status, color, hours
+        db.ref(BASE + '/settings').on('value', snap => {
+            const sets = snap.val();
             const nf = document.getElementById('notFoundScreen');
             const lo = document.getElementById('lockoutScreen');
 
-            if (!data) {
+            if (!sets) {
                 if (nf) nf.style.display = 'flex';
                 return;
             } else {
                 if (nf) nf.style.display = 'none';
             }
 
-            if (data.settings?.status === 'closed') {
+            if (sets.status === 'closed') {
                 if (lo) lo.classList.add('show');
                 document.body.style.overflow = 'hidden';
                 return;
@@ -1176,18 +1191,13 @@
                 if (lo) lo.classList.remove('show');
                 document.body.style.overflow = '';
             }
-            window.isAcceptingOrders = data.settings?.acceptOrders !== false;
 
-            const sets = data.settings || {};
-
-            // Apply color
+            window.isAcceptingOrders = sets.acceptOrders !== false;
             if (sets.color) applyAccent(sets.color);
 
-            // Name
             document.getElementById('resName').textContent = sets.name || 'مطعم أرغون';
             document.title = (sets.name || 'أرغون') + ' | المنيو';
 
-            // Status chip
             const sc = document.getElementById('statusChip');
             if (sets.status === 'closed') {
                 sc.className = 'rchip chip-closed';
@@ -1197,14 +1207,24 @@
                 sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
             }
 
-            // Hours
             if (sets.hours) {
                 document.getElementById('hoursChip').style.display = 'inline-flex';
                 document.getElementById('hoursText').textContent = sets.hours;
             }
+        });
 
-            // Kitchen Load (Customer facing)
-            const activeOrders = Object.keys(data.orders || {}).length;
+        // 2️⃣ PRODUCTS — menu items
+        db.ref(BASE + '/products').on('value', snap => {
+            const products = snap.val() || {};
+            allProducts = [];
+            for (let k in products) allProducts.push({ key: k, ...products[k] });
+            renderMenu(allProducts);
+        });
+
+        // 3️⃣ ORDERS COUNT — only for kitchen load indicator (lightweight)
+        db.ref(BASE + '/orders').on('value', snap => {
+            const orders = snap.val() || {};
+            const activeOrders = Object.keys(orders).length;
             const lc = document.getElementById('loadChip');
             if (activeOrders > 12) {
                 lc.style.display = 'inline-flex';
@@ -1219,12 +1239,6 @@
             } else {
                 lc.style.display = 'none';
             }
-
-            // Products
-            allProducts = [];
-            const products = data.products || {};
-            for (let k in products) allProducts.push({ key: k, ...products[k] });
-            renderMenu(allProducts);
         });
 
         function renderMenu(products) {

@@ -1005,6 +1005,38 @@
         .ringing {
             animation: ring 0.6s ease infinite;
         }
+
+        /* CONNECTION STATUS BAR */
+        .conn-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        .conn-ok {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .conn-off {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+            animation: connPulse 2s infinite;
+        }
+        @keyframes connPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
     </style>
 </head>
 
@@ -1283,6 +1315,7 @@
         </div>
     </div>
 
+    <div id="connBar" class="conn-bar"></div>
     <div id="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1290,6 +1323,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script>
+        // ═══════════════════════════════════════════════════════════
+        // ARGON DASHBOARD v3.0 — PRODUCTION BUILD (Optimized)
+        // Split listeners + Connection monitor + Scale-ready
+        // ═══════════════════════════════════════════════════════════
         const firebaseConfig = {
             apiKey: "AIzaSyB8lbF8ipYTA8E0NtthMRHj9apPLseBNB8",
             authDomain: "argon-system.firebaseapp.com",
@@ -1304,22 +1341,59 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const RES_ID = urlParams.get('id') || '1';
+        const BASE = 'restaurants/' + RES_ID;
         document.getElementById('resIdDisp').textContent = RES_ID;
 
-        // CLOCK
+        // ── CLOCK ──
         setInterval(() => {
             document.getElementById('clkEl').textContent =
                 new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
-        // SOUND ENGINE
+        // ── STATE ──
         let audioCtx = null;
         let prevLiveCount = 0;
         let firstLoad = true;
-        let correctPassword = '1122'; // Default fallback
+        let correctPassword = '1122';
         let isLogged = false;
+        let ordersCache = {};
         let globalCompleted = {};
+        let _settingsData = {};
+        let _ordersData = {};
+        let _completedData = {};
+        let _productsData = {};
+        let isConnected = true;
 
+        // ══════════════════════════════════════════════
+        // CONNECTION MONITOR — prevents blank screen
+        // ══════════════════════════════════════════════
+        db.ref('.info/connected').on('value', snap => {
+            const wasOff = !isConnected;
+            isConnected = snap.val() === true;
+            updateConnBar();
+            if (isConnected && wasOff && !firstLoad) {
+                toast('✅ تم إعادة الاتصال بالخادم');
+            }
+        });
+        window.addEventListener('online', () => { db.goOnline(); });
+        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); });
+
+        function updateConnBar() {
+            const bar = document.getElementById('connBar');
+            if (!bar) return;
+            if (isConnected) {
+                bar.className = 'conn-bar conn-ok';
+                bar.innerHTML = '<i class="fas fa-wifi"></i> متصل';
+                bar.style.display = 'flex';
+                setTimeout(() => { if (isConnected) bar.style.display = 'none'; }, 2500);
+            } else {
+                bar.style.display = 'flex';
+                bar.className = 'conn-bar conn-off';
+                bar.innerHTML = '<i class="fas fa-exclamation-triangle"></i> فقد الاتصال — جاري إعادة الربط تلقائياً...';
+            }
+        }
+
+        // ── LOGIN ──
         document.getElementById('loginPassInp').addEventListener('keyup', e => {
             if (e.key === 'Enter') checkLogin();
             document.getElementById('loginErr').style.display = 'none';
@@ -1328,7 +1402,6 @@
         function checkLogin() {
             const val = document.getElementById('loginPassInp').value;
             const masterPass = 'admin2024';
-            
             if (val === correctPassword || val === masterPass || val === '889977') {
                 const loginScr = document.getElementById('dashLogin');
                 loginScr.style.opacity = '0';
@@ -1345,24 +1418,20 @@
                 setTimeout(() => err.classList.remove('ringing'), 400);
             }
         }
-        // Cache for order data keyed by Firebase key
-        let ordersCache = {};
 
+        // ── SOUND ──
         function getAudioCtx() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             return audioCtx;
         }
-
         function playNotifSound() {
             try {
                 const ctx = getAudioCtx();
-                const notes = [523, 659, 784, 1047]; // C E G C octave
-                notes.forEach((freq, i) => {
+                [523, 659, 784, 1047].forEach((freq, i) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.connect(gain); gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
+                    osc.type = 'sine'; osc.frequency.value = freq;
                     const t = ctx.currentTime + i * 0.12;
                     gain.gain.setValueAtTime(0, t);
                     gain.gain.linearRampToValueAtTime(0.4, t + 0.03);
@@ -1372,7 +1441,7 @@
             } catch (e) { }
         }
 
-        // ACCENT COLOR
+        // ── ACCENT COLOR ──
         function applyAccent(color) {
             document.documentElement.style.setProperty('--accent', color);
             const cp = document.getElementById('colorPicker');
@@ -1382,12 +1451,9 @@
             if (cprev) cprev.style.background = color;
             if (chex) chex.textContent = color;
         }
+        function onColorChange(color) { applyAccent(color); }
 
-        function onColorChange(color) {
-            applyAccent(color);
-        }
-
-        // FORMAT ITEMS — handles string "A + B + A", array of strings, or array of {name,qty,price}
+        // ── FORMAT ITEMS ──
         function fmtItems(raw) {
             if (!raw) return '';
             const cnt = {};
@@ -1407,203 +1473,202 @@
             return Object.entries(cnt).map(([n, c]) => `<span class="ichip">${c > 1 ? c + 'x ' : ''}${n}</span>`).join('');
         }
 
-        // MAIN DATA LISTENER
-        db.ref('restaurants/' + RES_ID).on('value', snap => {
-            const data = snap.val() || {};
-            const sets = data.settings || {};
-            const orders = data.orders || {};
-            const completed = data.completedOrders || {};
-            const products = data.products || {};
-            globalCompleted = completed;
+        // ── ERROR HANDLER ──
+        function handleFBError(err) {
+            console.error('Firebase error:', err.code, err.message);
+            if (err.code === 'PERMISSION_DENIED') {
+                const og = document.getElementById('ordersGrid');
+                if (og) og.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444">
+                    <i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:10px"></i>
+                    <b>خطأ في الصلاحيات: ${err.code}</b><br>
+                    <small style="color:#94a3b8;display:block;margin-top:8px">تأكد من إعدادات Firebase Rules</small>
+                </div>`;
+            }
+        }
 
-            // 1. GLOBAL LOCKOUT & THEME
+        // ══════════════════════════════════════════════
+        // GRANULAR FIREBASE LISTENERS (Performance Core)
+        // Instead of 1 giant listener, we use 4 separate
+        // ones. Each only fires when its data changes.
+        // ══════════════════════════════════════════════
+
+        // 1️⃣ SETTINGS — lightweight, rarely changes
+        db.ref(BASE + '/settings').on('value', snap => {
+            _settingsData = snap.val() || {};
+            const sets = _settingsData;
+
             const lockEl = document.getElementById('lockoutScreen');
-            if (sets.status === 'closed') { if (lockEl) lockEl.classList.add('show'); } 
+            if (sets.status === 'closed') { if (lockEl) lockEl.classList.add('show'); }
             else { if (lockEl) lockEl.classList.remove('show'); }
             if (sets.color) applyAccent(sets.color);
 
-            // 2. HEADER & SETTINGS
             const name = sets.name || 'مطعم أرغون';
             document.getElementById('resNameTop').textContent = name;
             document.getElementById('loginResName').textContent = name;
             document.title = 'ARGON | ' + name;
             correctPassword = sets.password || '1122';
 
-            const resNameInp = document.getElementById('resNameInp');
-            if (resNameInp && !resNameInp.matches(':focus')) resNameInp.value = sets.name || '';
-            const resPhoneInp = document.getElementById('resPhoneInp');
-            if (resPhoneInp && !resPhoneInp.matches(':focus')) resPhoneInp.value = sets.phone || '';
-            
+            const ri = document.getElementById('resNameInp');
+            if (ri && !ri.matches(':focus')) ri.value = sets.name || '';
+            const rp = document.getElementById('resPhoneInp');
+            if (rp && !rp.matches(':focus')) rp.value = sets.phone || '';
+
             const sb = document.getElementById('statusBadge');
             if (sb) {
                 sb.className = 'tbadge ' + (sets.status === 'closed' ? 'tbadge-closed' : 'tbadge-open');
                 sb.innerHTML = `<i class="fas fa-circle" style="font-size:0.38rem"></i> ${sets.status === 'closed' ? 'مغلق' : 'مفتوح'}`;
             }
+        }, handleFBError);
 
-            // 3. KEYS & COUNTS
-            const liveKeys = Object.keys(orders);
-            const doneKeys = Object.keys(completed);
-            const pKeys = Object.keys(products);
-            ordersCache = orders;
+        // 2️⃣ LIVE ORDERS — changes often but small dataset
+        db.ref(BASE + '/orders').on('value', snap => {
+            _ordersData = snap.val() || {};
+            ordersCache = _ordersData;
+            const liveKeys = Object.keys(_ordersData);
 
-            const liveCountEl = document.getElementById('liveCount');
-            if (liveCountEl) {
-                liveCountEl.textContent = liveKeys.length;
-                liveCountEl.className = 'nbadge' + (liveKeys.length === 0 ? ' zero' : '');
+            // Badge
+            const lce = document.getElementById('liveCount');
+            if (lce) { lce.textContent = liveKeys.length; lce.className = 'nbadge' + (liveKeys.length === 0 ? ' zero' : ''); }
+
+            // Pending revenue
+            let pendRev = 0;
+            for (let k in _ordersData) pendRev += parseFloat(_ordersData[k].total || 0);
+            document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
+
+            // Kitchen load
+            const lb = document.getElementById('loadBar'), lt = document.getElementById('loadText');
+            if (lb) {
+                const perc = Math.min((liveKeys.length / 15) * 100, 100);
+                lb.style.width = perc + '%';
+                if (liveKeys.length > 10) { lt.textContent = 'مرتفع 🔥'; lb.style.background = 'var(--red)'; }
+                else if (liveKeys.length > 5) { lt.textContent = 'متوسط ⚖️'; lb.style.background = 'var(--amber)'; }
+                else { lt.textContent = 'هادئ ✨'; lb.style.background = 'var(--green)'; }
             }
 
-            // 4. REVENUE & BEST SELLERS
-            let totalRev = 0, pendRev = 0;
-            const salesMap = {};
-            try {
-                for (let k in completed) {
-                    const o = completed[k];
-                    totalRev += parseFloat(o.total || 0);
-                    if (Array.isArray(o.items)) {
-                        o.items.forEach(i => {
-                            const n = i.name || i.n;
-                            const q = parseInt(i.qty || i.q || 1);
-                            if (n) salesMap[n] = (salesMap[n] || 0) + q;
-                        });
-                    }
-                }
-                for (let k in orders) pendRev += parseFloat(orders[k].total || 0);
-            } catch (e) { console.warn('Calc error:', e); }
+            // Sound
+            if (!firstLoad && liveKeys.length > prevLiveCount) {
+                playNotifSound();
+                const bell = document.getElementById('bellIcon');
+                if (bell) { bell.classList.add('ringing'); setTimeout(() => bell.classList.remove('ringing'), 2000); }
+            }
+            prevLiveCount = liveKeys.length;
 
+            // Render live orders
+            try {
+                const og = document.getElementById('ordersGrid');
+                og.innerHTML = '';
+                if (!liveKeys.length) {
+                    og.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><i class="fas fa-inbox" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد طلبات نشطة حالياً</div>';
+                } else {
+                    liveKeys.reverse().forEach(k => {
+                        const o = _ordersData[k], ih = fmtItems(o.items), isN = o.status === 'new';
+                        og.innerHTML += `
+                        <div class="oc ${isN ? 'oc-new' : ''}">
+                            <div class="oc-h"><span class="oc-no">#${o.orderNo || '؟'}</span>
+                            <span class="oc-st tbadge-${o.status || 'new'}">${o.status === 'prep' ? 'تحضير' : o.status === 'ready' ? 'جاهز' : 'طلب جديد'}</span></div>
+                            <div class="oc-b">
+                                <div style="font-weight:800;font-size:1.1rem;margin-bottom:5px;color:var(--text)">${o.custName || 'زبون'}</div>
+                                <div style="color:var(--muted);font-size:0.85rem;margin-bottom:12px"><i class="fas fa-phone"></i> ${o.custPhone || '-'} | <i class="fas fa-truck"></i> ${o.orderType || '-'}</div>
+                                <div class="oc-i">${ih}</div>
+                                ${o.notes ? `<div style="margin-top:10px;padding:8px;background:rgba(245,158,11,0.05);border-radius:8px;font-size:0.8rem;color:var(--amber);border:1px dashed var(--amber)">📝 ${o.notes}</div>` : ''}
+                            </div>
+                            <div class="oc-f">
+                                <div style="font-size:1.2rem;font-weight:900;color:var(--accent)">${o.total} <small style="font-size:0.7rem">د.أ</small></div>
+                                <div style="display:flex;gap:6px">
+                                    ${isN ? `<button class="bprep" onclick="updateStatus('${k}','prep')">تحضير</button>` : ''}
+                                    ${o.status === 'prep' ? `<button class="bread" onclick="updateStatus('${k}','ready')">جاهز</button>` : ''}
+                                    <button class="bwa" onclick="sendWhatsApp('${o.custPhone}','${o.status}','${o.orderNo}','${o.custName}')"><i class="fab fa-whatsapp"></i></button>
+                                    <button class="bcomplete" onclick="completeOrder('${k}')">إنهاء</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
+            } catch (e) { console.warn('Render orders error:', e); }
+
+            firstLoad = false;
+        }, handleFBError);
+
+        // 3️⃣ COMPLETED ORDERS — limited to last 200 for speed
+        db.ref(BASE + '/completedOrders').orderByKey().limitToLast(200).on('value', snap => {
+            _completedData = snap.val() || {};
+            globalCompleted = _completedData;
+            const doneKeys = Object.keys(_completedData);
+
+            // Revenue & best sellers
+            let totalRev = 0;
+            const salesMap = {};
+            for (let k in _completedData) {
+                const o = _completedData[k];
+                totalRev += parseFloat(o.total || 0);
+                if (Array.isArray(o.items)) {
+                    o.items.forEach(i => {
+                        const n = i.name || i.n;
+                        const q = parseInt(i.qty || i.q || 1);
+                        if (n) salesMap[n] = (salesMap[n] || 0) + q;
+                    });
+                }
+            }
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
-            document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
             document.getElementById('statCompleted').textContent = doneKeys.length;
             const avg = doneKeys.length > 0 ? (totalRev / doneKeys.length) : 0;
             document.getElementById('avgOrder').textContent = avg.toFixed(2);
 
+            // Best sellers
             try {
                 const bsl = document.getElementById('bestSellerList');
                 const sorted = Object.entries(salesMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
                 bsl.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
-                    <div class="bsc">
-                        <div class="bsrank">#${i + 1} BESTSELLER</div>
-                        <div class="bsname">${n}</div>
-                        <div class="bscnt">${c}</div>
-                    </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد مبيعات بعد</div>';
+                    <div class="bsc"><div class="bsrank">#${i + 1} BESTSELLER</div>
+                    <div class="bsname">${n}</div><div class="bscnt">${c}</div></div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد مبيعات بعد</div>';
             } catch (e) {}
 
-            // 5. KITCHEN LOAD
-            const activeCount = liveKeys.length;
-            const loadBar = document.getElementById('loadBar');
-            const loadText = document.getElementById('loadText');
-            if (loadBar) {
-                const perc = Math.min((activeCount / 15) * 100, 100);
-                loadBar.style.width = perc + '%';
-                if (activeCount > 10) { loadText.textContent = 'مرتفع 🔥'; loadBar.style.background = 'var(--red)'; }
-                else if (activeCount > 5) { loadText.textContent = 'متوسط ⚖️'; loadBar.style.background = 'var(--amber)'; }
-                else { loadText.textContent = 'هادئ ✨'; loadBar.style.background = 'var(--green)'; }
-            }
-
-            // 6. SOUND & NOTIF
-            if (!firstLoad && liveKeys.length > prevLiveCount) {
-                playNotifSound();
-                const bell = document.getElementById('bellIcon');
-                if (bell) {
-                    bell.classList.add('ringing');
-                    setTimeout(() => bell.classList.remove('ringing'), 2000);
-                }
-            }
-            prevLiveCount = liveKeys.length;
-
-            // 7. RENDERING PIPELINE (LIVE -> HISTORY -> MENU)
+            // History table
             try {
-                // A. LIVE ORDERS
-                const og = document.getElementById('ordersGrid');
-                og.innerHTML = '';
-                liveKeys.reverse().forEach(k => {
-                    const o = orders[k];
-                    const itemsHtml = fmtItems(o.items);
-                    const isNew = o.status === 'new';
-                    og.innerHTML += `
-                    <div class="oc ${isNew ? 'oc-new' : ''}">
-                        <div class="oc-h">
-                            <span class="oc-no">#${o.orderNo || '؟'}</span>
-                            <span class="oc-st tbadge-${o.status || 'new'}">${o.status === 'prep' ? 'تحضير' : o.status === 'ready' ? 'جاهز' : 'طلب جديد'}</span>
+                const hg = document.getElementById('histGrid');
+                if (!hg) return;
+                if (!doneKeys.length) {
+                    hg.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);background:var(--panel);border-radius:20px;border:1px solid var(--border)"><i class="fas fa-history" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد مبيعات في السجل حالياً</div>';
+                } else {
+                    hg.innerHTML = `<div class="htable-wrap"><table class="htable">
+                        <thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th>المبلغ</th><th>النوع</th></tr></thead>
+                        <tbody>${doneKeys.reverse().slice(0, 50).map(k => {
+                            const o = _completedData[k]; if (!o) return '';
+                            return `<tr><td><div style="font-weight:700">${o.time || '-'}</div><div style="font-size:0.7rem;opacity:0.6">${o.date || '-'}</div></td>
+                            <td><b>${o.custName || '-'}</b><br><small>${o.custPhone || '-'}</small></td>
+                            <td>${fmtItems(o.items)}</td>
+                            <td style="color:var(--green);font-weight:800">${o.total || '0.00'}</td>
+                            <td><span class="tbadge tbadge-id" style="font-size:0.65rem">${o.orderType || '-'}</span></td></tr>`;
+                        }).join('')}</tbody></table></div>`;
+                }
+            } catch (e) { console.warn('History render error:', e); }
+        }, handleFBError);
+
+        // 4️⃣ PRODUCTS — rarely changes
+        db.ref(BASE + '/products').on('value', snap => {
+            _productsData = snap.val() || {};
+            try {
+                const mg = document.getElementById('menuGrid');
+                if (!mg) return;
+                const pKeys = Object.keys(_productsData);
+                mg.innerHTML = pKeys.map(k => {
+                    const p = _productsData[k];
+                    return `<div class="pb" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.05);border-radius:20px;overflow:hidden;transition:0.3s;position:relative;">
+                        <div style="height:140px;overflow:hidden;position:relative;">
+                            <img src="${p.img || 'https://via.placeholder.com/150'}" style="width:100%;height:100%;object-fit:cover;">
+                            <div style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);color:#fff;padding:4px 10px;border-radius:10px;font-weight:800;font-size:0.85rem;">${p.price} د.أ</div>
                         </div>
-                        <div class="oc-b">
-                            <div style="font-weight:800;font-size:1.1rem;margin-bottom:5px;color:var(--text)">${o.custName || 'زبون'}</div>
-                            <div style="color:var(--muted);font-size:0.85rem;margin-bottom:12px"><i class="fas fa-phone"></i> ${o.custPhone || '-'} | <i class="fas fa-truck"></i> ${o.orderType || '-'}</div>
-                            <div class="oc-i">${itemsHtml}</div>
-                            ${o.notes ? `<div style="margin-top:10px;padding:8px;background:rgba(245,158,11,0.05);border-radius:8px;font-size:0.8rem;color:var(--amber);border:1px dashed var(--amber)">📝 ${o.notes}</div>` : ''}
-                        </div>
-                        <div class="oc-f">
-                            <div style="font-size:1.2rem;font-weight:900;color:var(--accent)">${o.total} <small style="font-size:0.7rem">د.أ</small></div>
-                            <div style="display:flex;gap:6px">
-                                ${isNew ? `<button class="bprep" onclick="updateStatus('${k}','prep')">تحضير</button>` : ''}
-                                ${o.status === 'prep' ? `<button class="bread" onclick="updateStatus('${k}','ready')">جاهز</button>` : ''}
-                                <button class="bwa" onclick="sendWhatsApp('${o.custPhone}','${o.status}','${o.orderNo}','${o.custName}')"><i class="fab fa-whatsapp"></i></button>
-                                <button class="bcomplete" onclick="completeOrder('${k}')">إنهاء</button>
+                        <div style="padding:15px;">
+                            <div style="font-weight:800;font-size:1rem;color:var(--text);margin-bottom:12px;">${p.name}</div>
+                            <div style="display:flex;gap:10px;">
+                                <button class="bdel" style="flex:1;border-radius:10px;padding:10px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()"><i class="fas fa-trash"></i> حذف الصنف</button>
                             </div>
                         </div>
                     </div>`;
-                });
-                if (!liveKeys.length) og.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><i class="fas fa-inbox" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد طلبات نشطة حالياً</div>';
-
-                // B. HISTORY
-                const hg = document.getElementById('histGrid');
-                if (hg) {
-                    if (doneKeys.length === 0) {
-                        hg.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);background:var(--panel);border-radius:20px;border:1px solid var(--border)"><i class="fas fa-history" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد مبيعات في السجل حالياً</div>';
-                    } else {
-                        hg.innerHTML = `<div class="htable-wrap">
-                            <table class="htable">
-                                <thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th>المبلغ</th><th>النوع</th></tr></thead>
-                                <tbody>
-                                    ${doneKeys.reverse().slice(0, 50).map(k => {
-                                        const o = completed[k];
-                                        if (!o) return '';
-                                        return `<tr>
-                                            <td><div style="font-weight:700">${o.time || '-'}</div><div style="font-size:0.7rem;opacity:0.6">${o.date || '-'}</div></td>
-                                            <td><b>${o.custName || '-'}</b><br><small>${o.custPhone || '-'}</small></td>
-                                            <td>${fmtItems(o.items)}</td>
-                                            <td style="color:var(--green);font-weight:800">${o.total || '0.00'}</td>
-                                            <td><span class="tbadge tbadge-id" style="font-size:0.65rem">${o.orderType || '-'}</span></td>
-                                        </tr>`;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>`;
-                    }
-                }
-
-                // C. MENU
-                const mg = document.getElementById('menuGrid');
-                if (mg) {
-                    mg.innerHTML = pKeys.map(k => {
-                        const p = products[k];
-                        return `
-                        <div class="pb" style="background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.05); border-radius:20px; overflow:hidden; transition: 0.3s; position:relative;">
-                            <div style="height:140px; overflow:hidden; position:relative;">
-                                <img src="${p.img || 'https://via.placeholder.com/150'}" style="width:100%; height:100%; object-fit:cover;">
-                                <div style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.6); backdrop-filter:blur(5px); color:#fff; padding:4px 10px; border-radius:10px; font-weight:800; font-size:0.85rem;">${p.price} د.أ</div>
-                            </div>
-                            <div style="padding:15px;">
-                                <div style="font-weight:800; font-size:1rem; color:var(--text); margin-bottom:12px;">${p.name}</div>
-                                <div style="display:flex; gap:10px;">
-                                    <button class="bdel" style="flex:1; border-radius:10px; padding:10px; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2);" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()"><i class="fas fa-trash"></i> حذف الصنف</button>
-                                </div>
-                            </div>
-                        </div>`;
-                    }).join('');
-                    if (!pKeys.length) mg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">لا توجد أصناف في المنيو</div>';
-                }
-            } catch (renderErr) { console.warn('Render error:', renderErr); }
-
-            firstLoad = false;
-        }, err => {
-            console.error('Firebase error:', err.code, err.message);
-            const og = document.getElementById('ordersGrid');
-            if (og) og.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444">
-                <i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:10px"></i>
-                <b>خطأ في الاتصال: ${err.code}</b><br>
-                <small style="color:#94a3b8;display:block;margin-top:8px">تأكد من إعدادات Firebase Rules</small>
-            </div>`;
-        });
+                }).join('');
+                if (!pKeys.length) mg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">لا توجد أصناف في المنيو</div>';
+            } catch (e) { console.warn('Menu render error:', e); }
+        }, handleFBError);
 
         function saveSets() {
             const color = document.getElementById('colorPicker').value || '#3b82f6';
@@ -1778,42 +1843,8 @@
         document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
     </script>
 </body>
+
 </html>
-            `).join('');
-
-            // Peek Hours
-            const hours = {};
-            firebase.database().ref(`restaurants/${RES_ID}/completedOrders`).once('value', snap => {
-                const data = snap.val() || {};
-                Object.values(data).forEach(o => {
-                    if (o.time) {
-                        const h = o.time.split(':')[0]; // Simple hour extraction
-                        if (h) hours[h] = (hours[h] || 0) + 1;
-                    }
-                });
-
-                const peakEntries = Object.entries(hours).sort((a,b) => b[1] - a[1]).slice(0, 3);
-                document.getElementById('repPeak').innerHTML = peakEntries.length ? peakEntries.map(([h, c]) => `
-                    التحليل: الساعة <span style="font-weight:700;">${h}:00</span> سجلت <span style="font-weight:700;">${c} طلبات</span>
-                `).join('<br>') : 'لا توجد بيانات كافية لتحليل المواعيد.';
-
-                // Generate PDF
-                const opt = {
-                    margin: 1,
-                    filename: `Report_${stats.name}_${stats.date}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-
-                const element = document.getElementById('reportTemplate');
-                element.style.display = 'block';
-                html2pdf().set(opt).from(element).save().then(() => {
-                    element.style.display = 'none';
-                });
-            });
-        }
-    </script>
     <div id="reportTemplate" style="display:none; padding:40px; font-family:'Tajawal',sans-serif; direction:rtl; color:#333; background:white;">
         <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #3b82f6; padding-bottom:20px;">
             <div style="font-size:24px; font-weight:900; color:#3b82f6;">تقرير مبيعات نظام أرغون</div>
