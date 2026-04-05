@@ -1502,8 +1502,11 @@
                 updateCartUI();
                 isSending = false;
 
-                // Don't auto-close quickly, let them see tracking
-                // setTimeout(closeModal, 15000); 
+                // Reset button for next time
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم';
+                }
             }).catch(err => {
                 console.error('Order error:', err);
                 alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
@@ -1517,14 +1520,27 @@
         }
 
         let trackListener = null;
+        let currentTrackPath = '';
         function startTracking(key) {
-            if (trackListener) db.ref(`restaurants/${RES_ID}/orders/${key}`).off('value', trackListener);
+            // Detach previous correctly
+            if (trackListener && currentTrackPath) {
+                db.ref(currentTrackPath).off('value', trackListener);
+            }
+            
+            currentTrackPath = `restaurants/${RES_ID}/orders/${key}`;
+
+            // Reset UI immediately for new order
+            document.getElementById('trackProgress').style.width = '0%';
+            const ids = ['ts-new', 'ts-prep', 'ts-shipped', 'ts-done'];
+            ids.forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById('trackStatusText').textContent = 'جاري إرسال الطلب...';
 
             const updateUI = (status) => {
-                const steps = { 'new': 0, 'prep': 1, 'shipped': 2, 'done': 3, 'completed': 3 };
+                const steps = { 'new': 0, 'prep': 1, 'ready': 2, 'shipped': 2, 'done': 3, 'completed': 3 };
                 const labels = {
                     'new': 'وصل الطلب للمطعم بنجاح',
                     'prep': 'المطعم يقوم بتحضير طلبك الآن 👨‍🍳',
+                    'ready': 'طلبك جاهز للتسليم/التوصيل! 📦',
                     'shipped': 'طلبك جاهز للتسليم/التوصيل! 📦',
                     'done': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️',
                     'completed': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️'
