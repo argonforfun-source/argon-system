@@ -1813,11 +1813,24 @@
             const hourMap = {};
             for (let i = 0; i < 24; i++) hourMap[i] = 0;
             
+            // Helper to get 24h from Arabic time string
+            const get24H = (t) => {
+                try {
+                    // Convert Arabic digits to English
+                    const d = t.replace(/[٠-٩]/g, c => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
+                    let [h, m_and_suffix] = d.split(':');
+                    let hr = parseInt(h);
+                    if (d.includes('م') && hr !== 12) hr += 12; // PM
+                    if (d.includes('ص') && hr === 12) hr = 0;   // 12 AM
+                    return isNaN(hr) ? null : hr;
+                } catch(e) { return null; }
+            };
+            
             for (let k in globalCompleted) {
                 const o = globalCompleted[k];
                 if (o.time) {
-                    const h = parseInt(o.time.split(':')[0]);
-                    if (!isNaN(h)) hourMap[h]++;
+                    const hr = get24H(o.time);
+                    if (hr !== null) hourMap[hr]++;
                 }
             }
 
