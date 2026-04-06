@@ -1738,15 +1738,32 @@
             listEl.innerHTML = html;
         }
 
-        function retrack(key, no) {
+        async function retrack(key, no) {
             document.getElementById('recentOrdersModal').classList.remove('show');
-            // Fake the success info to show step 3 with this order's info
-            document.getElementById('finalOrderNo').textContent = no;
-            document.getElementById('finalCustName').textContent = '-';
-            document.getElementById('finalOrderType').textContent = '-';
-            document.getElementById('finalTotal').textContent = '-';
             
-            openModal(); // Open orderModal
+            // Show loading state or modal
+            openModal();
+            document.getElementById('trackStatusText').textContent = 'جاري جلب تفاصيل الطلب...';
+            
+            try {
+                let snap = await db.ref(`restaurants/${RES_ID}/orders/${key}`).once('value');
+                if (!snap.exists()) {
+                    snap = await db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).once('value');
+                }
+                
+                if (snap.exists()) {
+                    const o = snap.val();
+                    document.getElementById('finalOrderNo').textContent = o.orderNo || no;
+                    document.getElementById('finalCustName').textContent = o.custName || '-';
+                    document.getElementById('finalOrderType').textContent = o.orderType || '-';
+                    document.getElementById('finalTotal').textContent = o.total || '-';
+                } else {
+                    document.getElementById('finalOrderNo').textContent = no;
+                }
+            } catch(e) {
+                document.getElementById('finalOrderNo').textContent = no;
+            }
+            
             showStep(3); // Go to tracking step
             startTracking(key);
         }
