@@ -1163,6 +1163,10 @@
                     <div style="margin:15px 0; padding:15px; background:var(--bg); border:1px solid var(--border); border-radius:18px; font-size:0.9rem; text-align:right; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
                         <div style="margin-bottom:8px">👤 <span style="color:var(--muted)">الاسم:</span> <span id="finalCustName" style="font-weight:800"></span></div>
                         <div style="margin-bottom:8px">📦 <span style="color:var(--muted)">النوع:</span> <span id="finalOrderType" style="font-weight:800"></span></div>
+                        
+                        <!-- List of Items in Tracking -->
+                        <div id="finalItemsList" style="margin:10px 0; padding-top:10px; border-top:1px dashed var(--border); font-size:0.8rem; color:var(--text)"></div>
+
                         <div style="padding-top:8px; border-top:1px dashed var(--border); color:var(--green); font-weight:900; font-size:1.1rem">💰 <span style="color:var(--muted)">المجموع:</span> <span id="finalTotal"></span> د.أ</div>
                     </div>
 
@@ -1567,6 +1571,14 @@
                 document.getElementById('finalOrderType').textContent = typeLabels[selectedType] || 'سفري';
                 document.getElementById('finalTotal').textContent = total.toFixed(2);
                 
+                // Populate items list in success screen
+                document.getElementById('finalItemsList').innerHTML = structuredItems.map(it => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>${it.qty}x ${it.name}</span>
+                        <span>${(it.price * it.qty).toFixed(2)} د.أ</span>
+                    </div>
+                `).join('');
+                
                 showStep(3);
 
                 startTracking(orderKey);
@@ -1757,6 +1769,18 @@
                     document.getElementById('finalCustName').textContent = o.custName || '-';
                     document.getElementById('finalOrderType').textContent = o.orderType || '-';
                     document.getElementById('finalTotal').textContent = o.total || '-';
+                    
+                    // Populate items list from Firebase data
+                    if (Array.isArray(o.items)) {
+                        document.getElementById('finalItemsList').innerHTML = o.items.map(it => `
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>${it.qty || it.q || 1}x ${it.name || it.n}</span>
+                                <span>${((it.price || 0) * (it.qty || it.q || 1)).toFixed(2)} د.أ</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('finalItemsList').innerHTML = '';
+                    }
                 } else {
                     document.getElementById('finalOrderNo').textContent = no;
                 }
