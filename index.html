@@ -559,30 +559,27 @@
         .toast { background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; backdrop-filter: blur(10px); transform: translateY(-20px); opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         .toast.show { transform: translateY(0); opacity: 1; }
 
-        /* RECENT ORDERS BTN */
+        /* RECENT ORDERS BTN IN HEADER */
         .recent-btn {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 999;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 14px;
+            background: rgba(59, 130, 246, 0.08); /* Light blue tint */
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            padding: 6px 14px;
             border-radius: 50px;
-            font-size: 0.72rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            margin: 10px auto 0; /* Center it below logo/name or beside it */
+            width: fit-content;
         }
 
-        .recent-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
-        .recent-btn i { font-size: 0.85rem; color: var(--amber); }
+        .recent-btn:hover { background: var(--accent); color: white; transform: scale(1.05); }
+        .recent-btn i { font-size: 0.85rem; }
 
         .recent-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .recent-item {
@@ -1046,6 +1043,12 @@
             <div class="hmain">
                 <div class="rlogo">🍽️</div>
                 <div class="rname" id="resName">جاري التحميل...</div>
+                
+                <!-- RECENT ORDERS BTN MOVED HERE -->
+                <button class="recent-btn" onclick="openRecentOrders()">
+                    <i class="fas fa-clock-rotate-left"></i> آخر طلباتي
+                </button>
+
                 <div class="rmeta">
                     <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle"
                             style="font-size:0.38rem"></i> مفتوح الآن</span>
@@ -1076,10 +1079,8 @@
         <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
     </div>
 
-    <!-- RECENT ORDERS BTN -->
-    <button class="recent-btn" onclick="openRecentOrders()">
-        <i class="fas fa-clock-rotate-left"></i> آخر طلباتي
-    </button>
+        <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
+    </div>
 
     <!-- CART FAB -->
     <div class="cartfab">
@@ -1453,8 +1454,8 @@
             if (!cart.length) closeModal();
         }
 
-        function openModal() {
-            if (cart.length === 0) return;
+        function openModal(isTracking = false) {
+            if (!isTracking && cart.length === 0) return;
             selectedType = 'takeaway';
             const btns = document.querySelectorAll('.type-btn');
             btns.forEach(b => b.classList.remove('active'));
@@ -1753,8 +1754,8 @@
         async function retrack(key, no) {
             document.getElementById('recentOrdersModal').classList.remove('show');
             
-            // Show loading state or modal
-            openModal();
+            // Show modal even with empty cart
+            openModal(true);
             document.getElementById('trackStatusText').textContent = 'جاري جلب تفاصيل الطلب...';
             
             try {
