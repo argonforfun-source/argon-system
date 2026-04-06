@@ -559,6 +559,56 @@
         .toast { background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; backdrop-filter: blur(10px); transform: translateY(-20px); opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         .toast.show { transform: translateY(0); opacity: 1; }
 
+        /* RECENT ORDERS BTN */
+        .recent-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .recent-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .recent-btn i { font-size: 0.85rem; color: var(--amber); }
+
+        .recent-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .recent-item {
+            background: rgba(var(--accent-rgb), 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ri-info { display: flex; flex-direction: column; gap: 2px; }
+        .ri-no { font-weight: 800; font-size: 0.95rem; }
+        .ri-status { font-size: 0.7rem; color: var(--muted); }
+        .ri-status.active { color: var(--green); font-weight: 700; }
+        .ri-track {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         @keyframes sup {
             from {
                 transform: translateY(100%);
@@ -956,6 +1006,24 @@
 
 <body data-theme="light">
 
+    <div id="connBar" class="conn-bar"></div>
+    <div id="toast"></div>
+
+    <!-- RECENT ORDERS MODAL -->
+    <div class="moverlay" id="recentOrdersModal">
+        <div class="msheet">
+            <div class="shandle"></div>
+            <div class="stitle">🕒 آخر 3 طلبات قمت بها</div>
+            <div id="recentOrdersList" class="recent-list">
+                <div style="text-align:center; padding:30px; color:var(--muted); font-size:0.85rem">
+                    <i class="fas fa-receipt" style="font-size:2rem; display:block; margin-bottom:10px; opacity:0.3"></i>
+                    لا توجد طلبات سابقة مخزنة حالياً
+                </div>
+            </div>
+            <button class="bclose" style="margin-top:20px" onclick="document.getElementById('recentOrdersModal').classList.remove('show')">إغلاق</button>
+        </div>
+    </div>
+
     <div id="notFoundScreen" style="display:none">
         <div class="lock-icon">❓</div>
         <div class="lock-msg">المطعم غير موجود</div>
@@ -1007,6 +1075,11 @@
 
         <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
     </div>
+
+    <!-- RECENT ORDERS BTN -->
+    <button class="recent-btn" onclick="openRecentOrders()">
+        <i class="fas fa-clock-rotate-left"></i> آخر طلباتي
+    </button>
 
     <!-- CART FAB -->
     <div class="cartfab">
@@ -1497,6 +1570,7 @@
                 showStep(3);
 
                 startTracking(orderKey);
+                saveOrderLocally(orderKey, orderNo);
 
                 cart = [];
                 updateCartUI();
@@ -1604,6 +1678,78 @@
         document.getElementById('orderModal').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });
+
+        // RECENT ORDERS LOGIC
+        function saveOrderLocally(key, no) {
+            let list = JSON.parse(localStorage.getItem('argon_recent_' + RES_ID) || '[]');
+            // Add new at the beginning
+            list.unshift({ key, no, time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) });
+            // Keep last 3
+            if (list.length > 3) list = list.slice(0, 3);
+            localStorage.setItem('argon_recent_' + RES_ID, JSON.stringify(list));
+        }
+
+        async function openRecentOrders() {
+            const modal = document.getElementById('recentOrdersModal');
+            const listEl = document.getElementById('recentOrdersList');
+            const list = JSON.parse(localStorage.getItem('argon_recent_' + RES_ID) || '[]');
+            
+            modal.classList.add('show');
+            if (list.length === 0) return;
+
+            listEl.innerHTML = '<div style="text-align:center; padding:20px"><i class="fas fa-spinner fa-spin"></i> جاري تحديث الحالات...</div>';
+
+            let html = '';
+            for (const item of list) {
+                // Fetch current status from Firebase
+                let statusRaw = 'new';
+                try {
+                    const snap = await db.ref(`restaurants/${RES_ID}/orders/${item.key}`).once('value');
+                    if (snap.exists()) {
+                        statusRaw = snap.val().status || 'new';
+                    } else {
+                        // Check completed
+                        const cSnap = await db.ref(`restaurants/${RES_ID}/completedOrders/${item.key}`).once('value');
+                        if (cSnap.exists()) statusRaw = 'done';
+                        else statusRaw = 'expired';
+                    }
+                } catch(e) { statusRaw = 'error'; }
+
+                const labels = {
+                    'new': 'وصل للمطعم',
+                    'prep': 'قيد التحضير',
+                    'ready': 'جاهز للاستلام',
+                    'shipped': 'جاهز للاستلام',
+                    'done': 'تم التسليم ✅',
+                    'expired': 'مكتمل (قديم)',
+                    'error': 'تعذر جلب الحالة'
+                };
+
+                html += `
+                <div class="recent-item">
+                    <div class="ri-info">
+                        <div class="ri-no">طلب رقم ${item.no}</div>
+                        <div class="ri-status ${statusRaw !== 'new' ? 'active' : ''}">${labels[statusRaw] || 'تحت المعالجة'} • ${item.time}</div>
+                    </div>
+                    ${statusRaw !== 'expired' && statusRaw !== 'error' ? 
+                        `<button class="ri-track" onclick="retrack('${item.key}', '${item.no}')">تتبع</button>` : ''}
+                </div>`;
+            }
+            listEl.innerHTML = html;
+        }
+
+        function retrack(key, no) {
+            document.getElementById('recentOrdersModal').classList.remove('show');
+            // Fake the success info to show step 3 with this order's info
+            document.getElementById('finalOrderNo').textContent = no;
+            document.getElementById('finalCustName').textContent = '-';
+            document.getElementById('finalOrderType').textContent = '-';
+            document.getElementById('finalTotal').textContent = '-';
+            
+            openModal(); // Open orderModal
+            showStep(3); // Go to tracking step
+            startTracking(key);
+        }
     </script>
 </body>
 
