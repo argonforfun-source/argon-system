@@ -1646,6 +1646,9 @@
                             <span class="oc-st tbadge-${o.status || 'new'}">${o.status === 'prep' ? 'تحضير' : o.status === 'ready' ? 'جاهز' : 'طلب جديد'}</span></div>
                             <div class="oc-b">
                                 <div style="font-weight:800;font-size:1.1rem;margin-bottom:5px;color:var(--text)">${o.custName || 'زبون'}</div>
+                                <div style="color:var(--muted);font-size:0.8rem;margin-bottom:12px">
+                                    <i class="fas fa-calendar-alt"></i> ${o.date || '-'} | <i class="fas fa-clock"></i> ${o.time || '-'}
+                                </div>
                                 <div style="color:var(--muted);font-size:0.85rem;margin-bottom:12px"><i class="fas fa-phone"></i> ${o.custPhone || '-'} | <i class="fas fa-truck"></i> ${o.orderType || '-'}</div>
                                 <div class="oc-i">${ih}</div>
                                 ${o.notes ? `<div style="margin-top:10px;padding:8px;background:rgba(245,158,11,0.05);border-radius:8px;font-size:0.8rem;color:var(--amber);border:1px dashed var(--amber)">📝 ${o.notes}</div>` : ''}
