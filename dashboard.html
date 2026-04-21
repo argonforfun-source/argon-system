@@ -1115,6 +1115,9 @@
                 <div class="ni" onclick="openRep()" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.2); margin-top:10px; color:var(--accent)">
                     <i class="fas fa-file-invoice-dollar"></i> أصدر تقرير PDF
                 </div>
+                <div class="ni" onclick="doLogout()" style="margin-top:10px; color:var(--red)">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </div>
             </div>
             <div style="margin-top:auto;padding:12px 9px;border-top:1px solid var(--border)">
                 <div class="pwby">POWERED BY <span>ARGON</span></div>
@@ -2076,7 +2079,31 @@
         <div style="text-align:center; font-size:10px; color:#999; margin-top:50px; border-top:1px solid #eee; padding-top:20px;">
             هذا التقرير تم إنشاؤه تلقائياً بواسطة نظام ARGON OS © 2026
         </div>
-    </div>
+        <script>
+        function fmtItems(items) {
+            if (!items) return '<span style="color:var(--muted)">-</span>';
+            let list = [];
+            if (Array.isArray(items)) {
+                list = items;
+            } else if (typeof items === 'object' && items !== null) {
+                list = [items];
+            } else if (typeof items === 'string') {
+                list = items.split(/[+,|]|\s\+\s/).map(s => ({ name: s.trim() })).filter(x => x.name);
+            }
+            if (!list.length) return '<span style="color:var(--muted)">-</span>';
+            return list.map(it => {
+                const n = it.name || it.n || (typeof it === 'string' ? it : 'صنف');
+                const q = it.qty || it.q || 1;
+                return `<div style="font-size:0.75rem;margin-bottom:2px">• <b>${q}x</b> ${n}</div>`;
+            }).join('');
+        }
+
+        function doLogout() {
+            if (!confirm('هل تريد الخروج من لوحة التحكم؟')) return;
+            sessionStorage.removeItem('argon_auth_' + RES_ID);
+            window.location.reload();
+        }
+        </script>
 </body>
 
 </html>

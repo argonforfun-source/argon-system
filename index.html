@@ -1461,13 +1461,18 @@
         // 2️⃣ PRODUCTS — menu items
         db.ref(BASE + '/products').on('value', snap => {
             try {
-                const products = snap.val() || {};
+                const products = snap.val();
                 allProducts = [];
-                for (let k in products) {
-                    if (products[k]) allProducts.push({ key: k, ...products[k] });
+                if (products) {
+                    for (let k in products) {
+                        if (products[k]) allProducts.push({ key: k, ...products[k] });
+                    }
                 }
                 renderMenu(allProducts);
-            } catch (e) { console.error('Products error:', e); }
+            } catch (e) { 
+                console.error('Products error:', e); 
+                renderMenu([]); // Fallback to hide spinner
+            }
         });
 
         // 3️⃣ ORDERS COUNT — only for kitchen load indicator

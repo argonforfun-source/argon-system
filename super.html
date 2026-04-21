@@ -1501,6 +1501,13 @@
                 </div>
             </div>
             <div class="hdr-right">
+                <div style="display:flex; gap:12px">
+                    <button class="btn btn-gold" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+                    <div class="user-badge">
+                        <i class="fas fa-crown"></i>
+                        <span>Super Admin</span>
+                    </div>
+                </div>
                 <div class="hdr-clock" id="clock">00:00:00</div>
                 <div class="hdr-badge">⚡ Super Admin</div>
                 <button class="btn-hdr btn-danger-hdr" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
@@ -1760,7 +1767,11 @@
                 document.getElementById('masterUserInp').value = '';
                 document.getElementById('masterPassInp').value = '';
             } catch (err) {
-                toast('❌ ' + err.message, 'err');
+                if (err.message.includes('permission_denied')) {
+                    alert('❌ خطأ في الصلاحيات: يرجى التأكد من تحديث قواعد حماية Firebase (Security Rules) للسماح بالكتابة في مسار super_admin.');
+                } else {
+                    toast('❌ ' + err.message, 'err');
+                }
             }
         }
 
