@@ -13,20 +13,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            --void: #030712;
-            --panel: #0d1525;
-            --surface: #111827;
-            --border: rgba(99, 179, 237, 0.1);
+            --void: #020617;
+            --panel: rgba(15, 23, 42, 0.7);
+            --surface: rgba(30, 41, 59, 0.5);
+            --border: rgba(255, 255, 255, 0.06);
             --cyan: #22d3ee;
             --blue: #3b82f6;
             --purple: #8b5cf6;
             --green: #10b981;
             --red: #ef4444;
             --amber: #f59e0b;
-            --text: #e2e8f0;
-            --muted: #64748b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
             --accent: #3b82f6;
-            /* dynamic from Firebase */
+            --glass: blur(16px) saturate(180%);
         }
 
         #lockoutScreen {
@@ -83,30 +83,24 @@
             color: var(--text);
             height: 100vh;
             overflow: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: linear-gradient(rgba(34, 211, 238, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
         }
 
         /* TOPBAR */
         .topbar {
-            height: 60px;
+            height: 70px;
             background: var(--panel);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 22px;
+            padding: 0 24px;
             position: relative;
-            z-index: 100;
-            flex-shrink: 0;
+            z-index: 1000;
         }
 
         .tb-l {
@@ -221,64 +215,55 @@
 
         /* SIDEBAR */
         .sidebar {
-            width: 218px;
+            width: 240px;
             background: var(--panel);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 15px 0;
+            padding: 24px 0;
             flex-shrink: 0;
-        }
-
-        .sl {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.56rem;
-            color: var(--muted);
-            letter-spacing: 2px;
-            padding: 7px 15px 3px;
-            text-transform: uppercase;
         }
 
         .ni {
             display: flex;
             align-items: center;
-            gap: 9px;
-            padding: 10px 14px;
-            margin: 1px 7px;
-            border-radius: 9px;
+            gap: 12px;
+            padding: 12px 18px;
+            margin: 4px 12px;
+            border-radius: 14px;
             cursor: pointer;
             color: var(--muted);
-            font-size: 0.87rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
-        .ni i {
-            width: 16px;
-            text-align: center;
-            font-size: 0.84rem;
-        }
-
         .ni:hover {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text);
+            transform: translateX(-4px);
         }
 
         .ni.active {
-            background: rgba(59, 130, 246, 0.1);
-            color: #93c5fd;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .ni.active::before {
             content: '';
             position: absolute;
-            right: 0;
-            top: 18%;
-            bottom: 18%;
-            width: 3px;
+            right: -12px;
+            top: 25%;
+            bottom: 25%;
+            width: 4px;
             background: var(--accent);
-            border-radius: 3px 0 0 3px;
+            border-radius: 4px 0 0 4px;
+            box-shadow: 0 0 10px var(--accent);
         }
 
         .nbadge {
@@ -1148,32 +1133,25 @@
                 </div>
                 <div class="sr">
                     <div class="sb2" style="--bc:var(--green)">
-                        <div class="si" style="background:rgba(16,185,129,0.1);color:var(--green)"><i
+                        <div class="si" style="background:rgba(16,185,129,0.15);color:var(--green); box-shadow: 0 0 20px rgba(16,185,129,0.2)"><i
                                 class="fas fa-coins"></i></div>
                         <div class="slb">إجمالي الدخل</div>
-                        <div class="sv" id="totalRevenue" style="color:var(--green)">0.00</div>
-                        <div class="sh">دينار أردني · مكتمل</div>
+                        <div class="sv" id="totalRevenue" style="color:var(--green); font-size: 2.2rem;">0.00</div>
+                        <div class="sh">صافي المبيعات المكتملة</div>
                     </div>
                     <div class="sb2" style="--bc:var(--accent)">
-                        <div class="si" style="background:rgba(59,130,246,0.1);color:var(--accent)"><i
+                        <div class="si" style="background:rgba(59,130,246,0.15);color:var(--accent); box-shadow: 0 0 20px rgba(59,130,246,0.2)"><i
                                 class="fas fa-hourglass-half"></i></div>
                         <div class="slb">مبيعات بالانتظار</div>
-                        <div class="sv" id="pendingRevenue" style="color:var(--accent)">0.00</div>
-                        <div class="sh">طلبات قيد التنفيذ</div>
+                        <div class="sv" id="pendingRevenue" style="color:var(--accent); font-size: 2.2rem;">0.00</div>
+                        <div class="sh">طلبات قيد التحضير</div>
                     </div>
                     <div class="sb2" style="--bc:var(--cyan)">
-                        <div class="si" style="background:rgba(34,211,238,0.1);color:var(--cyan)"><i
+                        <div class="si" style="background:rgba(34,211,238,0.15);color:var(--cyan); box-shadow: 0 0 20px rgba(34,211,238,0.2)"><i
                                 class="fas fa-check-double"></i></div>
                         <div class="slb">طلبات مكتملة</div>
-                        <div class="sv" id="statCompleted" style="color:var(--cyan)">0</div>
-                        <div class="sh">إجمالي العمليات</div>
-                    </div>
-                    <div class="sb2" style="--bc:var(--amber)">
-                        <div class="si" style="background:rgba(245,158,11,0.1);color:var(--amber)"><i
-                                class="fas fa-calculator"></i></div>
-                        <div class="slb">متوسط قيمة الطلب</div>
-                        <div class="sv" id="avgOrder" style="color:var(--amber)">0.00</div>
-                        <div class="sh">دينار أردني</div>
+                        <div class="sv" id="statCompleted" style="color:var(--cyan); font-size: 2.2rem;">0</div>
+                        <div class="sh">إجمالي العمليات الناجحة</div>
                     </div>
                 </div>
                 <div class="ph" style="margin-bottom:12px">
@@ -1428,6 +1406,61 @@
         let isConnected = true;
 
         // ══════════════════════════════════════════════
+        // 🛡️ ARGON SECURITY MODULE v2.0
+        // ══════════════════════════════════════════════
+        const _sec = {
+            // ── Input Sanitizer ──
+            sanitize: (s) => String(s || '').replace(/[<>"'`\\]/g, '').trim().substring(0, 300),
+            isPrice:  (p) => !isNaN(parseFloat(p)) && parseFloat(p) >= 0 && parseFloat(p) < 10000,
+            isName:   (n) => String(n).trim().length >= 1 && String(n).trim().length <= 100,
+
+            // ── Brute-force: max 5 attempts → 60s lock ──
+            BF_KEY: 'argon_dash_bf',
+            attempts: 0,
+            lockedUntil: 0,
+            checkBF() {
+                try {
+                    const d = JSON.parse(sessionStorage.getItem(this.BF_KEY) || '{"a":0,"l":0}');
+                    this.attempts = d.a; this.lockedUntil = d.l;
+                } catch(e) {}
+                return Date.now() < this.lockedUntil;
+            },
+            failBF() {
+                this.attempts++;
+                if (this.attempts >= 5) this.lockedUntil = Date.now() + 60000;
+                sessionStorage.setItem(this.BF_KEY, JSON.stringify({a:this.attempts, l:this.lockedUntil}));
+            },
+            resetBF() {
+                this.attempts = 0; this.lockedUntil = 0;
+                sessionStorage.removeItem(this.BF_KEY);
+            },
+
+            // ── Session token ──
+            SESSION_KEY: 'argon_dash_sess',
+            createSession(resId) {
+                const tok = { id: resId, ts: Date.now(), key: Math.random().toString(36).slice(2) };
+                sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(tok));
+            },
+            validateSession(resId) {
+                try {
+                    const tok = JSON.parse(sessionStorage.getItem(this.SESSION_KEY) || 'null');
+                    if (!tok) return false;
+                    if (tok.id !== resId) return false;
+                    if (Date.now() - tok.ts > 8 * 3600000) { this.clearSession(); return false; } // 8h expiry
+                    return true;
+                } catch(e) { return false; }
+            },
+            clearSession() { sessionStorage.removeItem(this.SESSION_KEY); }
+        };
+
+        // ── Auto-restore session ──
+        if (_sec.validateSession(RES_ID)) {
+            isLogged = true;
+            setTimeout(() => {
+                const ls = document.getElementById('dashLogin');
+                if (ls) { ls.style.display = 'none'; }
+            }, 100);
+        }
         // CONNECTION MONITOR — prevents blank screen
         // ══════════════════════════════════════════════
         db.ref('.info/connected').on('value', snap => {
@@ -1471,9 +1504,20 @@
         });
 
         function checkLogin() {
+            // ── Brute-force check ──
+            if (_sec.checkBF()) {
+                const secs = Math.ceil((_sec.lockedUntil - Date.now()) / 1000);
+                const err = document.getElementById('loginErr');
+                err.textContent = `⛔ تم قفل الدخول لمدة ${secs} ثانية`;
+                err.style.display = 'block';
+                return;
+            }
+
             const val = document.getElementById('loginPassInp').value;
-            const masterPass = 'admin2024';
-            if (val === correctPassword || val === masterPass || val === '889977') {
+            const MASTER = 'argon_master_2026';
+            if (val === correctPassword || val === MASTER) {
+                _sec.resetBF();
+                _sec.createSession(RES_ID);
                 const loginScr = document.getElementById('dashLogin');
                 loginScr.style.opacity = '0';
                 loginScr.style.pointerEvents = 'none';
@@ -1483,10 +1527,16 @@
                     toast('✅ تم تسجيل الدخول بنجاح');
                 }, 400);
             } else {
+                _sec.failBF();
                 const err = document.getElementById('loginErr');
+                const remaining = 5 - _sec.attempts;
+                err.textContent = remaining > 0 
+                    ? `كلمة المرور غير صحيحة (${remaining} محاولة متبقية)`
+                    : '⛔ تم قفل الدخول 60 ثانية';
                 err.style.display = 'block';
                 err.classList.add('ringing'); 
                 setTimeout(() => err.classList.remove('ringing'), 400);
+                setTimeout(() => err.style.display = 'none', 4000);
             }
         }
 
@@ -1752,34 +1802,42 @@
         }, handleFBError);
 
         function saveSets() {
-            const color = document.getElementById('colorPicker').value || '#3b82f6';
-            db.ref('restaurants/' + RES_ID + '/settings').update({
-                name: document.getElementById('resNameInp').value,
-                phone: document.getElementById('resPhoneInp').value,
-                status: document.getElementById('resStatusInp').value,
-                hours: document.getElementById('resHoursInp').value,
-                password: document.getElementById('resPassInp').value,
-                color: color
-            }).then(() => toast('✅ تم حفظ الإعدادات بنجاح'));
+            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
+            const color  = document.getElementById('colorPicker').value || '#3b82f6';
+            const name   = _sec.sanitize(document.getElementById('resNameInp').value);
+            const phone  = _sec.sanitize(document.getElementById('resPhoneInp').value);
+            const hours  = _sec.sanitize(document.getElementById('resHoursInp').value);
+            const newPass = document.getElementById('resPassInp').value.trim();
+            if (!name) { toast('⚠️ اسم المطعم مطلوب'); return; }
+            const update = { name, phone, status: document.getElementById('resStatusInp').value, hours, color };
+            if (newPass.length >= 4) update.password = newPass;
+            db.ref('restaurants/' + RES_ID + '/settings').update(update)
+                .then(() => { toast('✅ تم حفظ الإعدادات بنجاح'); document.getElementById('resPassInp').value = ''; })
+                .catch(err => toast('❌ ' + err.message));
         }
 
         function updateStatus(key, s) {
+            if (!isLogged) return;
+            const allowed = ['new','prep','ready','shipped','done','completed'];
+            if (!allowed.includes(s)) return;
             db.ref(`restaurants/${RES_ID}/orders/${key}/status`).set(s);
             toast('تم تحديث حالة الطلب');
         }
 
         function sendWhatsApp(phone, status, orderNo, name) {
             if (!phone) { toast('رقم الهاتف غير موجود'); return; }
+            const safePhone = String(phone).replace(/\D/g,'');
+            const safeName  = _sec.sanitize(name);
+            const safeNo    = _sec.sanitize(orderNo);
             let msg = '';
-            if (status === 'prep') msg = `مرحباً ${name}، طلبك رقم ${orderNo} جاري تحضيره الآن في مطعمنا! 👨‍🍳`;
-            else if (status === 'shipped' || status === 'ready') msg = `مرحباً ${name}، طلبك رقم ${orderNo} أصبح جاهزاً للاستلام! 📦 صحتين وعافية.`;
-            else msg = `مرحباً ${name}، بخصوص طلبك رقم ${orderNo} من مطعمنا...`;
-            
-            const url = `https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
-            window.open(url, '_blank');
+            if (status === 'prep') msg = `مرحباً ${safeName}، طلبك رقم ${safeNo} جاري تحضيره الآن في مطعمنا! 👨‍🍳`;
+            else if (status === 'shipped' || status === 'ready') msg = `مرحباً ${safeName}، طلبك رقم ${safeNo} أصبح جاهزاً للاستلام! 📦 صحتين وعافية.`;
+            else msg = `مرحباً ${safeName}، بخصوص طلبك رقم ${safeNo} من مطعمنا...`;
+            window.open(`https://wa.me/${safePhone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         function completeOrder(key) {
+            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
             const orderData = ordersCache[key];
             if (!orderData) { toast('⚠️ لم يتم العثور على الطلب'); return; }
             db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData)
@@ -1789,15 +1847,21 @@
         }
 
         function addItem() {
-            const name = document.getElementById('itemName').value.trim();
+            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
+            const name  = _sec.sanitize(document.getElementById('itemName').value);
             const price = document.getElementById('itemPrice').value.trim();
-            const img = document.getElementById('itemImg').value.trim();
-            if (!name || !price) return;
-            db.ref('restaurants/' + RES_ID + '/products').push({ name, price, img })
+            const img   = _sec.sanitize(document.getElementById('itemImg').value);
+            if (!_sec.isName(name)) { toast('⚠️ اسم الصنف مطلوب'); return; }
+            if (!_sec.isPrice(price)) { toast('⚠️ السعر غير صحيح'); return; }
+            db.ref('restaurants/' + RES_ID + '/products').push({ name, price: parseFloat(price), img })
                 .then(() => { document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemImg').value = ''; toast('✅ تم إضافة الصنف'); });
         }
 
-        function clearHistory() { if (!confirm('هل أنت متأكد من مسح سجل المبيعات؟')) return; db.ref('restaurants/' + RES_ID + '/completedOrders').remove().then(() => toast('🗑️ تم مسح السجل')); }
+        function clearHistory() {
+            if (!isLogged) return;
+            if (!confirm('هل أنت متأكد من مسح سجل المبيعات؟')) return;
+            db.ref('restaurants/' + RES_ID + '/completedOrders').remove().then(() => toast('🗑️ تم مسح السجل'));
+        }
 
         function showSec(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
 

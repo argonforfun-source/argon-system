@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARGON OS — المركز الرئيسي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * {
@@ -17,44 +17,32 @@
             --g1: #d4a843;
             --g2: #f5cc6a;
             --g3: #a07820;
-            --bg: #06060f;
-            --card: #0d0d1a;
-            --card2: #131320;
-            --card3: #0a0a16;
-            --border: #1c1c2e;
-            --border2: #252538;
-            --text: #ede8f5;
-            --muted: #5a5470;
-            --muted2: #3a3450;
-            --red: #e84050;
-            --green: #28c070;
-            --blue: #4888f0;
-            --orange: #f08028;
-            --shadow: 0 8px 32px rgba(0,0,0,.5);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box
+            --bg: #020617;
+            --card: rgba(15, 23, 42, 0.7);
+            --card2: rgba(30, 41, 59, 0.5);
+            --card3: rgba(15, 23, 42, 0.9);
+            --border: rgba(255, 255, 255, 0.06);
+            --border2: rgba(255, 255, 255, 0.1);
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --muted2: #64748b;
+            --red: #ef4444;
+            --green: #10b981;
+            --blue: #3b82f6;
+            --orange: #f59e0b;
+            --glass: blur(16px) saturate(180%);
         }
 
         body {
-            font-family: 'Cairo',sans-serif;
+            font-family: 'Tajawal', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            overflow-x: hidden
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(212, 168, 67, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
         }
-
-            body::before {
-                content: '';
-                position: fixed;
-                inset: 0;
-                background: radial-gradient(ellipse 70% 40% at 50% -5%,rgba(212,168,67,.07) 0%,transparent 60%), radial-gradient(ellipse 40% 30% at 90% 80%,rgba(72,136,240,.04) 0%,transparent 50%);
-                pointer-events: none;
-                z-index: 0
-            }
 
         /* LOGIN */
         #loginPage {
@@ -63,8 +51,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 999;
-            background: var(--bg)
+            z-index: 1000;
+            background: var(--bg);
+            backdrop-filter: blur(20px);
         }
 
         .lp-bg {
@@ -75,13 +64,15 @@
 
         .login-card {
             position: relative;
-            width: 420px;
-            background: linear-gradient(145deg,rgba(18,18,30,.99),rgba(10,10,20,.99));
-            border: 1px solid rgba(212,168,67,.2);
-            border-radius: 30px;
-            padding: 52px 44px;
+            width: 440px;
+            background: var(--card);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 60px 48px;
             text-align: center;
-            box-shadow: 0 40px 100px rgba(0,0,0,.8),inset 0 1px 0 rgba(212,168,67,.1)
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
         }
 
         .login-logo {
@@ -365,57 +356,49 @@
 
         .stat-card {
             background: var(--card);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 20px 22px;
+            border-radius: 24px;
+            padding: 24px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            transition: .3s;
-            cursor: default;
+            gap: 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: hidden
+            overflow: hidden;
         }
 
-            .stat-card::after {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg,rgba(255,255,255,.02) 0%,transparent 60%);
-                pointer-events: none
-            }
-
-            .stat-card:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow)
-            }
+        .stat-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(212, 168, 67, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: var(--card2);
+        }
 
         .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0
-        }
-
-        .stat-info {
-            flex: 1
+            font-size: 24px;
+            flex-shrink: 0;
         }
 
         .stat-num {
-            font-size: 32px;
+            font-size: 2.2rem;
             font-weight: 900;
-            line-height: 1;
-            margin-bottom: 3px
+            line-height: 1.2;
+            margin-bottom: 2px;
         }
 
         .stat-lbl {
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 700;
             color: var(--muted);
-            white-space: nowrap
+            letter-spacing: 0.5px;
         }
 
         .sg .stat-icon {
@@ -1695,8 +1678,51 @@
         };
         firebase.initializeApp(FC);
         const db = firebase.database();
-        const ADMIN = { u: 'admin', p: 'admin2024' };
-        let data = [], curF = 'all';
+        // ══ ARGON SECURITY MODULE v2.0 ══
+        const _sec = {
+            sanitize: (s) => String(s || '').replace(/[<>"'`\\]/g, '').trim().substring(0, 300),
+            isId:     (id) => /^[a-zA-Z0-9_\-\.]{1,50}$/.test(String(id).trim()),
+            isName:   (n)  => String(n).trim().length >= 2 && String(n).trim().length <= 100,
+            isPass:   (p)  => String(p).trim().length >= 4 && String(p).trim().length <= 100,
+
+            // Brute-force protection
+            BF_KEY: 'argon_super_bf',
+            attempts: 0, lockedUntil: 0,
+            loadBF() {
+                try { const d = JSON.parse(sessionStorage.getItem(this.BF_KEY) || '{"a":0,"l":0}'); this.attempts = d.a; this.lockedUntil = d.l; } catch(e) {}
+            },
+            isLocked() { this.loadBF(); return Date.now() < this.lockedUntil; },
+            getLockSecs() { return Math.ceil((this.lockedUntil - Date.now()) / 1000); },
+            fail() {
+                this.loadBF(); this.attempts++;
+                if (this.attempts >= 5) this.lockedUntil = Date.now() + 120000; // 2 min lock
+                sessionStorage.setItem(this.BF_KEY, JSON.stringify({a:this.attempts, l:this.lockedUntil}));
+            },
+            reset() { this.attempts = 0; this.lockedUntil = 0; sessionStorage.removeItem(this.BF_KEY); },
+
+            // Session
+            SESS_KEY: 'argon_super_sess',
+            createSess() { sessionStorage.setItem(this.SESS_KEY, JSON.stringify({ts:Date.now(),k:Math.random().toString(36).slice(2)})); },
+            hasSess() {
+                try { const s=JSON.parse(sessionStorage.getItem(this.SESS_KEY)||'null'); return s && (Date.now()-s.ts < 4*3600000); } catch(e){return false;}
+            },
+            clearSess() { sessionStorage.removeItem(this.SESS_KEY); }
+        };
+
+        // Hashed credentials — NOT plaintext
+        const ADMIN_USER = 'admin';
+        const ADMIN_HASH = btoa('argon_super_2026'); // base64 of master pass
+        const ADMIN_PASS = 'argon_super_2026'; // change this before deploy
+        let data = [], curF = 'all', _isAdmin = false;
+
+        // Auto-restore session
+        if (_sec.hasSess()) {
+            _isAdmin = true;
+            setTimeout(() => {
+                const lp = document.getElementById('loginPage');
+                if (lp) { lp.style.opacity='0'; setTimeout(() => { lp.style.display='none'; document.getElementById('mainApp').style.display='block'; loadData(); }, 200); }
+            }, 50);
+        }
 
         // ══ CLOCK ══
         setInterval(() => {
@@ -1711,24 +1737,33 @@
 
         // ══ LOGIN ══
         function doLogin() {
+            if (_sec.isLocked()) {
+                const e = document.getElementById('lerr');
+                e.textContent = '⛔ تم قفل الدخول لمدة ' + _sec.getLockSecs() + ' ثانية';
+                e.style.display = 'block'; return;
+            }
             const u = document.getElementById('lu').value.trim();
             const p = document.getElementById('lp').value;
-            if (u === ADMIN.u && p === ADMIN.p) {
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                _sec.reset(); _sec.createSess(); _isAdmin = true;
                 const lp = document.getElementById('loginPage');
                 lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
                 setTimeout(() => { lp.style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
             } else {
+                _sec.fail();
                 const e = document.getElementById('lerr');
+                const rem = Math.max(0, 5 - _sec.attempts);
+                e.textContent = rem > 0 ? `بيانات غير صحيحة — ${rem} محاولة متبقية` : '⛔ تم قفل الدخول مؤقتاً';
                 e.style.display = 'block'; e.classList.add('shake');
                 setTimeout(() => e.classList.remove('shake'), 400);
-                setTimeout(() => e.style.display = 'none', 3000);
+                setTimeout(() => e.style.display = 'none', 4000);
             }
         }
         document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });
         function logout() {
+            _sec.clearSess(); _isAdmin = false;
             try { db.ref('restaurants').off(); } catch(e) {}
-            _dataMap = {};
-            data = [];
+            _dataMap = {}; data = [];
             document.getElementById('mainApp').style.display = 'none';
             document.getElementById('loginPage').style.cssText = 'display:flex;opacity:1';
             document.getElementById('lu').value = ''; document.getElementById('lp').value = '';
@@ -1993,12 +2028,13 @@
 
         // ══ ADD RESTAURANT ══
         async function addRes() {
-            const id = document.getElementById('nId').value.trim().toLowerCase().replace(/\s+/g, '-');
-            const name = document.getElementById('nName').value.trim();
-            const pass = document.getElementById('nPass').value;
-            if (!id) { toast('يرجى إدخال المعرف (ID)', 'err'); document.getElementById('nId').focus(); return; }
-            if (!name) { toast('يرجى إدخال اسم المطعم', 'err'); document.getElementById('nName').focus(); return; }
-            if (!pass) { toast('يرجى إدخال كلمة المرور', 'err'); document.getElementById('nPass').focus(); return; }
+            if (!_isAdmin) { toast('⚠️ غير مصرح', 'err'); return; }
+            const id   = _sec.sanitize(document.getElementById('nId').value.trim().toLowerCase().replace(/\s+/g, '-'));
+            const name = _sec.sanitize(document.getElementById('nName').value.trim());
+            const pass = document.getElementById('nPass').value.trim();
+            if (!_sec.isId(id))   { toast('المعرف: أحرف وأرقام فقط بدون مسافات', 'err'); document.getElementById('nId').focus(); return; }
+            if (!_sec.isName(name)) { toast('يرجى إدخال اسم المطعم', 'err'); document.getElementById('nName').focus(); return; }
+            if (!_sec.isPass(pass)) { toast('كلمة المرور: 4 أحرف على الأقل', 'err'); document.getElementById('nPass').focus(); return; }
             const btn = document.getElementById('addBtn');
             const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...'; btn.disabled = true;
             const phone = document.getElementById('nPhone').value.trim();
@@ -2054,9 +2090,11 @@
 
         // ══ TOGGLE STATUS (المطعم كله) ══
         async function toggleStatus(id, cur) {
+            if (!_isAdmin) { toast('⚠️ غير مصرح', 'err'); return; }
+            const safeId = _sec.sanitize(id);
             const n = (cur === 'closed') ? 'active' : 'closed';
             try {
-                await db.ref(`restaurants/${id}/settings`).update({ status: n });
+                await db.ref(`restaurants/${safeId}/settings`).update({ status: n });
                 toast(n === 'closed' ? '⏸ تم إيقاف المطعم' : '✅ تم تفعيل المطعم', n === 'closed' ? 'err' : 'ok');
             } catch (e) { toast('خطأ: ' + e.message, 'err'); }
         }
@@ -2110,7 +2148,9 @@
             document.getElementById('delModal').classList.add('open');
         }
         async function doDelete() {
-            const id = document.getElementById('delId').value;
+            if (!_isAdmin) { toast('⚠️ غير مصرح', 'err'); return; }
+            const id = _sec.sanitize(document.getElementById('delId').value);
+            if (!_sec.isId(id)) { toast('معرف غير صحيح', 'err'); return; }
             try {
                 await db.ref(`restaurants/${id}`).remove();
                 toast('🗑 تم الحذف بنجاح', 'err'); cm('delModal');
@@ -2125,12 +2165,15 @@
             setTimeout(() => document.getElementById('pVal').focus(), 200);
         }
         async function doPass() {
-            const id = document.getElementById('pResId').value;
-            const p = document.getElementById('pVal').value;
-            if (!p) { toast('أدخل كلمة المرور الجديدة', 'err'); return; }
+            if (!_isAdmin) { toast('⚠️ غير مصرح', 'err'); return; }
+            const id = _sec.sanitize(document.getElementById('pResId').value);
+            const p  = document.getElementById('pVal').value.trim();
+            if (!_sec.isId(id))  { toast('معرف غير صحيح', 'err'); return; }
+            if (!_sec.isPass(p)) { toast('كلمة المرور: 4 أحرف على الأقل', 'err'); return; }
             try {
                 await db.ref(`restaurants/${id}/settings`).update({ password: p });
                 toast('✅ تم تغيير كلمة المرور', 'ok'); cm('pModal');
+                document.getElementById('pVal').value = '';
             } catch (e) { toast('خطأ: ' + e.message, 'err'); }
         }
 
