@@ -1526,14 +1526,18 @@
                 </div>
                 <div class="add-body" id="secBody">
                     <div style="padding: 22px 24px;">
-                        <div class="fg">
-                            <label style="color: var(--red);"><i class="fas fa-key"></i> تغيير كلمة مرور المشرف الرئيسي (Super Admin)</label>
-                            <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                <input class="fi" id="masterPassInp" type="password" placeholder="كلمة المرور الجديدة" style="flex: 1;">
-                                <button class="btn btn-gold" style="background: var(--red); color: white;" onclick="updateMasterPass()"><i class="fas fa-save"></i> تحديث</button>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px; padding: 0;">
+                            <div class="fg">
+                                <label style="color: var(--red);"><i class="fas fa-user-shield"></i> اسم مستخدم المشرف</label>
+                                <input class="fi" id="masterUserInp" type="text" placeholder="اسم المستخدم الجديد">
                             </div>
-                            <small style="color: var(--muted); margin-top: 8px; display: block;">* تحذير: تغيير هذه الكلمة سيؤثر على وصولك للمركز الرئيسي فقط.</small>
+                            <div class="fg">
+                                <label style="color: var(--red);"><i class="fas fa-key"></i> كلمة المرور الجديدة</label>
+                                <input class="fi" id="masterPassInp" type="password" placeholder="••••••••">
+                            </div>
                         </div>
+                        <button class="btn btn-gold" style="background: var(--red); color: white; width: 100%;" onclick="updateMasterCreds()"><i class="fas fa-save"></i> حفظ بيانات الدخول الجديدة</button>
+                        <small style="color: var(--muted); margin-top: 10px; display: block; text-align: center;">* تحذير: هذه البيانات هي مفتاح الدخول للمركز الرئيسي للنظام.</small>
                     </div>
                 </div>
             </div>
@@ -1741,24 +1745,30 @@
             }
         }
 
-        function updateMasterPass() {
+        async function updateMasterCreds() {
+            const newUser = document.getElementById('masterUserInp').value.trim();
             const newPass = document.getElementById('masterPassInp').value.trim();
-            if (newPass.length < 6) { toast('⚠️ كلمة المرور قصيرة جداً', 'err'); return; }
-            if (!confirm('هل أنت متأكد من تغيير كلمة مرور المشرف الرئيسي؟')) return;
             
-            db.ref('super_admin/pass').set(newPass)
-                .then(() => { 
-                    toast('✅ تم تحديث كلمة المرور بنجاح', 'ok'); 
-                    document.getElementById('masterPassInp').value = ''; 
-                })
-                .catch(err => toast('❌ ' + err.message, 'err'));
+            if (newUser.length < 3) { toast('⚠️ اسم المستخدم قصير جداً', 'err'); return; }
+            if (newPass.length < 6) { toast('⚠️ كلمة المرور قصيرة جداً', 'err'); return; }
+            
+            if (!confirm('هل أنت متأكد من تغيير بيانات دخول المشرف الرئيسي؟')) return;
+            
+            try {
+                await db.ref('super_admin').update({ user: newUser, pass: newPass });
+                toast('✅ تم تحديث بيانات الدخول بنجاح', 'ok');
+                document.getElementById('masterUserInp').value = '';
+                document.getElementById('masterPassInp').value = '';
+            } catch (err) {
+                toast('❌ ' + err.message, 'err');
+            }
         }
 
-        // Initialize clock
+        // Initialize clock (12-hour format)
         setInterval(() => {
             const now = new Date();
             const el = document.getElementById('clock');
-            if (el) el.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (el) el.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
         }, 1000);
 
         // Hashed credentials — NOT plaintext
@@ -1778,7 +1788,7 @@
         // ══ CLOCK ══
         setInterval(() => {
             const el = document.getElementById('clock');
-            if (el) el.textContent = new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            if (el) el.textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
         }, 1000);
 
         function getBase() {
@@ -1841,6 +1851,13 @@
             addOpen = !addOpen;
             document.getElementById('addBody').classList.toggle('open', addOpen);
             document.getElementById('addToggleIcon').classList.toggle('open', addOpen);
+        }
+        
+        let secOpen = false;
+        function toggleSecPanel() {
+            secOpen = !secOpen;
+            document.getElementById('secBody').classList.toggle('open', secOpen);
+            document.getElementById('secToggleIcon').classList.toggle('open', secOpen);
         }
         setTimeout(() => toggleAddPanel(), 100);
 
