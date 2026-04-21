@@ -1738,18 +1738,26 @@
                 const o = _completedData[k];
                 totalRev += parseFloat(o.total || 0);
                 
-                // Handle different item formats (Array of objects, Array of strings, or combined string)
-                const items = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? o.items.split(' + ') : []);
+                // Handle different item formats (Array of objects, Array of strings, single object, or combined string)
+                let items = [];
+                if (Array.isArray(o.items)) {
+                    items = o.items;
+                } else if (typeof o.items === 'object' && o.items !== null) {
+                    items = [o.items]; // single object
+                } else if (typeof o.items === 'string') {
+                    items = o.items.split(/[+,|]|\s\+\s/).map(s => s.trim()).filter(s => s);
+                }
+                
                 items.forEach(i => {
                     let n = '';
                     let q = 1;
                     if (typeof i === 'object' && i !== null) {
-                        n = i.name || i.n;
-                        q = parseInt(i.qty || i.q || 1);
+                        n = i.name || i.n || i.title;
+                        q = parseInt(i.qty || i.q || i.quantity || 1);
                     } else if (typeof i === 'string') {
                         n = i.trim();
                     }
-                    if (n) salesMap[n] = (salesMap[n] || 0) + q;
+                    if (n && n !== 'undefined') salesMap[n] = (salesMap[n] || 0) + q;
                 });
             }
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
@@ -1760,11 +1768,24 @@
             // Best sellers
             try {
                 const bsl = document.getElementById('bestSellerList');
-                const sorted = Object.entries(salesMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-                bsl.innerHTML = sorted.length ? sorted.map(([n, c], i) => `
-                    <div class="bsc"><div class="bsrank">#${i + 1} BESTSELLER</div>
-                    <div class="bsname">${n}</div><div class="bscnt">${c}</div></div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem">لا توجد مبيعات بعد</div>';
-            } catch (e) {}
+                if (bsl) {
+                    const sorted = Object.entries(salesMap)
+                        .filter(([n, c]) => n && n !== 'undefined')
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10); // Show top 10
+
+                    if (sorted.length > 0) {
+                        bsl.innerHTML = sorted.map(([n, c], i) => `
+                            <div class="bsc">
+                                <div class="bsrank">#${i + 1} BESTSELLER</div>
+                                <div class="bsname">${n}</div>
+                                <div class="bscnt">${c} طلبات</div>
+                            </div>`).join('');
+                    } else {
+                        bsl.innerHTML = '<div style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px">لا توجد مبيعات مسجلة حالياً</div>';
+                    }
+                }
+            } catch (e) { console.error('Best sellers error:', e); }
 
             // History table
             try {

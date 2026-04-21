@@ -1388,119 +1388,139 @@
 
         // 1️⃣ SETTINGS — name, status, color, hours
         db.ref(BASE + '/settings').on('value', snap => {
-            const sets = snap.val();
-            const nf = document.getElementById('notFoundScreen');
-            const lo = document.getElementById('lockoutScreen');
+            try {
+                const sets = snap.val();
+                const nf = document.getElementById('notFoundScreen');
+                const lo = document.getElementById('lockoutScreen');
 
-            if (!sets) {
-                if (nf) nf.style.display = 'flex';
-                return;
-            } else {
-                if (nf) nf.style.display = 'none';
-            }
+                if (!sets) {
+                    if (nf) nf.style.display = 'flex';
+                    // If default ID 1, maybe show a hint
+                    if (RES_ID === '1') console.warn('Using default ID 1. No data found.');
+                    return;
+                } else {
+                    if (nf) nf.style.display = 'none';
+                }
 
-            if (sets.status === 'closed') {
-                if (lo) lo.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                return;
-            } else {
-                if (lo) lo.classList.remove('show');
-                document.body.style.overflow = '';
-            }
+                if (sets.status === 'closed') {
+                    if (lo) lo.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                    return;
+                } else {
+                    if (lo) lo.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
 
-            window.isAcceptingOrders = sets.acceptOrders !== false;
-            if (sets.color) applyAccent(sets.color);
+                window.isAcceptingOrders = sets.acceptOrders !== false;
+                if (sets.color) applyAccent(sets.color);
 
-            document.getElementById('resName').textContent = sets.name || 'مطعم أرغون';
-            document.title = (sets.name || 'أرغون') + ' | المنيو';
+                const rn = document.getElementById('resName');
+                if (rn) rn.textContent = sets.name || 'مطعم أرغون';
+                document.title = (sets.name || 'أرغون') + ' | المنيو';
 
-            // Premium Logo Handling
-            const logoWrap = document.getElementById('rLogoWrap');
-            const logoImg = document.getElementById('rLogoImg');
-            const logoEmoji = document.getElementById('rLogoEmoji');
-            // ── TIME AWARE INTELLIGENCE ──
-        function updateSmartUI() {
-            const hour = new Date().getHours();
-            const greetEl = document.getElementById('smartGreeting');
-            const suggestEl = document.getElementById('smartSuggest');
-            
-            let greeting = 'أهلاً بك في مطعمنا';
-            let suggestion = 'اكتشف قائمتنا المميزة';
+                // Premium Logo Handling
+                const logoWrap = document.getElementById('rLogoWrap');
+                const logoImg = document.getElementById('rLogoImg');
+                const logoEmoji = document.getElementById('rLogoEmoji');
 
-            if (hour >= 5 && hour < 12) {
-                greeting = 'صباح الخير والجمال ☕';
-                suggestion = 'ما رأيك ببدء يومك بفطور شهي؟';
-            } else if (hour >= 12 && hour < 17) {
-                greeting = 'وقت الغداء المثالي 🍔';
-                suggestion = 'اطلع على وجبات الغداء الأكثر طلباً';
-            } else if (hour >= 17 && hour < 21) {
-                greeting = 'مساء الخير واللذة 🍕';
-                suggestion = 'خفيفة أو دسمة؟ لدينا كل خيارات العشاء';
-            } else {
-                greeting = 'ليلة هادئة وطيبة 🌙';
-                suggestion = 'وجبات ليلية خفيفة بانتظارك';
-            }
+                if (sets.logo) {
+                    if (logoImg) {
+                        logoImg.src = sets.logo;
+                        logoImg.style.display = 'block';
+                    }
+                    if (logoEmoji) logoEmoji.style.display = 'none';
+                    if (logoWrap) { logoWrap.style.background = 'none'; logoWrap.style.padding = '0'; }
+                } else {
+                    if (logoImg) logoImg.style.display = 'none';
+                    if (logoEmoji) logoEmoji.style.display = 'block';
+                }
 
-            if (greetEl) greetEl.textContent = greeting;
-            if (suggestEl) suggestEl.textContent = suggestion;
-        }
+                const sc = document.getElementById('statusChip');
+                if (sc) {
+                    if (sets.status === 'closed') {
+                        sc.className = 'rchip chip-closed';
+                        sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق مؤقتاً';
+                    } else {
+                        sc.className = 'rchip chip-open';
+                        sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
+                    }
+                }
 
-        // Initialize UI
-        setTimeout(() => {
-            updateSmartUI();
-            setInterval(updateSmartUI, 60000); // Check every minute
-        }, 100);
-       logoImg.style.display = 'block';
-                logoEmoji.style.display = 'none';
-                logoWrap.style.background = 'none';
-                logoWrap.style.padding = '0';
-            } else {
-                logoImg.style.display = 'none';
-                logoEmoji.style.display = 'block';
-            }
-
-            const sc = document.getElementById('statusChip');
-            if (sets.status === 'closed') {
-                sc.className = 'rchip chip-closed';
-                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق مؤقتاً';
-            } else {
-                sc.className = 'rchip chip-open';
-                sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
-            }
-
-            if (sets.hours) {
-                document.getElementById('hoursChip').style.display = 'inline-flex';
-                document.getElementById('hoursText').textContent = sets.hours;
-            }
+                if (sets.hours) {
+                    const hc = document.getElementById('hoursChip');
+                    if (hc) {
+                        hc.style.display = 'inline-flex';
+                        const ht = document.getElementById('hoursText');
+                        if (ht) ht.textContent = sets.hours;
+                    }
+                }
+                updateSmartUI();
+            } catch (e) { console.error('Settings error:', e); }
         });
 
         // 2️⃣ PRODUCTS — menu items
         db.ref(BASE + '/products').on('value', snap => {
-            const products = snap.val() || {};
-            allProducts = [];
-            for (let k in products) allProducts.push({ key: k, ...products[k] });
-            renderMenu(allProducts);
+            try {
+                const products = snap.val() || {};
+                allProducts = [];
+                for (let k in products) {
+                    if (products[k]) allProducts.push({ key: k, ...products[k] });
+                }
+                renderMenu(allProducts);
+            } catch (e) { console.error('Products error:', e); }
         });
 
-        // 3️⃣ ORDERS COUNT — only for kitchen load indicator (lightweight)
+        // 3️⃣ ORDERS COUNT — only for kitchen load indicator
         db.ref(BASE + '/orders').on('value', snap => {
-            const orders = snap.val() || {};
-            const activeOrders = Object.keys(orders).length;
-            const lc = document.getElementById('loadChip');
-            if (activeOrders > 12) {
-                lc.style.display = 'inline-flex';
-                lc.style.background = 'rgba(239, 68, 68, 0.1)';
-                lc.style.color = '#ef4444';
-                lc.innerHTML = '<i class="fas fa-fire"></i> المطبخ مزدحم حالياً';
-            } else if (activeOrders > 6) {
-                lc.style.display = 'inline-flex';
-                lc.style.background = 'rgba(245, 158, 11, 0.1)';
-                lc.style.color = '#f59e0b';
-                lc.innerHTML = '<i class="fas fa-utensils"></i> المطبخ نشط';
-            } else {
-                lc.style.display = 'none';
-            }
+            try {
+                const orders = snap.val() || {};
+                const activeOrders = Object.keys(orders).length;
+                const lc = document.getElementById('loadChip');
+                if (!lc) return;
+                if (activeOrders > 12) {
+                    lc.style.display = 'inline-flex';
+                    lc.style.background = 'rgba(239, 68, 68, 0.1)';
+                    lc.style.color = '#ef4444';
+                    lc.innerHTML = '<i class="fas fa-fire"></i> المطبخ مزدحم حالياً';
+                } else if (activeOrders > 6) {
+                    lc.style.display = 'inline-flex';
+                    lc.style.background = 'rgba(245, 158, 11, 0.1)';
+                    lc.style.color = '#f59e0b';
+                    lc.innerHTML = '<i class="fas fa-utensils"></i> المطبخ نشط';
+                } else {
+                    lc.style.display = 'none';
+                }
+            } catch (e) { console.error('Orders check error:', e); }
         });
+
+        // ── TIME AWARE INTELLIGENCE ──
+        function updateSmartUI() {
+            try {
+                const hour = new Date().getHours();
+                const greetEl = document.getElementById('smartGreeting');
+                const suggestEl = document.getElementById('smartSuggest');
+                if (!greetEl) return;
+                
+                let greeting = 'أهلاً بك في مطعمنا';
+                let suggestion = 'اكتشف قائمتنا المميزة';
+                if (hour >= 5 && hour < 12) {
+                    greeting = 'صباح الخير والجمال ☕';
+                    suggestion = 'ما رأيك ببدء يومك بفطور شهي؟';
+                } else if (hour >= 12 && hour < 17) {
+                    greeting = 'وقت الغداء المثالي 🍔';
+                    suggestion = 'اطلع على وجبات الغداء الأكثر طلباً';
+                } else if (hour >= 17 && hour < 21) {
+                    greeting = 'مساء الخير واللذة 🍕';
+                    suggestion = 'خفيفة أو دسمة؟ لدينا كل خيارات العشاء';
+                } else {
+                    greeting = 'ليلة هادئة وطيبة 🌙';
+                    suggestion = 'وجبات ليلية خفيفة بانتظارك';
+                }
+                greetEl.textContent = greeting;
+                if (suggestEl) suggestEl.textContent = suggestion;
+            } catch (e) {}
+        }
+        setInterval(updateSmartUI, 60000);
 
         function renderMenu(products) {
             const grid = document.getElementById('menuGrid');
