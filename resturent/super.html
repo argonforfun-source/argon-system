@@ -1518,26 +1518,6 @@
                 <div class="stat-card so"><div class="stat-icon"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><div class="stat-num" id="s-today">0</div><div class="stat-lbl">مضافة اليوم</div></div></div>
             </div>
 
-            <!-- SECURITY PANEL -->
-            <div class="add-panel" style="border-color: rgba(232,64,80,.15);">
-                <div class="add-panel-hdr" onclick="toggleSecPanel()" style="background: rgba(232,64,80,.02);">
-                    <div class="aph-left" style="color: var(--red);"><i class="fas fa-shield-halved"></i> إدارة الحماية والوصول</div>
-                    <div class="aph-toggle" id="secToggleIcon" style="background:rgba(232,64,80,.1); color:var(--red);"><i class="fas fa-chevron-down"></i></div>
-                </div>
-                <div class="add-body" id="secBody">
-                    <div style="padding: 22px 24px;">
-                        <div class="fg">
-                            <label style="color: var(--red);"><i class="fas fa-key"></i> تغيير كلمة مرور المشرف الرئيسي (Super Admin)</label>
-                            <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                <input class="fi" id="masterPassInp" type="password" placeholder="كلمة المرور الجديدة" style="flex: 1;">
-                                <button class="btn btn-gold" style="background: var(--red); color: white;" onclick="updateMasterPass()"><i class="fas fa-save"></i> تحديث</button>
-                            </div>
-                            <small style="color: var(--muted); margin-top: 8px; display: block;">* تحذير: تغيير هذه الكلمة سيؤثر على وصولك للمركز الرئيسي فقط.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- ADD PANEL -->
             <div class="add-panel">
                 <div class="add-panel-hdr" onclick="toggleAddPanel()">
@@ -1729,40 +1709,9 @@
             clearSess() { sessionStorage.removeItem(this.SESS_KEY); }
         };
 
-        function togglePass(id) {
-            const el = document.getElementById(id);
-            const icon = event.currentTarget.querySelector('i');
-            if (el.type === 'password') {
-                el.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                el.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-
-        function updateMasterPass() {
-            const newPass = document.getElementById('masterPassInp').value.trim();
-            if (newPass.length < 6) { toast('⚠️ كلمة المرور قصيرة جداً', 'err'); return; }
-            if (!confirm('هل أنت متأكد من تغيير كلمة مرور المشرف الرئيسي؟')) return;
-            
-            db.ref('super_admin/pass').set(newPass)
-                .then(() => { 
-                    toast('✅ تم تحديث كلمة المرور بنجاح', 'ok'); 
-                    document.getElementById('masterPassInp').value = ''; 
-                })
-                .catch(err => toast('❌ ' + err.message, 'err'));
-        }
-
-        // Initialize clock
-        setInterval(() => {
-            const now = new Date();
-            const el = document.getElementById('clock');
-            if (el) el.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }, 1000);
-
         // Hashed credentials — NOT plaintext
         const ADMIN_USER = 'admin';
+        const ADMIN_HASH = btoa('argon_super_2026'); // base64 of master pass
         const ADMIN_PASS = 'argon_super_2026'; // change this before deploy
         let data = [], curF = 'all', _isAdmin = false;
 
@@ -1787,7 +1736,7 @@
         }
 
         // ══ LOGIN ══
-        async function doLogin() {
+        function doLogin() {
             if (_sec.isLocked()) {
                 const e = document.getElementById('lerr');
                 e.textContent = '⛔ تم قفل الدخول لمدة ' + _sec.getLockSecs() + ' ثانية';
@@ -1795,34 +1744,19 @@
             }
             const u = document.getElementById('lu').value.trim();
             const p = document.getElementById('lp').value;
-            const btn = document.querySelector('.login-btn');
-            const orig = btn.innerHTML;
-            
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-            btn.disabled = true;
-
-            try {
-                const snap = await db.ref('super_admin').once('value');
-                const config = snap.val() || { user: 'admin', pass: 'argon_super_2026' };
-                
-                if (u === config.user && p === config.pass) {
-                    _sec.reset(); _sec.createSess(); _isAdmin = true;
-                    const lp = document.getElementById('loginPage');
-                    lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
-                    setTimeout(() => { lp.style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-            } catch (e) {
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                _sec.reset(); _sec.createSess(); _isAdmin = true;
+                const lp = document.getElementById('loginPage');
+                lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
+                setTimeout(() => { lp.style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; loadData(); }, 420);
+            } else {
                 _sec.fail();
-                const errEl = document.getElementById('lerr');
+                const e = document.getElementById('lerr');
                 const rem = Math.max(0, 5 - _sec.attempts);
-                errEl.textContent = rem > 0 ? `بيانات غير صحيحة — ${rem} محاولة متبقية` : '⛔ تم قفل الدخول مؤقتاً';
-                errEl.style.display = 'block'; errEl.classList.add('shake');
-                setTimeout(() => errEl.classList.remove('shake'), 400);
-            } finally {
-                btn.innerHTML = orig;
-                btn.disabled = false;
+                e.textContent = rem > 0 ? `بيانات غير صحيحة — ${rem} محاولة متبقية` : '⛔ تم قفل الدخول مؤقتاً';
+                e.style.display = 'block'; e.classList.add('shake');
+                setTimeout(() => e.classList.remove('shake'), 400);
+                setTimeout(() => e.style.display = 'none', 4000);
             }
         }
         document.getElementById('lu').addEventListener('keyup', e => { if (e.key === 'Enter') document.getElementById('lp').focus(); });

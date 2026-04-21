@@ -1,0 +1,20 @@
+{
+  "name": "أرغون سيستم — لوحة التحكم",
+  "short_name": "أرغون لوحة",
+  "description": "لوحة تحكم عيادات أرغون الاحترافية",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#031a15",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icons/clinic-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

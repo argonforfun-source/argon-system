@@ -1,0 +1,52 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "restaurants": {
+      "$restaurantId": {
+
+        "settings": {
+          ".read": true,
+          "name":     { ".read": true },
+          "phone":    { ".read": true },
+          "status":   { ".read": true },
+          "hours":    { ".read": true },
+          "color":    { ".read": true },
+          "acceptOrders": { ".read": true },
+
+          "password": {
+            ".read": false,
+            ".write": false
+          },
+
+          ".write": false
+        },
+
+        "products": {
+          ".read": true,
+          ".write": false
+        },
+
+        "orders": {
+          ".read": false,
+          ".write": true,
+          "$orderId": {
+            ".validate": "newData.hasChildren(['custName','custPhone','items','total','status','orderNo'])",
+
+            "custName":  { ".validate": "newData.isString() && newData.val().length <= 100" },
+            "custPhone": { ".validate": "newData.isString() && newData.val().length <= 20"  },
+            "total":     { ".validate": "newData.isString()"                                },
+            "status":    { ".validate": "newData.val() === 'new'"                           },
+            "orderNo":   { ".validate": "newData.isString()"                               }
+          }
+        },
+
+        "completedOrders": {
+          ".read": false,
+          ".write": false
+        }
+      }
+    }
+  }
+}

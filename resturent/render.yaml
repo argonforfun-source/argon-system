@@ -1,0 +1,31 @@
+services:
+  - type: static
+    name: argon-system
+    env: static
+    buildCommand: ""
+    publishPath: "."
+    headers:
+      - path: "/*"
+        name: "X-Content-Type-Options"
+        value: "nosniff"
+      - path: "/*"
+        name: "X-Frame-Options"
+        value: "SAMEORIGIN"
+      - path: "/*"
+        name: "X-XSS-Protection"
+        value: "1; mode=block"
+      - path: "/*"
+        name: "Referrer-Policy"
+        value: "strict-origin-when-cross-origin"
+      - path: "/*"
+        name: "Permissions-Policy"
+        value: "camera=(), microphone=(), geolocation=()"
+      - path: "/sw.js"
+        name: "Cache-Control"
+        value: "no-cache, no-store, must-revalidate"
+      - path: "/*.html"
+        name: "Cache-Control"
+        value: "no-cache"
+      - path: "/manifest.json"
+        name: "Cache-Control"
+        value: "public, max-age=86400"

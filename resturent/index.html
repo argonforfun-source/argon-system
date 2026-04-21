@@ -1079,8 +1079,6 @@
                     <span id="rLogoEmoji">🍽️</span>
                 </div>
                 <div class="rname" id="resName">جاري التحميل...</div>
-                <div id="smartGreeting" style="font-size:0.9rem; font-weight:700; color:var(--accent); margin-bottom:4px; opacity:0.9;">أهلاً بك</div>
-                <div id="smartSuggest" style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">اكتشف قائمتنا</div>
                 
                 <!-- RECENT ORDERS BTN MOVED HERE -->
                 <button class="recent-btn" onclick="openRecentOrders()">
@@ -1418,39 +1416,10 @@
             const logoWrap = document.getElementById('rLogoWrap');
             const logoImg = document.getElementById('rLogoImg');
             const logoEmoji = document.getElementById('rLogoEmoji');
-            // ── TIME AWARE INTELLIGENCE ──
-        function updateSmartUI() {
-            const hour = new Date().getHours();
-            const greetEl = document.getElementById('smartGreeting');
-            const suggestEl = document.getElementById('smartSuggest');
             
-            let greeting = 'أهلاً بك في مطعمنا';
-            let suggestion = 'اكتشف قائمتنا المميزة';
-
-            if (hour >= 5 && hour < 12) {
-                greeting = 'صباح الخير والجمال ☕';
-                suggestion = 'ما رأيك ببدء يومك بفطور شهي؟';
-            } else if (hour >= 12 && hour < 17) {
-                greeting = 'وقت الغداء المثالي 🍔';
-                suggestion = 'اطلع على وجبات الغداء الأكثر طلباً';
-            } else if (hour >= 17 && hour < 21) {
-                greeting = 'مساء الخير واللذة 🍕';
-                suggestion = 'خفيفة أو دسمة؟ لدينا كل خيارات العشاء';
-            } else {
-                greeting = 'ليلة هادئة وطيبة 🌙';
-                suggestion = 'وجبات ليلية خفيفة بانتظارك';
-            }
-
-            if (greetEl) greetEl.textContent = greeting;
-            if (suggestEl) suggestEl.textContent = suggestion;
-        }
-
-        // Initialize UI
-        setTimeout(() => {
-            updateSmartUI();
-            setInterval(updateSmartUI, 60000); // Check every minute
-        }, 100);
-       logoImg.style.display = 'block';
+            if (sets.logo) {
+                logoImg.src = sets.logo;
+                logoImg.style.display = 'block';
                 logoEmoji.style.display = 'none';
                 logoWrap.style.background = 'none';
                 logoWrap.style.padding = '0';

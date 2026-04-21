@@ -1,0 +1,20 @@
+{
+  "name": "أرغون سيستم — حجز المواعيد",
+  "short_name": "أرغون حجز",
+  "description": "نظام حجز مواعيد طبية احترافي للمرضى",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f8fffe",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icons/patient-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

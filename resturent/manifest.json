@@ -1,0 +1,29 @@
+{
+  "name": "أرغون | المنيو الذكي",
+  "short_name": "أرغون",
+  "description": "نظام طلبات المطاعم الذكي",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f0f4ff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["food", "shopping", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
+    { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "عرض قائمة الطعام",
+      "short_name": "المنيو",
+      "url": "/index.html",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

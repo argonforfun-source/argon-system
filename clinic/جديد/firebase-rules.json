@@ -1,0 +1,50 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "clinics": {
+      "$clinicId": {
+
+        "settings": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === $clinicId",
+
+          "name":        { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "phone":       { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "specialty":   { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "color":       { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "emoji":       { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "status":      { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "hours":       { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+          "acceptBookings": { ".read": true, ".write": "auth != null && auth.uid === $clinicId" },
+
+          "password":    { ".read": false, ".write": "auth != null && auth.uid === $clinicId" }
+        },
+
+        "doctors": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === $clinicId"
+        },
+
+        "bookings": {
+          ".read": "auth != null && auth.uid === $clinicId",
+          ".write": true,
+          "$bookingId": {
+            ".validate": "newData.hasChildren(['patName','patPhone','docKey','date','time','status'])"
+          }
+        },
+
+        "completedBookings": {
+          ".read": "auth != null && auth.uid === $clinicId",
+          ".write": "auth != null && auth.uid === $clinicId"
+        }
+      }
+    },
+
+    "super_admin": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
