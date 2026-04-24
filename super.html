@@ -1809,11 +1809,11 @@
 
         // ══ LOGIN ══
         async function doLogin() {
-            if (_sec.isLocked()) {
+            /* if (_sec.isLocked()) {
                 const e = document.getElementById('lerr');
                 e.textContent = '⛔ تم قفل الدخول لمدة ' + _sec.getLockSecs() + ' ثانية';
                 e.style.display = 'block'; return;
-            }
+            } */
             const u = document.getElementById('lu').value.trim();
             const p = document.getElementById('lp').value;
             const btn = document.querySelector('.login-btn');
