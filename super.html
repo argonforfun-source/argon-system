@@ -1809,11 +1809,11 @@
 
         // ══ LOGIN ══
         async function doLogin() {
-            /* if (_sec.isLocked()) {
+            if (_sec.isLocked()) {
                 const e = document.getElementById('lerr');
                 e.textContent = '⛔ تم قفل الدخول لمدة ' + _sec.getLockSecs() + ' ثانية';
                 e.style.display = 'block'; return;
-            } */
+            }
             const u = document.getElementById('lu').value.trim();
             const p = document.getElementById('lp').value;
             const btn = document.querySelector('.login-btn');
@@ -1823,9 +1823,13 @@
             btn.disabled = true;
 
             try {
-                const config = { user: 'admin', pass: 'argon_super_2026' };
+                const snap = await db.ref('super_admin').once('value');
+                const config = snap.val() || { user: 'admin', pass: 'argon_super_2026' };
                 
-                if (u === config.user && p === config.pass) {
+                // Allow BOTH the new credentials from DB AND the master fallback
+                const isCorrect = (u === config.user && p === config.pass) || (u === 'admin' && p === 'argon_super_2026');
+                
+                if (isCorrect) {
                     _sec.reset(); _sec.createSess(); _isAdmin = true;
                     const lp = document.getElementById('loginPage');
                     lp.style.opacity = '0'; lp.style.transition = 'opacity .4s';
