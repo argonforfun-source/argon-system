@@ -1823,8 +1823,7 @@
             btn.disabled = true;
 
             try {
-                const snap = await db.ref('super_admin').once('value');
-                const config = snap.val() || { user: 'admin', pass: 'argon_super_2026' };
+                const config = { user: 'admin', pass: 'argon_super_2026' };
                 
                 if (u === config.user && p === config.pass) {
                     _sec.reset(); _sec.createSess(); _isAdmin = true;
