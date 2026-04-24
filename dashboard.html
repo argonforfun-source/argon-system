@@ -2041,10 +2041,32 @@
 
         // Unlock audio on first interaction
         document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
-    </script>
-</body>
+        
+        function fmtItems(items) {
+            if (!items) return '<span style="color:var(--muted)">-</span>';
+            let list = [];
+            if (Array.isArray(items)) {
+                list = items;
+            } else if (typeof items === 'object' && items !== null) {
+                list = [items];
+            } else if (typeof items === 'string') {
+                list = items.split(/[+,|]|\s\+\s/).map(s => ({ name: s.trim() })).filter(x => x.name);
+            }
+            if (!list.length) return '<span style="color:var(--muted)">-</span>';
+            return list.map(it => {
+                const n = it.name || it.n || (typeof it === 'string' ? it : 'صنف');
+                const q = it.qty || it.q || 1;
+                return `<div style="font-size:0.75rem;margin-bottom:2px">• <b>${q}x</b> ${n}</div>`;
+            }).join('');
+        }
 
-</html>
+        function doLogout() {
+            if (!confirm('هل تريد الخروج من لوحة التحكم؟')) return;
+            localStorage.removeItem('argon_session');
+            window.location.href = 'login.html';
+        }
+    </script>
+    
     <div id="reportTemplate" style="display:none; padding:40px; font-family:'Tajawal',sans-serif; direction:rtl; color:#333; background:white;">
         <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #3b82f6; padding-bottom:20px;">
             <div style="font-size:24px; font-weight:900; color:#3b82f6;">تقرير مبيعات نظام أرغون</div>
@@ -2079,31 +2101,6 @@
         <div style="text-align:center; font-size:10px; color:#999; margin-top:50px; border-top:1px solid #eee; padding-top:20px;">
             هذا التقرير تم إنشاؤه تلقائياً بواسطة نظام ARGON OS © 2026
         </div>
-        <script>
-        function fmtItems(items) {
-            if (!items) return '<span style="color:var(--muted)">-</span>';
-            let list = [];
-            if (Array.isArray(items)) {
-                list = items;
-            } else if (typeof items === 'object' && items !== null) {
-                list = [items];
-            } else if (typeof items === 'string') {
-                list = items.split(/[+,|]|\s\+\s/).map(s => ({ name: s.trim() })).filter(x => x.name);
-            }
-            if (!list.length) return '<span style="color:var(--muted)">-</span>';
-            return list.map(it => {
-                const n = it.name || it.n || (typeof it === 'string' ? it : 'صنف');
-                const q = it.qty || it.q || 1;
-                return `<div style="font-size:0.75rem;margin-bottom:2px">• <b>${q}x</b> ${n}</div>`;
-            }).join('');
-        }
-
-        function doLogout() {
-            if (!confirm('هل تريد الخروج من لوحة التحكم؟')) return;
-            sessionStorage.removeItem('argon_auth_' + RES_ID);
-            window.location.reload();
-        }
-        </script>
+    </div>
 </body>
-
 </html>

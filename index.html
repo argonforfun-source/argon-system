@@ -301,71 +301,109 @@
             outline: none;
         }
 
-        /* MENU GRID */
+        /* MENU GRID & CATEGORIES */
         .menu-sec {
-            padding: 32px 20px 100px;
+            padding: 20px 20px 100px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .sec-lbl {
-            font-size: 1.2rem;
-            font-weight: 900;
-            margin-bottom: 24px;
+        .cat-bar {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--accent);
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .cat-bar::-webkit-scrollbar {
+            display: none;
         }
 
-        .sec-lbl::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(to left, var(--border), transparent);
+        .cat-btn {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        [data-theme="dark"] .cat-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(255,255,255,0.08);
+            color: #e2e8f0;
+        }
+
+        .cat-btn.active {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
         }
 
         .mgrid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 22px;
         }
 
         /* PREMIUM CARD */
         .icard {
-            background: var(--card);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 28px;
             overflow: hidden;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
+
+        [data-theme="dark"] .icard {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .icard:hover {
             transform: translateY(-10px) scale(1.02);
-            border-color: rgba(212, 168, 67, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            background: var(--surface);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
         }
 
         .iimgwrap {
             aspect-ratio: 1;
             overflow: hidden;
             position: relative;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.02);
+            margin: 10px;
+            border-radius: 20px;
         }
+
+        [data-theme="dark"] .iimgwrap { background: rgba(255, 255, 255, 0.02); }
 
         .iimg {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: 0.5s;
+            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .icard:hover .iimg {
-            transform: scale(1.1);
+            transform: scale(1.12) rotate(2deg);
         }
 
         .iimgph {
@@ -374,49 +412,59 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            opacity: 0.3;
+            font-size: 3.5rem;
+            opacity: 0.15;
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), transparent);
         }
 
         .ibody {
-            padding: 18px;
-            text-align: center;
+            padding: 5px 16px 16px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
 
         .iname {
-            font-size: 1rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 1.05rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            color: var(--text);
         }
 
         .iprice {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 900;
             color: var(--accent);
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+            margin-top: auto;
         }
 
         .addbtn {
             width: 100%;
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-            border: none;
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid transparent;
             border-radius: 16px;
-            padding: 10px;
-            color: #000;
+            padding: 12px;
+            color: var(--accent);
             font-family: 'Tajawal', sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 800;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(212, 168, 67, 0.2);
+            gap: 8px;
+        }
+
+        .addbtn:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
         }
 
         .addbtn:active {
@@ -426,7 +474,9 @@
         .addbtn.added {
             background: var(--green);
             color: #fff;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            border-color: var(--green);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            transform: scale(1.05);
         }
 
         /* CART FAB */
@@ -1527,34 +1577,73 @@
         }
         setInterval(updateSmartUI, 60000);
 
+        let currentCategory = 'all';
+
+        function filterCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            
+            // Clear search when switching categories
+            document.getElementById('searchBox').value = '';
+            
+            applyFilters();
+        }
+
+        function filterMenu() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const q = document.getElementById('searchBox').value.toLowerCase().trim();
+            let filtered = allProducts;
+            
+            // Category filter logic (based on keywords in name since there's no strict category field yet)
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => {
+                    const n = p.name.toLowerCase();
+                    if (currentCategory === 'مشروبات') return n.includes('عصير') || n.includes('مشروب') || n.includes('بيبسي') || n.includes('شاي') || n.includes('قهوة') || n.includes('كولا');
+                    if (currentCategory === 'وجبات') return n.includes('وجبة') || n.includes('برغر') || n.includes('شاورما') || n.includes('بيتزا') || n.includes('ساندويش');
+                    if (currentCategory === 'مقبلات') return n.includes('بطاطا') || n.includes('مقبلات') || n.includes('سلطة') || n.includes('حمص') || n.includes('متبل');
+                    if (currentCategory === 'حلويات') return n.includes('كيك') || n.includes('حلو') || n.includes('بوظة') || n.includes('كنافة');
+                    return false;
+                });
+            }
+            
+            // Search filter
+            if (q) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+            }
+            
+            renderMenu(filtered);
+        }
+
         function renderMenu(products) {
             const grid = document.getElementById('menuGrid');
             if (!products.length) {
-                grid.innerHTML = `<div class="empty-s" style="grid-column:1/-1"><i class="fas fa-utensils"></i><p>لا توجد أصناف متاحة حالياً</p></div>`;
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--muted);background:var(--card);border-radius:24px;border:1px dashed var(--border)">
+                    <i class="fas fa-search" style="font-size:3rem;opacity:0.2;margin-bottom:15px;display:block"></i>
+                    <h4 style="font-weight:800;margin-bottom:5px">لا يوجد نتائج</h4>
+                    <p style="font-size:0.85rem">لم نتمكن من العثور على ما تبحث عنه</p>
+                </div>`;
                 return;
             }
             grid.innerHTML = products.map(p => `
                 <div class="icard">
                     <div class="iimgwrap">
                         ${p.img
-                    ? `<img src="${p.img}" class="iimg" onerror="this.parentElement.querySelector('.iimgph').style.display='flex';this.style.display='none'"><div class="iimgph" style="display:none">🍽️</div>`
-                    : `<div class="iimgph">🍽️</div>`
+                    ? `<img src="${p.img}" class="iimg" onerror="this.parentElement.querySelector('.iimgph').style.display='flex';this.style.display='none'"><div class="iimgph" style="display:none"><i class="fas fa-utensils"></i></div>`
+                    : `<div class="iimgph"><i class="fas fa-hamburger"></i></div>`
                 }
                     </div>
                     <div class="ibody">
                         <div class="iname">${p.name}</div>
-                        <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} د.أ</div>
+                        <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} <span style="font-size:0.7rem;color:var(--muted)">د.أ</span></div>
                         <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${(p.name || '').replace(/'/g, "\\'")}',${p.price},'${p.key}')">
-                            <i class="fas fa-plus"></i> أضف للسلة
+                            <i class="fas fa-plus"></i> إضافة
                         </button>
                     </div>
                 </div>`).join('');
-        }
-
-        function filterMenu() {
-            const q = document.getElementById('searchBox').value.toLowerCase().trim();
-            if (!q) { renderMenu(allProducts); return; }
-            renderMenu(allProducts.filter(p => p.name.toLowerCase().includes(q)));
         }
 
         function addToCart(name, price, key) {
