@@ -1389,7 +1389,24 @@
         const db = firebase.database();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const RES_ID = urlParams.get('id') || '1';
+        let RES_ID = urlParams.get('id');
+        
+        // Fallback to localStorage session from login.html
+        if (!RES_ID) {
+            try {
+                const sessionStr = localStorage.getItem('argon_session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    if (session && session.restaurantId) {
+                        RES_ID = session.restaurantId;
+                    }
+                }
+            } catch(e) {}
+        }
+        
+        // Ultimate fallback
+        if (!RES_ID) RES_ID = '1';
+
         const BASE = 'restaurants/' + RES_ID;
         document.getElementById('resIdDisp').textContent = RES_ID;
 
