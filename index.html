@@ -1,1532 +1,2129 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:,">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0a0f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="أرغون">
-  <meta name="description" content="قائمة الطعام الذكية — اطلب بسهولة">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <title>أرغون | المنيو</title>
-
-  <!-- FONTS: Noto Kufi Arabic (premium Arabic) + IBM Plex Mono -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <style>
-    /* ══════════════════════════════════════════════════════
-       ARGON NOIR SYSTEM — Design Language v3.0
-       Aesthetic: Dark Matter × Arabic Calligraphy × Cyber Food
-    ══════════════════════════════════════════════════════ */
-
-    :root {
-      /* Core Palette */
-      --void:    #05050a;
-      --deep:    #0a0a12;
-      --surface: #0f0f1a;
-      --panel:   #141422;
-      --lift:    #1a1a2e;
-
-      /* Accent System */
-      --fire:    #ff4d1a;
-      --fire2:   #ff7a45;
-      --gold:    #f5c842;
-      --gold2:   #ffd700;
-      --neon:    #00fff0;
-      --violet:  #7c3aed;
-
-      /* Typography */
-      --text-1:  #f0ede8;
-      --text-2:  #a09b94;
-      --text-3:  #5a5565;
-
-      /* Borders */
-      --b1: rgba(255,255,255,0.06);
-      --b2: rgba(255,255,255,0.12);
-      --b-fire: rgba(255,77,26,0.3);
-      --b-gold: rgba(245,200,66,0.25);
-
-      /* Shadows */
-      --glow-fire: 0 0 40px rgba(255,77,26,0.25);
-      --glow-gold: 0 0 30px rgba(245,200,66,0.2);
-
-      /* Dynamic accent (overridden by Firebase) */
-      --accent:   #ff4d1a;
-      --accent2:  #ff7a45;
-    }
-
-    /* ── RESET ── */
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html { scroll-behavior:smooth; }
-
-    body {
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      background: var(--void);
-      color: var(--text-1);
-      min-height: 100vh;
-      padding-bottom: 130px;
-      overflow-x: hidden;
-      direction: rtl;
-    }
-
-    /* ── NOISE TEXTURE OVERLAY ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
-      opacity: 0.4;
-    }
-
-    /* ── SCANLINE ── */
-    body::after {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-    }
-
-    /* ── CONNECTION BAR ── */
-    #connBar {
-      position: fixed; top:0; left:0; right:0; z-index:9999;
-      display:none; align-items:center; justify-content:center; gap:8px;
-      padding:9px; font-size:0.78rem; font-weight:700;
-      letter-spacing:0.5px; backdrop-filter:blur(20px);
-    }
-    .c-ok  { background:rgba(0,255,160,0.12); color:#00ffa0; border-bottom:1px solid rgba(0,255,160,0.2); }
-    .c-off { background:rgba(255,77,26,0.12);  color:var(--fire); border-bottom:1px solid var(--b-fire); animation:pulse-bar 1.5s infinite; }
-    @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.6} }
-
-    /* ── TOAST ── */
-    #toastWrap {
-      position: fixed; top:24px; left:50%; transform:translateX(-50%);
-      z-index:9998; display:flex; flex-direction:column; gap:10px;
-      pointer-events:none; width:90%; max-width:380px;
-    }
-    .toast {
-      background: rgba(10,10,20,0.92);
-      border: 1px solid var(--b2);
-      border-radius: 16px; padding:14px 20px;
-      font-size:0.9rem; font-weight:600;
-      backdrop-filter: blur(24px);
-      transform: translateY(-24px) scale(0.94);
-      opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
-      text-align:center; color: var(--text-1);
-    }
-    .toast.show { transform:translateY(0) scale(1); opacity:1; }
-
-    /* ── LOCKOUT ── */
-    #lockoutScreen {
-      position:fixed; inset:0; z-index:10000;
-      background: linear-gradient(160deg, #05050a 0%, #1a0a0a 100%);
-      display:none; flex-direction:column; align-items:center; justify-content:center;
-      text-align:center; padding:40px; color:var(--text-1);
-    }
-    #lockoutScreen.show { display:flex !important; }
-    .lock-icon { font-size:80px; color:var(--fire); margin-bottom:24px; }
-    .lock-msg  { font-size:1.6rem; font-weight:900; margin-bottom:12px; }
-    .lock-sub  { font-size:1rem; opacity:0.6; margin-bottom:32px; }
-    .btn-support {
-      background: var(--fire); color:#fff; text-decoration:none;
-      padding:14px 32px; border-radius:14px; font-weight:700; font-size:1rem; transition:0.2s;
-    }
-
-    /* ══════════════════════════════════════════
-       HEADER — DRAMATIC NOIR FOOD HEADER
-    ══════════════════════════════════════════ */
-    .header {
-      position: relative; overflow: hidden;
-      padding: 0 0 28px;
-      background: var(--deep);
-      border-bottom: 1px solid var(--b1);
-    }
-
-    /* Animated gradient mesh background */
-    .header-bg {
-      position: absolute; inset: 0; z-index: 0; pointer-events:none;
-      background:
-        radial-gradient(ellipse 70% 80% at 20% 0%,   rgba(255,77,26,0.18)  0%, transparent 60%),
-        radial-gradient(ellipse 50% 60% at 80% 100%,  rgba(124,58,237,0.12) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 50% at 50% 50%,   rgba(245,200,66,0.06) 0%, transparent 50%);
-      animation: mesh-drift 12s ease-in-out infinite alternate;
-    }
-    @keyframes mesh-drift {
-      from { opacity:1; transform:scale(1)   rotate(0deg); }
-      to   { opacity:0.8; transform:scale(1.05) rotate(1deg); }
-    }
-
-    /* Grid pattern overlay on header */
-    .header-grid {
-      position:absolute; inset:0; z-index:0; pointer-events:none;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-
-    .htop {
-      position: relative; z-index:2;
-      display: flex; align-items:center; justify-content:space-between;
-      padding: 16px 20px 0;
-    }
-
-    .argon-mark {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.58rem; letter-spacing: 4px;
-      color: var(--text-3); text-transform:uppercase;
-    }
-
-    .theme-tog {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--b1);
-      color: var(--text-2);
-      padding: 7px 14px; border-radius: 30px;
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 0.75rem; font-weight:500;
-      cursor: pointer; transition: all 0.25s;
-    }
-    .theme-tog:hover { background:rgba(255,255,255,0.1); color:var(--text-1); }
-
-    /* Logo Area */
-    .hmain {
-      position: relative; z-index:2;
-      text-align: center; padding: 24px 20px 0;
-    }
-
-    .rlogo-wrap {
-      position: relative; width: 80px; height: 80px; margin: 0 auto 16px;
-    }
-    .rlogo {
-      width: 80px; height: 80px;
-      background: linear-gradient(135deg, rgba(255,77,26,0.15), rgba(245,200,66,0.1));
-      border: 1px solid rgba(255,77,26,0.3);
-      border-radius: 24px;
-      display: flex; align-items:center; justify-content:center;
-      font-size: 2.2rem;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 0 0 1px rgba(255,77,26,0.1), var(--glow-fire);
-      transition: all 0.3s;
-    }
-    .rlogo-ring {
-      position:absolute; inset:-6px; border-radius:30px;
-      border: 1px solid rgba(255,77,26,0.15);
-      animation: ring-pulse 3s ease-in-out infinite;
-    }
-    @keyframes ring-pulse { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.03)} }
-
-    .rname {
-      font-size: 1.8rem; font-weight: 900;
-      color: var(--text-1); margin-bottom: 6px;
-      letter-spacing: -0.5px; line-height:1.2;
-    }
-
-    /* Smart greeting */
-    .smart-line {
-      font-size: 0.82rem; font-weight:500;
-      color: var(--text-3); margin-bottom: 14px;
-      letter-spacing: 0.3px; line-height:1.5;
-    }
-    .smart-line span { color: var(--fire2); font-weight:700; }
-
-    /* Status chips */
-    .rmeta {
-      display: flex; align-items:center; justify-content:center;
-      gap: 8px; flex-wrap:wrap; margin-bottom: 14px;
-    }
-    .chip {
-      display: inline-flex; align-items:center; gap:5px;
-      font-size: 0.7rem; padding: 5px 12px;
-      border-radius: 30px; font-weight:700; letter-spacing:0.3px;
-    }
-    .chip-open   { background:rgba(0,255,160,0.08); color:#00d994; border:1px solid rgba(0,255,160,0.2); }
-    .chip-closed { background:rgba(255,77,26,0.1);  color:var(--fire2); border:1px solid var(--b-fire); }
-    .chip-info   { background:rgba(255,255,255,0.05); color:var(--text-2); border:1px solid var(--b1); }
-
-    /* My orders button */
-    .mybtn {
-      background: rgba(255,77,26,0.08);
-      border: 1px solid rgba(255,77,26,0.2);
-      color: var(--fire2); padding: 8px 18px;
-      border-radius: 30px; font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 0.78rem; font-weight:700;
-      cursor: pointer; transition: all 0.25s;
-      display: inline-flex; align-items:center; gap:7px;
-      margin-bottom: 18px;
-    }
-    .mybtn:hover { background:rgba(255,77,26,0.15); color:var(--fire); }
-
-    /* ── SEARCH BOX ── */
-    .srchwrap { padding: 0 16px; position:relative; }
-    .srch-inner {
-      display:flex; align-items:center; gap:12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--b1);
-      border-radius: 16px; padding: 0 16px;
-      transition: all 0.3s;
-    }
-    .srch-inner:focus-within {
-      border-color: rgba(255,77,26,0.4);
-      background: rgba(255,77,26,0.04);
-      box-shadow: 0 0 0 3px rgba(255,77,26,0.08);
-    }
-    .srch-icon { color: var(--text-3); font-size:0.9rem; flex-shrink:0; }
-    .srchbox {
-      flex: 1; background: transparent; border: none;
-      color: var(--text-1);
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 0.95rem; padding: 13px 0;
-      outline: none; direction: rtl;
-      /* Arabic input optimization */
-      text-align: right;
-      -webkit-locale: "ar";
-    }
-    .srchbox::placeholder { color: var(--text-3); font-weight:400; }
-
-    /* ══════════════════════════════════════════
-       CATEGORY FILTER — PILL BAR
-    ══════════════════════════════════════════ */
-    .cat-scroll {
-      display: flex; gap: 10px;
-      overflow-x: auto; padding: 18px 16px 0;
-      scrollbar-width: none;
-    }
-    .cat-scroll::-webkit-scrollbar { display:none; }
-    .cat-pill {
-      flex-shrink: 0;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--b1);
-      border-radius: 30px; padding: 9px 18px;
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 0.82rem; font-weight:700;
-      color: var(--text-2); cursor: pointer;
-      transition: all 0.25s; white-space: nowrap;
-      display: flex; align-items:center; gap:6px;
-    }
-    .cat-pill .cat-emoji { font-size:0.95rem; }
-    .cat-pill:hover { border-color:rgba(255,77,26,0.3); color:var(--fire2); }
-    .cat-pill.active {
-      background: linear-gradient(135deg, rgba(255,77,26,0.2), rgba(255,122,69,0.15));
-      border-color: rgba(255,77,26,0.4); color: var(--fire2);
-      box-shadow: 0 4px 16px rgba(255,77,26,0.15);
-    }
-
-    /* ══════════════════════════════════════════
-       SECTION LABEL
-    ══════════════════════════════════════════ */
-    .sec-hdr {
-      display: flex; align-items:center; gap:12px;
-      padding: 22px 16px 14px;
-    }
-    .sec-lbl {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.62rem; font-weight:600;
-      color: var(--text-3); text-transform:uppercase; letter-spacing:3px;
-    }
-    .sec-line { flex:1; height:1px; background:var(--b1); }
-    .sec-count {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.62rem; color: var(--fire);
-      background: rgba(255,77,26,0.08); border:1px solid var(--b-fire);
-      padding: 2px 8px; border-radius:20px;
-    }
-
-    /* ══════════════════════════════════════════
-       MENU GRID — NOIR FOOD CARDS
-    ══════════════════════════════════════════ */
-    .mgrid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px; padding: 0 14px;
-    }
-    @media(min-width:600px) { .mgrid { grid-template-columns: repeat(3,1fr); } }
-    @media(min-width:900px) { .mgrid { grid-template-columns: repeat(4,1fr); } }
-
-    .icard {
-      background: var(--panel);
-      border: 1px solid var(--b1);
-      border-radius: 20px; overflow: hidden;
-      position: relative; cursor: pointer;
-      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-      display: flex; flex-direction:column;
-    }
-    .icard::before {
-      content:''; position:absolute; inset:0; z-index:0;
-      background: linear-gradient(135deg, rgba(255,77,26,0.04) 0%, transparent 60%);
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .icard:hover { transform:translateY(-6px); border-color:rgba(255,77,26,0.25); box-shadow:0 12px 40px rgba(255,77,26,0.12); }
-    .icard:hover::before { opacity:1; }
-    .icard:active { transform:scale(0.97); }
-
-    .iimgwrap {
-      aspect-ratio: 1; overflow:hidden; position:relative;
-      background: var(--lift);
-      margin: 10px 10px 0; border-radius: 13px;
-    }
-    .iimg { width:100%; height:100%; object-fit:cover; transition:transform 0.5s cubic-bezier(0.4,0,0.2,1); }
-    .icard:hover .iimg { transform:scale(1.1); }
-
-    /* Emoji placeholder */
-    .iimgph {
-      width:100%; height:100%; display:flex;
-      align-items:center; justify-content:center;
-      font-size: 2.8rem;
-      background: radial-gradient(circle at 30% 30%, rgba(255,77,26,0.06), transparent 70%);
-    }
-
-    /* NEW badge */
-    .badge-new {
-      position:absolute; top:8px; right:8px; z-index:2;
-      background: linear-gradient(135deg,var(--fire),var(--fire2));
-      color:#fff; font-size:0.58rem; font-weight:700;
-      padding:3px 8px; border-radius:20px; letter-spacing:1px;
-      font-family:'IBM Plex Mono',monospace; text-transform:uppercase;
-      box-shadow: 0 2px 8px rgba(255,77,26,0.4);
-    }
-
-    .ibody { padding: 10px 14px 14px; flex:1; display:flex; flex-direction:column; }
-    .iname {
-      font-size: 0.92rem; font-weight:700; color:var(--text-1);
-      margin-bottom: 4px; line-height: 1.4;
-      /* Ensure Arabic name displays correctly */
-      unicode-bidi: plaintext;
-      text-align: right;
-    }
-    .idesc { font-size:0.72rem; color:var(--text-3); margin-bottom:10px; line-height:1.5; }
-    .iprice {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 1.05rem; font-weight:700; color:var(--gold);
-      margin-bottom: 10px; margin-top:auto;
-      display:flex; align-items:baseline; gap:4px;
-    }
-    .iprice .curr { font-size:0.68rem; color:var(--text-3); font-weight:400; }
-
-    /* Add to cart button */
-    .addbtn {
-      width:100%; border:none; border-radius:12px;
-      padding: 10px 8px;
-      background: rgba(255,77,26,0.08); color:var(--fire2);
-      border: 1px solid rgba(255,77,26,0.15);
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 0.82rem; font-weight:700;
-      cursor: pointer; transition: all 0.25s;
-      display:flex; align-items:center; justify-content:center; gap:6px;
-    }
-    .addbtn:hover { background:rgba(255,77,26,0.15); border-color:rgba(255,77,26,0.3); }
-    .addbtn:active { transform:scale(0.96); }
-    .addbtn.added {
-      background:rgba(0,255,160,0.1); color:#00d994;
-      border-color:rgba(0,255,160,0.2);
-      animation: pop-check 0.3s ease;
-    }
-    @keyframes pop-check { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
-    .addbtn:disabled { opacity:0.4; cursor:not-allowed; }
-
-    /* ══════════════════════════════════════════
-       CART FAB — CINEMATIC FLOATING BAR
-    ══════════════════════════════════════════ */
-    .cartfab {
-      position: fixed; bottom: 24px; left:50%; transform:translateX(-50%);
-      z-index: 2000; pointer-events:auto;
-    }
-    .cartbtn-wrap {
-      display: flex; align-items:center; gap:14px;
-      background: rgba(10,10,18,0.85);
-      backdrop-filter: blur(32px);
-      border: 1px solid rgba(255,77,26,0.3);
-      border-radius: 28px; padding: 10px 22px 10px 10px;
-      box-shadow: 0 8px 40px rgba(255,77,26,0.2), 0 0 0 1px rgba(255,77,26,0.08);
-      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-      cursor: pointer;
-    }
-    .cartbtn-wrap:hover { transform:translateY(-4px); box-shadow:0 16px 50px rgba(255,77,26,0.3); }
-    .cartbtn-wrap:active { transform:scale(0.97); }
-
-    .cart-icon-wrap {
-      width: 52px; height:52px;
-      background: linear-gradient(135deg, var(--fire), var(--fire2));
-      border-radius: 20px;
-      display:flex; align-items:center; justify-content:center;
-      font-size: 1.4rem; position:relative;
-      box-shadow: 0 6px 20px rgba(255,77,26,0.4);
-    }
-    .cartcnt {
-      position:absolute; top:-6px; right:-6px;
-      background:#fff; color:#000;
-      width:22px; height:22px; border-radius:50%;
-      font-size:0.65rem; font-weight:900;
-      display:flex; align-items:center; justify-content:center;
-      font-family:'IBM Plex Mono',monospace;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      animation: cnt-pop 0.25s ease;
-    }
-    @keyframes cnt-pop { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
-    .cart-text { display:flex; flex-direction:column; gap:1px; }
-    .cart-label { font-size:0.72rem; color:var(--text-2); font-weight:500; }
-    .cart-total {
-      font-family:'IBM Plex Mono',monospace;
-      font-size:1rem; font-weight:700; color:var(--gold);
-    }
-    .cart-arrow { color:var(--fire); font-size:0.9rem; margin-right:4px; }
-
-    /* ══════════════════════════════════════════
-       OVERLAY / BOTTOM SHEET
-    ══════════════════════════════════════════ */
-    .moverlay {
-      position:fixed; inset:0; z-index:3000;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(12px);
-      display:none; align-items:flex-end; justify-content:center;
-    }
-    .moverlay.show { display:flex; animation:fade-in 0.25s ease; }
-    @keyframes fade-in { from{opacity:0} to{opacity:1} }
-
-    .msheet {
-      width:100%; max-width:520px;
-      background: var(--surface);
-      border-radius: 28px 28px 0 0;
-      border-top: 1px solid var(--b2);
-      border-left: 1px solid var(--b1);
-      border-right: 1px solid var(--b1);
-      max-height: 92vh; overflow-y:auto;
-      overscroll-behavior: contain;
-      animation: sheet-up 0.38s cubic-bezier(0.34,1.2,0.64,1);
-      /* Custom scrollbar */
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,77,26,0.2) transparent;
-    }
-    .msheet::-webkit-scrollbar { width:3px; }
-    .msheet::-webkit-scrollbar-thumb { background:rgba(255,77,26,0.2); border-radius:2px; }
-    @keyframes sheet-up { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
-
-    .sheet-handle { width:38px; height:4px; background:var(--b2); border-radius:2px; margin:14px auto 20px; }
-
-    .sheet-head { padding:0 20px 18px; border-bottom:1px solid var(--b1); }
-    .stitle {
-      font-size:1.2rem; font-weight:900; color:var(--text-1);
-      text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;
-    }
-
-    /* Step indicators */
-    .step-dots { display:flex; justify-content:center; gap:6px; margin-bottom:12px; }
-    .sdot { width:8px; height:8px; border-radius:50%; background:var(--b2); transition:all 0.3s; }
-    .sdot.on { background:var(--fire); width:24px; border-radius:4px; }
-
-    .sheet-body { padding:20px; }
-
-    /* ── CART SUMMARY ── */
-    .cart-list {
-      border: 1px solid var(--b1); border-radius:16px;
-      overflow:hidden; margin-bottom:16px;
-    }
-    .cart-row {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:12px 14px; border-bottom:1px solid var(--b1);
-      transition:background 0.2s;
-    }
-    .cart-row:last-child { border-bottom:none; }
-    .cart-row:hover { background:rgba(255,255,255,0.02); }
-    .cr-left { display:flex; align-items:center; gap:10px; }
-    .cr-qty {
-      width:24px; height:24px; border-radius:8px;
-      background:rgba(255,77,26,0.12); border:1px solid var(--b-fire);
-      color:var(--fire2); font-size:0.7rem; font-weight:800;
-      display:flex; align-items:center; justify-content:center;
-      font-family:'IBM Plex Mono',monospace; flex-shrink:0;
-    }
-    .cr-name { font-size:0.88rem; font-weight:600; color:var(--text-1); }
-    .cr-right { display:flex; align-items:center; gap:8px; }
-    .cr-price { font-family:'IBM Plex Mono',monospace; font-size:0.84rem; color:var(--gold); font-weight:600; }
-    .cr-rm {
-      background:none; border:none; color:var(--text-3);
-      cursor:pointer; font-size:0.82rem; padding:4px 6px;
-      border-radius:6px; transition:0.2s;
-    }
-    .cr-rm:hover { color:var(--fire); background:rgba(255,77,26,0.08); }
-
-    .cart-total-bar {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:12px 14px; margin-top:4px;
-      border-top:1px solid rgba(255,77,26,0.15);
-    }
-    .ct-lbl { font-size:0.9rem; font-weight:700; color:var(--text-2); }
-    .ct-val {
-      font-family:'IBM Plex Mono',monospace;
-      font-size:1.2rem; font-weight:800; color:#00d994;
-    }
-
-    /* ── FORM INPUTS — PREMIUM ARABIC ── */
-    .fg { margin-bottom:14px; }
-    .fg label {
-      display:block; font-size:0.72rem; font-weight:700;
-      color:var(--text-3); margin-bottom:7px;
-      letter-spacing:0.5px; text-transform:uppercase;
-    }
-
-    .finp {
-      width:100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--b1);
-      border-radius: 14px; padding: 13px 16px;
-      color: var(--text-1);
-      /* Arabic font for input */
-      font-family: 'Noto Kufi Arabic', sans-serif;
-      font-size: 1rem; font-weight:500;
-      outline: none; transition: all 0.25s;
-      direction: rtl; text-align: right;
-      /* Force Arabic keyboard on mobile */
-      -webkit-locale: "ar";
-    }
-    .finp:focus {
-      border-color: rgba(255,77,26,0.4);
-      background: rgba(255,77,26,0.04);
-      box-shadow: 0 0 0 3px rgba(255,77,26,0.08);
-      color:var(--text-1);
-    }
-    .finp::placeholder { color:var(--text-3); }
-    /* Remove input number spinners */
-    .finp[type="tel"]::-webkit-inner-spin-button { display:none; }
-
-    /* Type selector */
-    .type-grid {
-      display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
-      margin-bottom:16px;
-    }
-    .type-btn {
-      background:rgba(255,255,255,0.03); border:1px solid var(--b1);
-      border-radius:14px; padding:13px 8px;
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-      cursor:pointer; transition:all 0.25s; color:var(--text-3);
-    }
-    .type-btn i { font-size:1.15rem; }
-    .type-btn span { font-size:0.75rem; font-weight:700; }
-    .type-btn:hover { border-color:rgba(255,77,26,0.25); color:var(--fire2); }
-    .type-btn.active {
-      background:rgba(255,77,26,0.1); border-color:rgba(255,77,26,0.35);
-      color:var(--fire2); box-shadow:0 4px 14px rgba(255,77,26,0.12);
-    }
-
-    /* ── BILL BOX ── */
-    .billbox {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--b1); border-radius:16px;
-      padding: 16px; margin-bottom:16px;
-    }
-    .bill-ttl {
-      font-family:'IBM Plex Mono',monospace; font-size:0.6rem;
-      color:var(--text-3); letter-spacing:2px; text-transform:uppercase;
-      margin-bottom:12px;
-    }
-    .brow {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:7px 0; border-bottom:1px solid var(--b1); font-size:0.88rem;
-    }
-    .brow:last-of-type { border:none; }
-    .brow .bn { color:var(--text-2); }
-    .brow .bv { font-weight:700; color:var(--text-1); }
-    .btotal-row {
-      display:flex; justify-content:space-between; align-items:center;
-      padding-top:12px; margin-top:4px;
-      border-top:1px solid rgba(255,77,26,0.2);
-    }
-    .btl { font-weight:800; font-size:0.95rem; }
-    .btv {
-      font-family:'IBM Plex Mono',monospace;
-      font-size:1.3rem; font-weight:900; color:#00d994;
-    }
-
-    /* ── BUTTONS ── */
-    .btn-next {
-      width:100%; padding:15px;
-      background:linear-gradient(135deg, var(--fire), var(--fire2));
-      border:none; border-radius:16px; color:#fff;
-      font-family:'Noto Kufi Arabic',sans-serif; font-size:1rem; font-weight:800;
-      cursor:pointer; transition:all 0.25s; margin-bottom:10px;
-      box-shadow:0 6px 24px rgba(255,77,26,0.3);
-      display:flex; align-items:center; justify-content:center; gap:8px;
-    }
-    .btn-next:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(255,77,26,0.4); }
-    .btn-next:active { transform:scale(0.97); }
-    .btn-next:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
-    .btn-next.green { background:linear-gradient(135deg, #00c851,#00a541); box-shadow:0 6px 24px rgba(0,200,81,0.3); }
-
-    .btn-back {
-      width:100%; padding:12px; background:none;
-      border:1px solid var(--b1); border-radius:14px;
-      color:var(--text-2); font-family:'Noto Kufi Arabic',sans-serif;
-      font-size:0.88rem; font-weight:600; cursor:pointer;
-      transition:all 0.2s; margin-bottom:8px;
-    }
-    .btn-back:hover { border-color:var(--b2); color:var(--text-1); }
-
-    .btn-close {
-      width:100%; padding:10px; background:none; border:none;
-      color:var(--text-3); font-family:'Noto Kufi Arabic',sans-serif;
-      font-size:0.82rem; cursor:pointer; transition:color 0.2s;
-    }
-    .btn-close:hover { color:var(--fire); }
-
-    /* ── SUCCESS SCREEN ── */
-    .success-wrap { text-align:center; padding:8px 0; }
-    .s-check {
-      width:80px; height:80px;
-      background:rgba(0,200,81,0.1); border:2px solid rgba(0,200,81,0.3);
-      border-radius:50%; display:flex; align-items:center; justify-content:center;
-      font-size:2rem; margin:0 auto 18px;
-      animation:check-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    @keyframes check-pop { 0%{transform:scale(0);opacity:0} 100%{transform:scale(1);opacity:1} }
-    .s-title { font-size:1.3rem; font-weight:900; margin-bottom:6px; color:var(--text-1); }
-    .s-sub   { font-size:0.84rem; color:var(--text-3); margin-bottom:18px; }
-
-    .order-no-box {
-      background:rgba(255,77,26,0.06); border:1px dashed rgba(255,77,26,0.25);
-      border-radius:18px; padding:20px; margin:0 0 16px;
-    }
-    .on-lbl { font-size:0.68rem; font-weight:700; letter-spacing:2px; color:var(--text-3); margin-bottom:8px; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; }
-    .on-num {
-      font-family:'IBM Plex Mono',monospace; font-size:2.2rem; font-weight:900;
-      color:var(--fire); letter-spacing:4px;
-      text-shadow:0 0 20px rgba(255,77,26,0.4);
-    }
-    .on-hint { font-size:0.78rem; color:var(--text-3); margin-top:8px; }
-    .on-hint strong { color:var(--fire2); }
-
-    .sinfo-card {
-      background:rgba(255,255,255,0.02); border:1px solid var(--b1);
-      border-radius:14px; padding:14px; text-align:right;
-      font-size:0.88rem; margin-bottom:14px;
-    }
-    .sinfo-row { display:flex; justify-content:space-between; margin-bottom:8px; }
-    .sinfo-row:last-child { margin:0; padding-top:8px; border-top:1px dashed var(--b1); }
-    .sinfo-row .lbl { color:var(--text-3); }
-    .sinfo-row .val { font-weight:700; color:var(--text-1); }
-    .sinfo-row.total .val { color:#00d994; font-size:1.05rem; font-family:'IBM Plex Mono',monospace; }
-
-    /* ── TRACKER ── */
-    .tracker {
-      background:rgba(255,77,26,0.04); border:1px solid rgba(255,77,26,0.15);
-      border-radius:18px; padding:18px; margin-bottom:16px;
-    }
-    .trk-title {
-      font-size:0.85rem; font-weight:800; color:var(--fire2);
-      margin-bottom:18px; display:flex; align-items:center; gap:8px;
-    }
-    .trk-status { font-size:0.75rem; color:var(--text-3); font-weight:400; margin-right:auto; }
-    .trk-steps { display:flex; justify-content:space-between; position:relative; }
-    .trk-line { position:absolute; top:16px; left:0; right:0; height:2px; background:var(--b1); z-index:1; }
-    .trk-prog { position:absolute; top:16px; right:0; height:2px; background:linear-gradient(90deg,var(--fire2),var(--fire)); z-index:2; transition:width 0.6s ease; width:0; }
-    .tstep { z-index:3; display:flex; flex-direction:column; align-items:center; gap:6px; width:25%; position:relative; }
-    .tpt {
-      width:34px; height:34px; background:var(--panel);
-      border:2px solid var(--b1); border-radius:12px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:0.82rem; color:var(--text-3); transition:all 0.35s;
-    }
-    .tstep.on .tpt {
-      background:rgba(255,77,26,0.15); border-color:rgba(255,77,26,0.4);
-      color:var(--fire2); box-shadow:0 0 16px rgba(255,77,26,0.2);
-    }
-    .tstep.done-st .tpt { background:rgba(0,200,81,0.12); border-color:rgba(0,200,81,0.3); color:#00d994; }
-    .tlbl { font-size:0.6rem; font-weight:700; color:var(--text-3); text-align:center; }
-    .tstep.on .tlbl { color:var(--fire2); }
-
-    /* ── PWA INSTALL BANNER ── */
-    #pwa-banner {
-      display:none; position:fixed; bottom:0; left:0; right:0; z-index:1999;
-      background: rgba(10,10,18,0.95); backdrop-filter:blur(24px);
-      border-top:1px solid var(--b-fire);
-      padding:16px 20px;
-      align-items:center; gap:14px;
-      border-radius:0;
-      box-shadow:0 -8px 32px rgba(255,77,26,0.15);
-    }
-    #pwa-banner.show { display:flex; animation:slide-up-banner 0.4s ease; }
-    @keyframes slide-up-banner { from{transform:translateY(100%)} to{transform:translateY(0)} }
-    .pwa-icon { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,var(--fire),var(--fire2)); display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 4px 16px rgba(255,77,26,0.3); }
-    .pwa-text { flex:1; }
-    .pwa-t1 { font-size:0.9rem; font-weight:800; color:var(--text-1); margin-bottom:2px; }
-    .pwa-t2 { font-size:0.72rem; color:var(--text-3); }
-    .pwa-install {
-      background:linear-gradient(135deg,var(--fire),var(--fire2)); color:#fff;
-      border:none; border-radius:12px; padding:9px 18px;
-      font-family:'Noto Kufi Arabic',sans-serif; font-size:0.82rem; font-weight:800;
-      cursor:pointer; flex-shrink:0; transition:opacity 0.2s;
-    }
-    .pwa-install:hover { opacity:0.88; }
-    .pwa-close { background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:4px; flex-shrink:0; transition:color 0.2s; }
-    .pwa-close:hover { color:var(--fire); }
-
-    /* ── RECENT ORDERS MODAL ── */
-    .bi-card {
-      background:rgba(255,255,255,0.02); border:1px solid var(--b1);
-      border-radius:14px; padding:14px; margin-bottom:10px;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .bi-info .bi-no { font-family:'IBM Plex Mono',monospace; font-size:0.88rem; color:var(--fire); font-weight:700; }
-    .bi-info .bi-doc { font-size:0.78rem; color:var(--text-2); margin-top:2px; }
-    .bi-info .bi-st { font-size:0.7rem; font-weight:700; margin-top:3px; }
-    .bi-st.new      { color:var(--gold); }
-    .bi-st.done     { color:#00d994; }
-    .bi-st.cancel   { color:var(--fire); }
-    .bi-track {
-      background:rgba(255,77,26,0.1); border:1px solid var(--b-fire);
-      color:var(--fire2); padding:7px 14px; border-radius:10px;
-      font-family:'Noto Kufi Arabic',sans-serif; font-size:0.76rem;
-      font-weight:700; cursor:pointer; transition:0.2s;
-    }
-    .bi-track:hover { background:rgba(255,77,26,0.18); }
-
-    /* ── FOOTER ── */
-    .foot {
-      text-align:center; padding:30px 0 12px;
-      font-family:'IBM Plex Mono',monospace;
-      font-size:0.54rem; color:var(--text-3); letter-spacing:3px;
-    }
-    .foot span { color:var(--fire); }
-
-    /* ── EMPTY STATE ── */
-    .empty-s {
-      grid-column:1/-1; text-align:center; padding:60px 20px;
-      color:var(--text-3);
-    }
-    .empty-s i { font-size:2.5rem; display:block; margin-bottom:14px; opacity:0.25; }
-    .empty-s p { font-size:0.9rem; }
-
-    /* ── LIGHT MODE ── */
-    [data-theme="light"] {
-      --void:#f4f1ee; --deep:#f9f7f5; --surface:#ffffff;
-      --panel:#f0ede9; --lift:#e8e4df;
-      --text-1:#1a1512; --text-2:#6b6460; --text-3:#a09890;
-      --b1:rgba(0,0,0,0.07); --b2:rgba(0,0,0,0.12);
-      --fire:#e63b00; --fire2:#f05a28; --gold:#c8800a;
-    }
-    [data-theme="light"] .msheet { background:#fff; }
-    [data-theme="light"] .cart-row:hover { background:rgba(0,0,0,0.02); }
-    [data-theme="light"] .finp { background:rgba(0,0,0,0.03); }
-    [data-theme="light"] .finp:focus { background:rgba(230,59,0,0.04); }
-    [data-theme="light"] .icard { background:#fff; }
-    [data-theme="light"] .addbtn { background:rgba(230,59,0,0.06); }
-    [data-theme="light"] .tracker { background:rgba(230,59,0,0.04); }
-    [data-theme="light"] body::before, [data-theme="light"] body::after { opacity:0.15; }
-
-    /* ── SMOOTH TRANSITIONS ── */
-    body, .icard, .finp, .msheet, .header { transition-property:background,color,border-color; transition-duration:0.3s; }
-  </style>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:,">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="أرغون">
+    <meta name="description" content="قائمة الطعام الذكية — اطلب بسهولة">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <title>أرغون | المنيو الذكي</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --bg: #f0f4ff;
+            --card: #ffffff;
+            --header-from: #1e3a8a;
+            --header-to: #3b82f6;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(0, 0, 0, 0.07);
+            --shadow: rgba(0, 0, 0, 0.06);
+            --green: #10b981;
+            --red: #ef4444;
+            --amber: #f59e0b;
+        }
+
+        [data-theme="dark"] {
+            --bg: #070d1a;
+            --card: #0f1929;
+            --header-from: #0a1628;
+            --header-to: #1e3a8a;
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --border: rgba(255, 255, 255, 0.06);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        #lockoutScreen {
+            position: fixed;
+            inset: 0;
+            background: #070d1a;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+        }
+        #lockoutScreen.show { display: flex !important; }
+        .lock-icon { font-size: 80px; color: #ef4444; margin-bottom: 24px; opacity: 0.9; }
+        .lock-msg { font-size: 24px; font-weight: 800; margin-bottom: 16px; line-height: 1.5; }
+        .lock-sub { font-size: 16px; opacity: 0.7; margin-bottom: 30px; }
+        .btn-support { 
+            background: #3b82f6; color: #fff; text-decoration: none; padding: 14px 28px; 
+            border-radius: 12px; font-weight: 700; transition: 0.3s;
+        }
+        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
+
+        #notFoundScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0a1628, #1e3a8a);
+            z-index: 10001;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            color: #fff;
+        }
+
+        /* TYPE SELECTOR */
+        .type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .type-btn {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--muted);
+        }
+        .type-btn i { font-size: 1.2rem; }
+        .type-btn span { font-size: 0.75rem; font-weight: 700; }
+        .type-btn:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.04);
+            transform: translateY(-1px);
+        }
+        .type-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .type-btn.active i { color: #fff; }
+        .type-btn.active span { color: #fff; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            padding-bottom: 110px;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--header-from), var(--header-to));
+            padding: 0 0 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 50%, rgba(34, 211, 238, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .htop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px 0;
+        }
+
+        .argon-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+        }
+
+        .theme-tog {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 6px 13px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.76rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme-tog:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .hmain {
+            text-align: center;
+            padding: 22px 18px 0;
+            position: relative;
+        }
+
+        .rlogo {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.9rem;
+            margin: 0 auto 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .rname {
+            font-size: 1.55rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .rmeta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .rchip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.74rem;
+            padding: 4px 11px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .chip-open {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .chip-closed {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .chip-hrs {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* SEARCH */
+        .srchwrap {
+            padding: 0 15px;
+            margin-top: 18px;
+        }
+
+        .srchcont {
+            position: relative;
+        }
+
+        .srchbox {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 13px;
+            padding: 11px 15px 11px 44px;
+            width: 100%;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.93rem;
+            outline: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.25s;
+        }
+
+        .srchbox::placeholder {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 2px;
+            transition: 0.3s;
+        }
+
+        .srchcont:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(212, 168, 67, 0.1);
+            background: var(--surface);
+        }
+
+        .srchico {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .srchbox {
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 14px 48px 14px 18px;
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        /* MENU GRID & CATEGORIES */
+        .menu-sec {
+            padding: 20px 20px 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .cat-bar {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .cat-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-btn {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        [data-theme="dark"] .cat-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(255,255,255,0.08);
+            color: #e2e8f0;
+        }
+
+        .cat-btn.active {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .mgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 22px;
+        }
+
+        /* PREMIUM CARD */
+        .icard {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 28px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
+
+        [data-theme="dark"] .icard {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .icard:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
+        }
+
+        .iimgwrap {
+            aspect-ratio: 1;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.02);
+            margin: 10px;
+            border-radius: 20px;
+        }
+
+        [data-theme="dark"] .iimgwrap { background: rgba(255, 255, 255, 0.02); }
+
+        .iimg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .icard:hover .iimg {
+            transform: scale(1.12) rotate(2deg);
+        }
+
+        .iimgph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            opacity: 0.15;
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), transparent);
+        }
+
+        .ibody {
+            padding: 5px 16px 16px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .iname {
+            font-size: 1.05rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            color: var(--text);
+        }
+
+        .iprice {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 16px;
+            margin-top: auto;
+        }
+
+        .addbtn {
+            width: 100%;
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 12px;
+            color: var(--accent);
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .addbtn:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .addbtn:active {
+            transform: scale(0.95);
+        }
+
+        .addbtn.added {
+            background: var(--green);
+            color: #fff;
+            border-color: var(--green);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* CART FAB */
+        .cartfab {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px 24px 10px 10px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cartfab:hover {
+            transform: translateX(-50%) translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .cartbtn {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(212, 168, 67, 0.4);
+        }
+
+        .cartcnt {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #fff;
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cartlbl {
+            white-space: nowrap;
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--accent);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* MODAL OVERLAY */
+        /* TRACKER */
+        .track-wrap {
+            margin-top: 25px;
+            padding: 18px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed var(--accent);
+            border-radius: 16px;
+            text-align: right;
+        }
+        .track-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .track-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 20px 0 10px;
+        }
+        .track-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+        .track-progress {
+            position: absolute;
+            top: 15px;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            z-index: 2;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .tstep {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 25%;
+        }
+        .tpoint {
+            width: 32px;
+            height: 32px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            transition: 0.3s;
+        }
+        .tstep.active .tpoint {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+        .tlbl {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+        .tstep.active .tlbl {
+            color: var(--accent);
+        }
+
+        .moverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .moverlay.show {
+            display: flex;
+        }
+
+        .msheet {
+            background: var(--card);
+            border-radius: 26px 26px 0 0;
+            padding: 26px 20px 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: sup 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .toast-wrap { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; backdrop-filter: blur(10px); transform: translateY(-20px); opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* RECENT ORDERS BTN IN HEADER */
+        .recent-btn {
+            background: rgba(59, 130, 246, 0.08); /* Light blue tint */
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            margin: 10px auto 0; /* Center it below logo/name or beside it */
+            width: fit-content;
+        }
+
+        .recent-btn:hover { background: var(--accent); color: white; transform: scale(1.05); }
+        .recent-btn i { font-size: 0.85rem; }
+
+        .recent-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .recent-item {
+            background: rgba(var(--accent-rgb), 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ri-info { display: flex; flex-direction: column; gap: 2px; }
+        .ri-no { font-weight: 800; font-size: 0.95rem; }
+        .ri-status { font-size: 0.7rem; color: var(--muted); }
+        .ri-status.active { color: var(--green); font-weight: 700; }
+        .ri-track {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @keyframes sup {
+            from {
+                transform: translateY(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .shandle {
+            width: 34px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 2px;
+            margin: 0 auto 18px;
+        }
+
+        [data-theme="dark"] .shandle {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stitle {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        /* CART SUMMARY (step 0) */
+        .cart-summary {
+            background: rgba(59, 130, 246, 0.04);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        [data-theme="dark"] .cart-summary {
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        .cart-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cart-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .ci-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ci-qty {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+            flex-shrink: 0;
+        }
+
+        .ci-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .ci-price {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .ci-remove {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+        }
+
+        .ci-remove:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid rgba(59, 130, 246, 0.15);
+        }
+
+        .ct-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .ct-val {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        /* INPUTS - PREMIUM DESIGN */
+        .minp {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(59, 130, 246, 0.15);
+            border-radius: 16px;
+            padding: 16px 20px;
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 15px;
+            text-align: right;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="dark"] .minp {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .minp:focus {
+            border-color: var(--accent);
+            background: var(--card);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .minp::placeholder {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* BILL */
+        .billbox {
+            background: linear-gradient(145deg, var(--card), rgba(59, 130, 246, 0.03));
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] .billbox {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.4));
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .billtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .billrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .billrow:last-of-type {
+            border-bottom: none;
+        }
+
+        .bname {
+            font-size: 0.86rem;
+        }
+
+        .bprice {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* MODALS & SHEETS */
+        .moverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 3000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .moverlay.show {
+            display: flex;
+        }
+
+        .msheet {
+            width: 100%;
+            max-width: 500px;
+            background: var(--surface);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 40px 40px 0 0;
+            padding: 32px 24px;
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 92vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .moverlay.show .msheet {
+            transform: translateY(0);
+        }
+
+        .shandle {
+            width: 45px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin: -10px auto 28px;
+        }
+
+        .stitle {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 28px;
+            text-align: center;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* BILL & SUCCESS */
+        .billbox {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .billtitle {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--muted);
+            margin-bottom: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .billrow {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 0.95rem;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .billtotal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 18px;
+            margin-top: 10px;
+            border-top: 2px solid var(--accent);
+        }
+
+        .btv {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--green);
+        }
+
+        .success-icon {
+            width: 90px;
+            height: 90px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+        }
+
+        .order-no-box {
+            background: linear-gradient(135deg, rgba(212, 168, 67, 0.1), transparent);
+            border: 2px dashed var(--accent);
+            border-radius: 20px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        .on-number {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(212, 168, 67, 0.3);
+        }
+
+        /* TRACKING */
+        .track-wrap {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--card);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .tpoint {
+            width: 36px;
+            height: 36px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--muted);
+            transition: 0.4s;
+            z-index: 2;
+        }
+
+        .tstep.active .tpoint {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+            box-shadow: 0 0 20px rgba(212, 168, 67, 0.4);
+        }
+
+        /* CONNECTION BAR */
+        .conn-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 5000;
+            padding: 10px;
+            font-size: 0.8rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .conn-ok { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+        .conn-off { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+
+        /* TOAST */
+        .toast {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            padding: 12px 24px;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
 </head>
-<body data-theme="dark">
 
-<div id="connBar"></div>
-<div id="toastWrap"></div>
+<body data-theme="light">
 
-<!-- LOCKOUT -->
-<div id="lockoutScreen">
-  <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
-  <div class="lock-msg">المطعم غير متاح حالياً</div>
-  <div class="lock-sub">تم إيقاف هذا المطعم مؤقتاً</div>
-  <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع أرغون</a>
-</div>
+    <div id="connBar" class="conn-bar"></div>
+    <div id="toast"></div>
 
-<div id="mainContent">
-  <!-- ══ HEADER ══ -->
-  <div class="header">
-    <div class="header-bg"></div>
-    <div class="header-grid"></div>
-    <div class="htop">
-      <span class="argon-mark">ARGON / MENU</span>
-      <button class="theme-tog" id="themeBtn" onclick="toggleTheme()">☀️ فاتح</button>
-    </div>
-    <div class="hmain">
-      <div class="rlogo-wrap">
-        <div class="rlogo" id="rLogo">
-          <img id="rLogoImg" src="" style="width:100%;height:100%;object-fit:cover;border-radius:24px;display:none">
-          <span id="rLogoEmoji">🍽️</span>
-        </div>
-        <div class="rlogo-ring"></div>
-      </div>
-      <div class="rname" id="resName">جاري التحميل...</div>
-      <div class="smart-line" id="smartLine">مرحباً بك — <span id="smartSpan">اكتشف قائمتنا</span></div>
-      <button class="mybtn" onclick="openMyOrders()">
-        <i class="fas fa-clock-rotate-left"></i> آخر طلباتي
-      </button>
-      <div class="rmeta">
-        <span class="chip chip-open" id="statusChip"><i class="fas fa-circle" style="font-size:0.4rem"></i> مفتوح</span>
-        <span class="chip chip-info" id="hoursChip" style="display:none"><i class="fas fa-clock"></i> <span id="hoursText"></span></span>
-        <span class="chip chip-info" id="loadChip" style="display:none"></span>
-      </div>
-      <div class="srchwrap" style="margin-top:16px">
-        <div class="srch-inner">
-          <i class="fas fa-magnifying-glass srch-icon"></i>
-          <input type="search" class="srchbox" id="searchBox"
-            placeholder="ابحث عن صنف..."
-            oninput="filterMenu()"
-            autocomplete="off"
-            spellcheck="false"
-            lang="ar"
-            inputmode="search"
-          >
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CATEGORY FILTER -->
-  <div class="cat-scroll" id="catBar">
-    <div class="cat-pill active" onclick="filterCat('all',this)"><span class="cat-emoji">🍽️</span> الكل</div>
-  </div>
-
-  <!-- MENU SECTION -->
-  <div class="sec-hdr">
-    <div class="sec-lbl">القائمة</div>
-    <div class="sec-line"></div>
-    <div class="sec-count" id="secCount">0</div>
-  </div>
-  <div class="mgrid" id="menuGrid">
-    <div class="empty-s" style="grid-column:1/-1">
-      <i class="fas fa-spinner fa-spin"></i><p>جاري تحميل القائمة...</p>
-    </div>
-  </div>
-
-  <div class="foot">POWERED BY <span>ARGON</span></div>
-</div>
-
-<!-- ── PWA BANNER ── -->
-<div id="pwa-banner">
-  <div class="pwa-icon">🍔</div>
-  <div class="pwa-text">
-    <div class="pwa-t1">أضف أرغون لشاشتك</div>
-    <div class="pwa-t2">وصول سريع لقائمة الطعام بدون متصفح</div>
-  </div>
-  <button class="pwa-install" onclick="installPWA()">تثبيت</button>
-  <button class="pwa-close" onclick="dismissPWA()">✕</button>
-</div>
-
-<!-- ── CART FAB ── -->
-<div class="cartfab" id="cartFab" style="display:none">
-  <div class="cartbtn-wrap" onclick="openModal()">
-    <div class="cart-icon-wrap">
-      🛒
-      <div class="cartcnt" id="cartCnt">0</div>
-    </div>
-    <div class="cart-text">
-      <span class="cart-label">سلة الطلب</span>
-      <span class="cart-total" id="cartTotal">0.00 د.أ</span>
-    </div>
-    <i class="fas fa-chevron-left cart-arrow"></i>
-  </div>
-</div>
-
-<!-- ══ ORDER MODAL ══ -->
-<div class="moverlay" id="orderModal" onclick="if(event.target===this)closeModal()">
-  <div class="msheet">
-    <div class="sheet-handle"></div>
-
-    <!-- STEP 0: CART -->
-    <div id="s0">
-      <div class="sheet-head">
-        <div class="step-dots"><div class="sdot on"></div><div class="sdot"></div><div class="sdot"></div></div>
-        <div class="stitle">🛒 مراجعة السلة</div>
-      </div>
-      <div class="sheet-body">
-        <div class="cart-list" id="cartList"></div>
-        <div class="cart-total-bar">
-          <span class="ct-lbl">المجموع</span>
-          <span class="ct-val" id="cartTotalModal">0.00 د.أ</span>
-        </div>
-        <div style="height:16px"></div>
-        <button class="btn-next" onclick="goStep(1)">
-          التالي — أدخل بياناتك <i class="fas fa-arrow-left" style="margin-right:6px"></i>
-        </button>
-        <button class="btn-close" onclick="closeModal()">إغلاق</button>
-      </div>
-    </div>
-
-    <!-- STEP 1: INFO -->
-    <div id="s1" style="display:none">
-      <div class="sheet-head">
-        <div class="step-dots"><div class="sdot"></div><div class="sdot on"></div><div class="sdot"></div></div>
-        <div class="stitle">📋 بيانات الطلب</div>
-      </div>
-      <div class="sheet-body">
-        <div class="fg">
-          <label>نوع الطلب</label>
-          <div class="type-grid">
-            <div class="type-btn active" onclick="setType('takeaway',this)"><i class="fas fa-bag-shopping"></i><span>سفري</span></div>
-            <div class="type-btn" onclick="setType('delivery',this)"><i class="fas fa-truck"></i><span>توصيل</span></div>
-            <div class="type-btn" onclick="setType('dinein',this)"><i class="fas fa-utensils"></i><span>داخلي</span></div>
-          </div>
-        </div>
-        <div class="fg">
-          <label>الاسم الكريم *</label>
-          <input id="custName" class="finp" type="text"
-            placeholder="محمد أحمد"
-            autocomplete="name"
-            inputmode="text"
-            lang="ar"
-            dir="rtl"
-          >
-          <div id="nameErr" style="font-size:0.72rem;color:var(--fire);margin-top:5px;display:none"></div>
-        </div>
-        <div class="fg">
-          <label>رقم الهاتف *</label>
-          <input id="custPhone" class="finp" type="tel"
-            placeholder="07XXXXXXXX"
-            autocomplete="tel"
-            inputmode="tel"
-            dir="ltr"
-            style="text-align:right"
-          >
-          <div id="phoneErr" style="font-size:0.72rem;color:var(--fire);margin-top:5px;display:none"></div>
-        </div>
-        <div class="fg">
-          <label>ملاحظات إضافية</label>
-          <textarea id="orderNotes" class="finp" rows="2"
-            placeholder="بدون بصل، زيادة صوص..."
-            style="resize:none; line-height:1.6"
-            lang="ar" dir="rtl"
-          ></textarea>
-        </div>
-        <button class="btn-next" onclick="goStep2Validated()">
-          عرض الفاتورة <i class="fas fa-receipt" style="margin-right:6px"></i>
-        </button>
-        <button class="btn-back" onclick="goStep(0)">← العودة للسلة</button>
-        <button class="btn-close" onclick="closeModal()">إغلاق</button>
-      </div>
-    </div>
-
-    <!-- STEP 2: BILL -->
-    <div id="s2" style="display:none">
-      <div class="sheet-head">
-        <div class="step-dots"><div class="sdot"></div><div class="sdot"></div><div class="sdot on"></div></div>
-        <div class="stitle">🧾 تأكيد الطلب</div>
-      </div>
-      <div class="sheet-body">
-        <div class="billbox" id="billBox"></div>
-        <button class="btn-next green" id="sendBtn" onclick="sendOrder()">
-          <i class="fas fa-paper-plane"></i> إرسال الطلب للمطعم
-        </button>
-        <button class="btn-back" onclick="goStep(1)">← تعديل البيانات</button>
-      </div>
-    </div>
-
-    <!-- STEP 3: SUCCESS + TRACKING -->
-    <div id="s3" style="display:none">
-      <div class="sheet-body">
-        <div class="success-wrap">
-          <div class="s-check">✅</div>
-          <div class="s-title">تم استلام طلبك!</div>
-          <div class="s-sub">احتفظ برقم الطلب للمراجعة</div>
-          <div class="order-no-box">
-            <div class="on-lbl">رقم طلبك</div>
-            <div class="on-num" id="finalOrderNo">#----</div>
-            <div class="on-hint">يرجى <strong>تصوير الشاشة</strong></div>
-          </div>
-          <div class="sinfo-card" id="sinfoCard"></div>
-          <div class="tracker">
-            <div class="trk-title">
-              <i class="fas fa-satellite-dish"></i> تتبع الطلب
-              <span class="trk-status" id="trkTxt">جديد</span>
+    <!-- RECENT ORDERS MODAL -->
+    <div class="moverlay" id="recentOrdersModal">
+        <div class="msheet">
+            <div class="shandle"></div>
+            <div class="stitle">🕒 آخر 3 طلبات قمت بها</div>
+            <div id="recentOrdersList" class="recent-list">
+                <div style="text-align:center; padding:30px; color:var(--muted); font-size:0.85rem">
+                    <i class="fas fa-receipt" style="font-size:2rem; display:block; margin-bottom:10px; opacity:0.3"></i>
+                    لا توجد طلبات سابقة مخزنة حالياً
+                </div>
             </div>
-            <div class="trk-steps">
-              <div class="trk-line"></div>
-              <div class="trk-prog" id="trkProg"></div>
-              <div class="tstep on" id="ts0"><div class="tpt"><i class="fas fa-paper-plane"></i></div><div class="tlbl">وصل</div></div>
-              <div class="tstep" id="ts1"><div class="tpt"><i class="fas fa-fire-burner"></i></div><div class="tlbl">تحضير</div></div>
-              <div class="tstep" id="ts2"><div class="tpt"><i class="fas fa-motorcycle"></i></div><div class="tlbl">جاهز</div></div>
-              <div class="tstep" id="ts3"><div class="tpt"><i class="fas fa-check-double"></i></div><div class="tlbl">استلام</div></div>
-            </div>
-          </div>
-          <button class="btn-next" onclick="closeModal()" style="margin-top:4px;background:rgba(255,255,255,0.04);color:var(--text-2);box-shadow:none;border:1px solid var(--b1)">
-            العودة للقائمة
-          </button>
+            <button class="bclose" style="margin-top:20px" onclick="document.getElementById('recentOrdersModal').classList.remove('show')">إغلاق</button>
         </div>
-      </div>
     </div>
-  </div>
-</div>
 
-<!-- ══ MY ORDERS MODAL ══ -->
-<div class="moverlay" id="myOrdersModal" onclick="if(event.target===this)closeMy()">
-  <div class="msheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-head"><div class="stitle">⏱ آخر طلباتي</div></div>
-    <div class="sheet-body" id="myOrdersList">
-      <div class="empty-s"><i class="fas fa-receipt"></i><p>لا توجد طلبات سابقة</p></div>
+    <div id="notFoundScreen" style="display:none">
+        <div class="lock-icon">❓</div>
+        <div class="lock-msg">المطعم غير موجود</div>
+        <div class="lock-sub">تأكد من الرابط الصحيح للمطعم</div>
     </div>
-    <div style="padding:0 20px 20px">
-      <button class="btn-close" onclick="closeMy()">إغلاق</button>
+
+    <div id="lockoutScreen">
+        <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="lock-msg">تم إيقاف المطعم راجع الدعم الفني لشركة أرغون</div>
+        <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
     </div>
-  </div>
-</div>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-<script>
-/* ═══════════════════════════════════════════════════════
-   ARGON MENU v3.0 — Noir Edition
-   Arabic-First · Secure · PWA
-═══════════════════════════════════════════════════════ */
+    <div id="mainContent">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="htop">
+                <span class="argon-mark">ARGON MENU</span>
+                <button class="theme-tog" id="themeBtn" onclick="toggleTheme()">🌙 الوضع الليلي</button>
+            </div>
+            <div class="hmain">
+                <div class="rlogo" id="rLogoWrap">
+                    <img id="rLogoImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:24px; display:none">
+                    <span id="rLogoEmoji">🍽️</span>
+                </div>
+                <div class="rname" id="resName">جاري التحميل...</div>
+                <div id="smartGreeting" style="font-size:0.9rem; font-weight:700; color:var(--accent); margin-bottom:4px; opacity:0.9;">أهلاً بك</div>
+                <div id="smartSuggest" style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">اكتشف قائمتنا</div>
+                
+                <!-- RECENT ORDERS BTN MOVED HERE -->
+                <button class="recent-btn" onclick="openRecentOrders()">
+                    <i class="fas fa-clock-rotate-left"></i> آخر طلباتي
+                </button>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",
-  authDomain: "argon-system-pro.firebaseapp.com",
-  databaseURL: "https://argon-system-pro-default-rtdb.firebaseio.com",
-  projectId: "argon-system-pro",
-  storageBucket: "argon-system-pro.firebasestorage.app",
-  messagingSenderId: "1017089181583",
-  appId: "1:1017089181583:web:78929d28042cd9662c2dfa"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+                <div class="rmeta">
+                    <span class="rchip chip-open" id="statusChip"><i class="fas fa-circle"
+                            style="font-size:0.38rem"></i> مفتوح الآن</span>
+                    <div id="hoursChip" class="rchip" style="display:none; background:rgba(59,130,246,0.1); color:var(--accent)">
+                    <i class="fas fa-clock"></i> <span id="hoursText"></span>
+                </div>
+                <div id="loadChip" class="rchip" style="display:none; font-weight:700"></div>
+            </div>
+            <div class="srchwrap" style="margin-top:16px">
+                <div class="srchcont">
+                    <i class="fas fa-magnifying-glass srchico"></i>
+                    <input type="text" class="srchbox" id="searchBox" placeholder="ابحث عن صنف..."
+                        oninput="filterMenu()">
+                </div>
+            </div>
+        </div>
 
-/* ── CLINIC / RESTAURANT ID ── */
-const _uP = new URLSearchParams(window.location.search);
-let RES_ID = _uP.get('id');
-if (!RES_ID) { RES_ID = localStorage.getItem('argon_store_id') || '1'; }
-else localStorage.setItem('argon_store_id', RES_ID);
-const BASE = 'restaurants/' + RES_ID;
+        <!-- MENU -->
+        <div class="menu-sec">
+            <div class="sec-lbl">قائمة الطعام</div>
+            <div class="mgrid" id="menuGrid">
+                <div class="empty-s" style="grid-column:1/-1"><i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل القائمة...</p>
+                </div>
+            </div>
+        </div>
 
-/* ── STATE ── */
-let cart = [], allProducts = [], selectedType = 'takeaway';
-let currentCat = 'all', currentKey = null, trkListener = null, isConn = true;
+        <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
+    </div>
 
-/* ══ SECURITY MODULE ══ */
-const _sec = {
-  sanitize: s => String(s||'').replace(/[<>"'`\\]/g,'').trim().slice(0,300),
-  isPhone:  p => /^[\d\s\+\-\(\)٠-٩]{7,20}$/.test(String(p).trim()),
-  isName:   n => String(n).trim().replace(/\s/g,'').length >= 2 && String(n).trim().length <= 100,
-  R_KEY: 'argon_r_'+RES_ID,
-  checkRate() {
-    try {
-      const d = JSON.parse(localStorage.getItem(this.R_KEY)||'{"c":0,"t":0}');
-      const now = Date.now();
-      if (now-d.t > 3600000) { localStorage.setItem(this.R_KEY,JSON.stringify({c:1,t:now})); return true; }
-      if (d.c >= 5) return false;
-      d.c++; localStorage.setItem(this.R_KEY,JSON.stringify(d)); return true;
-    } catch(e) { return true; }
-  },
-  T_KEY: 'argon_t_'+RES_ID,
-  getToken() {
-    let t = sessionStorage.getItem(this.T_KEY);
-    if (!t) { t = Math.random().toString(36).slice(2)+Date.now().toString(36); sessionStorage.setItem(this.T_KEY,t); }
-    return t;
-  }
-};
+        <div class="pwby-foot">POWERED BY <span>ARGON</span></div>
+    </div>
 
-/* ── ARABIC DIGIT NORMALIZE ── */
-const normalizeArabic = s => String(s||'').replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => d.charCodeAt(0)-1632);
-
-/* ── CONNECTION ── */
-db.ref('.info/connected').on('value', snap => {
-  const was = !isConn; isConn = snap.val()===true;
-  const bar = document.getElementById('connBar');
-  if (isConn) {
-    bar.className='c-ok'; bar.innerHTML='<i class="fas fa-wifi" style="margin-left:6px"></i>متصل';
-    bar.style.display='flex'; setTimeout(()=>{if(isConn)bar.style.display='none';},2200);
-    if(was) toast('✅ تم استعادة الاتصال');
-  } else {
-    bar.style.display='flex'; bar.className='c-off';
-    bar.innerHTML='<i class="fas fa-exclamation-triangle" style="margin-left:6px"></i>لا يوجد اتصال...';
-  }
-});
-window.addEventListener('offline',()=>{isConn=false;db.goOffline();});
-window.addEventListener('online', ()=>setTimeout(()=>db.goOnline(),1000));
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&!isConn){db.goOffline();setTimeout(()=>db.goOnline(),1000);} });
-
-/* ── SETTINGS ── */
-db.ref(BASE+'/settings').on('value', snap => {
-  const s = snap.val();
-  if (!s) return;
-  const lo = document.getElementById('lockoutScreen');
-  if (s.status==='closed') { lo.classList.add('show'); document.body.style.overflow='hidden'; return; }
-  lo.classList.remove('show'); document.body.style.overflow='';
-  window.isAcceptingOrders = s.acceptOrders!==false;
-  if (s.color) applyColor(s.color);
-  document.getElementById('resName').textContent = s.name||'المطعم';
-  document.title = (s.name||'أرغون') + ' | المنيو';
-  // Logo
-  const ei = document.getElementById('rLogoEmoji'), im = document.getElementById('rLogoImg');
-  if (s.logo) { im.src=s.logo; im.style.display='block'; ei.style.display='none'; }
-  else { im.style.display='none'; ei.style.display='block'; }
-  // Status
-  const sc = document.getElementById('statusChip');
-  sc.className = s.status==='closed' ? 'chip chip-closed' : 'chip chip-open';
-  sc.innerHTML = s.status==='closed'
-    ? '<i class="fas fa-circle" style="font-size:0.4rem"></i> مغلق'
-    : '<i class="fas fa-circle" style="font-size:0.4rem"></i> مفتوح';
-  if (s.hours) { document.getElementById('hoursChip').style.display='inline-flex'; document.getElementById('hoursText').textContent=s.hours; }
-  updateSmartLine();
-});
-
-function applyColor(c) {
-  document.documentElement.style.setProperty('--accent', c);
-  document.documentElement.style.setProperty('--fire', c);
-  document.documentElement.style.setProperty('--fire2', c);
-}
-
-/* ── PRODUCTS ── */
-db.ref(BASE+'/products').on('value', snap => {
-  const p = snap.val()||{};
-  allProducts = Object.entries(p).map(([k,v])=>({key:k,...v}));
-  buildCatBar();
-  renderMenu(allProducts);
-});
-
-/* ── ORDERS COUNT ── */
-db.ref(BASE+'/orders').on('value', snap => {
-  const n = Object.keys(snap.val()||{}).length;
-  const lc = document.getElementById('loadChip');
-  if (n>12)      { lc.style.display='inline-flex'; lc.style.color='var(--fire)';   lc.innerHTML='<i class="fas fa-fire" style="margin-left:5px"></i>مزدحم'; }
-  else if (n>6)  { lc.style.display='inline-flex'; lc.style.color='var(--gold)';   lc.innerHTML='<i class="fas fa-utensils" style="margin-left:5px"></i>نشط'; }
-  else             lc.style.display='none';
-});
-
-/* ── CAT BAR ── */
-function buildCatBar() {
-  const CATS = [
-    {k:'all',    e:'🍽️', l:'الكل'},
-    {k:'مشروبات', e:'🥤', l:'مشروبات'},
-    {k:'وجبات',  e:'🍔', l:'وجبات'},
-    {k:'مقبلات', e:'🥗', l:'مقبلات'},
-    {k:'حلويات', e:'🍰', l:'حلويات'},
-    {k:'عروض',   e:'🎁', l:'عروض'},
-  ];
-  const bar = document.getElementById('catBar');
-  bar.innerHTML = CATS.map((c,i) => `
-    <div class="cat-pill${i===0?' active':''}" onclick="filterCat('${c.k}',this)">
-      <span class="cat-emoji">${c.e}</span> ${c.l}
-    </div>`).join('');
-}
-
-function filterCat(cat, el) {
-  currentCat = cat;
-  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('searchBox').value='';
-  applyFilters();
-}
-
-function filterMenu() { applyFilters(); }
-
-function applyFilters() {
-  const q = document.getElementById('searchBox').value.toLowerCase().trim();
-  let f = allProducts;
-  if (currentCat!=='all') {
-    const kw = {
-      'مشروبات':['عصير','مشروب','بيبسي','شاي','قهوة','كولا','ماء'],
-      'وجبات':  ['وجبة','برغر','شاورما','بيتزا','ساندويش','كباب','دجاج','سمك'],
-      'مقبلات': ['بطاطا','سلطة','حمص','متبل','مقبلة','توست'],
-      'حلويات': ['حلو','كيك','بوظة','آيس','كنافة','قطايف'],
-      'عروض':   ['عرض','وجبة عائلية','ميل','مجموعة']
-    };
-    const keys = kw[currentCat]||[];
-    f = f.filter(p => keys.some(k => (p.name||'').toLowerCase().includes(k)));
-  }
-  if (q) f = f.filter(p => (p.name||'').toLowerCase().includes(q) || normalizeArabic(p.name||'').includes(q));
-  renderMenu(f);
-}
-
-function renderMenu(products) {
-  const g = document.getElementById('menuGrid');
-  document.getElementById('secCount').textContent = products.length;
-  if (!products.length) {
-    g.innerHTML = `<div class="empty-s" style="grid-column:1/-1"><i class="fas fa-search"></i><p>لا توجد نتائج مطابقة</p></div>`;
-    return;
-  }
-  g.innerHTML = products.map(p => {
-    const safeName = _sec.sanitize(p.name||'');
-    const price = parseFloat(p.price||0).toFixed(2);
-    return `
-    <div class="icard">
-      <div class="iimgwrap">
-        ${p.img
-          ? `<img src="${p.img}" class="iimg" alt="${safeName}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\"iimgph\\">🍽️</div>'">`
-          : `<div class="iimgph">🍽️</div>`}
-      </div>
-      <div class="ibody">
-        <div class="iname">${safeName}</div>
-        <div class="iprice">${price} <span class="curr">د.أ</span></div>
-        <button class="addbtn" id="ab_${p.key}"
-          onclick="addItem('${safeName.replace(/'/g,"\\'")}',${p.price},'${p.key}')">
-          <i class="fas fa-plus"></i> إضافة
+    <!-- PWA Install Banner -->
+    <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:4000;background:linear-gradient(135deg,#1e3a8a,#3b82f6);padding:14px 18px;align-items:center;gap:12px;box-shadow:0 -4px 20px rgba(59,130,246,0.3);border-radius:20px 20px 0 0">
+        <div style="width:46px;height:46px;background:rgba(255,255,255,0.15);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🍽️</div>
+        <div style="flex:1;color:#fff">
+            <div style="font-size:0.9rem;font-weight:800;margin-bottom:2px">أضف أرغون لشاشتك</div>
+            <div style="font-size:0.72rem;opacity:0.8">وصول سريع للطلب بدون متصفح</div>
+        </div>
+        <button onclick="installPWA()" style="background:#fff;color:#1e3a8a;border:none;padding:8px 16px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:0.82rem;font-weight:800;cursor:pointer;flex-shrink:0">تثبيت</button>
+        <button onclick="dismissPWA()" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;flex-shrink:0;padding:4px">×</button>
+    </div>
+    <!-- CART FAB -->
+    <div class="cartfab">
+        <button class="cartbtn" onclick="openModal()">
+            🛒
+            <div class="cartcnt" id="cartCnt">0</div>
         </button>
-      </div>
-    </div>`;
-  }).join('');
-}
+        <span class="cartlbl" id="cartLbl">0.00 د.أ</span>
+    </div>
 
-/* ── ADD TO CART ── */
-function addItem(name, price, key) {
-  cart.push({ name, price:parseFloat(price), key });
-  updateCartUI();
-  const btn = document.getElementById('ab_'+key);
-  if (btn) {
-    btn.classList.add('added');
-    btn.innerHTML = '<i class="fas fa-check"></i> تمت الإضافة';
-    setTimeout(()=>{ btn.classList.remove('added'); btn.innerHTML='<i class="fas fa-plus"></i> إضافة'; }, 950);
-  }
-}
+    <!-- ORDER MODAL -->
+    <div class="moverlay" id="orderModal">
+        <div class="msheet">
+            <div class="shandle"></div>
 
-function updateCartUI() {
-  const cnt = cart.length, total = cart.reduce((s,i)=>s+i.price,0);
-  document.getElementById('cartCnt').textContent = cnt;
-  document.getElementById('cartTotal').textContent = total.toFixed(2)+' د.أ';
-  const fab = document.getElementById('cartFab');
-  fab.style.display = cnt>0 ? 'block' : 'none';
-  if (cnt>0) { fab.style.animation='none'; void fab.offsetWidth; fab.style.animation='bounce-in 0.4s cubic-bezier(0.34,1.56,0.64,1)'; }
-}
+            <!-- STEP 0: CART REVIEW -->
+            <div id="step0">
+                <div class="stitle">🛒 مراجعة السلة</div>
+                <div class="cart-summary" id="cartSummary"></div>
+                <button class="bnext" onclick="goStep1()">
+                    <i class="fas fa-arrow-left" style="margin-left:7px"></i> التالي — إدخال البيانات
+                </button>
+                <button class="bclose" onclick="closeModal()">إغلاق</button>
+            </div>
 
-/* ── MODAL ── */
-function openModal() {
-  if (!cart.length) return;
-  buildCartList(); goStep(0);
-  document.getElementById('orderModal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal() {
-  document.getElementById('orderModal').classList.remove('show');
-  document.body.style.overflow = '';
-}
+            <!-- STEP 1: INFO -->
+            <div id="step1" style="display:none">
+                <div class="stitle">📋 أدخل بياناتك</div>
+                
+                <div style="font-size:0.85rem; font-weight:800; color:var(--muted); margin-bottom:12px; text-align:right">اختر طريقة الاستلام:</div>
+                <div class="type-grid">
+                    <div class="type-btn active" onclick="setType('takeaway', this)">
+                        <i class="fas fa-bag-shopping"></i>
+                        <span>سفري</span>
+                    </div>
+                    <div class="type-btn" onclick="setType('delivery', this)">
+                        <i class="fas fa-truck"></i>
+                        <span>توصيل</span>
+                    </div>
+                    <div class="type-btn" onclick="setType('dinein', this)">
+                        <i class="fas fa-utensils"></i>
+                        <span>في الصالة</span>
+                    </div>
+                </div>
 
-function buildCartList() {
-  const counts = {};
-  cart.forEach(i => { if(!counts[i.name]) counts[i.name]={...i,qty:0}; counts[i.name].qty++; });
-  const total = cart.reduce((s,i)=>s+i.price,0);
-  const items = Object.values(counts);
-  document.getElementById('cartList').innerHTML = items.map(it => `
-    <div class="cart-row">
-      <div class="cr-left">
-        <div class="cr-qty">${it.qty}</div>
-        <div class="cr-name">${it.name}</div>
-      </div>
-      <div class="cr-right">
-        <span class="cr-price">${(it.price*it.qty).toFixed(2)} د.أ</span>
-        <button class="cr-rm" onclick="removeItem('${it.name.replace(/'/g,"\\'")}')"><i class="fas fa-minus"></i></button>
-      </div>
-    </div>`).join('');
-  document.getElementById('cartTotalModal').textContent = total.toFixed(2)+' د.أ';
-}
+                <div style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.1); padding: 20px; border-radius: 20px; margin-bottom: 20px; margin-top: 15px;">
+                    <input type="text" id="custName" class="minp" placeholder="الاسم الكريم *" autocomplete="name">
+                    <input type="tel" id="custPhone" class="minp" placeholder="رقم الهاتف (للتواصل السريع) *" autocomplete="tel">
+                    <textarea id="orderNotes" class="minp" rows="2" placeholder="ملاحظات إضافية (اختياري، مثلاً: بدون بصل)"
+                        style="resize:none; margin-bottom:0;"></textarea>
+                </div>
+                
+                <button class="bnext" onclick="goStep2()" style="width:100%; background:linear-gradient(135deg, var(--accent), #2563eb); border:none; border-radius:18px; padding:18px; color:white; font-family:'Tajawal', sans-serif; font-size:1.1rem; font-weight:900; cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 10px 25px rgba(59, 130, 246, 0.4); display:flex; justify-content:center; align-items:center; gap:10px;">
+                    <i class="fas fa-receipt"></i> عرض الفاتورة النهائية
+                </button>
+                <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                    <button class="bback" onclick="goStep0()" style="background:transparent; border:1px solid var(--border); border-radius:12px; padding:10px 20px; color:var(--muted); font-family:'Tajawal',sans-serif; font-weight:700; cursor:pointer;"><i class="fas fa-arrow-right"></i> العودة للسلة</button>
+                    <button class="bclose" onclick="closeModal()" style="background:transparent; border:none; color:var(--red); font-family:'Tajawal',sans-serif; font-weight:700; cursor:pointer;">إغلاق</button>
+                </div>
+            </div>
 
-function removeItem(name) {
-  const idx = cart.findLastIndex ? cart.findLastIndex(i=>i.name===name) : [...cart].reverse().findIndex(i=>i.name===name);
-  if (idx!==-1) { const realIdx = cart.findLastIndex?idx:cart.length-1-idx; cart.splice(realIdx,1); }
-  updateCartUI(); buildCartList();
-  if (!cart.length) closeModal();
-}
+            <!-- STEP 2: CONFIRM BILL -->
+            <div id="step2" style="display:none">
+                <div class="stitle">🧾 تأكيد الطلب</div>
+                <div class="billbox" id="billBox"></div>
+                <button class="bsend" onclick="sendOrder()" style="width:100%; background:linear-gradient(135deg, var(--green), #059669); border:none; border-radius:18px; padding:18px; color:white; font-family:'Tajawal', sans-serif; font-size:1.15rem; font-weight:900; cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 10px 25px rgba(16, 185, 129, 0.4); display:flex; justify-content:center; align-items:center; gap:10px;">
+                    <i class="fas fa-paper-plane"></i> إرسال الطلب للمطعم
+                </button>
+                <button class="bback" onclick="goStep1()" style="width:100%; margin-top:15px; background:rgba(100, 116, 139, 0.1); border:none; border-radius:14px; padding:14px; color:var(--text); font-family:'Tajawal',sans-serif; font-weight:800; cursor:pointer;"><i class="fas fa-pen"></i> تعديل البيانات</button>
+            </div>
 
-function setType(t,el) {
-  selectedType=t;
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-}
+            <!-- STEP 3: SUCCESS & TRACKING -->
+            <div id="step3" style="display:none">
+                <div class="success-wrap">
+                    <div class="success-icon">✅</div>
+                    <div class="success-title">تم استلام طلبك بنجاح!</div>
+                    
+                    <div class="order-no-box">
+                        <div class="on-label">رقم الطلب الخاص بك</div>
+                        <div class="on-number" id="finalOrderNo">#0000</div>
+                        <div class="on-remind">
+                            يرجى <strong>تصوير الشاشة</strong> للرجوع إليها عند الاستلام
+                        </div>
+                    </div>
 
-/* ── STEP NAVIGATION ── */
-function goStep(n) {
-  [0,1,2,3].forEach(i=>{const e=document.getElementById('s'+i);if(e)e.style.display=i===n?'block':'none';});
-}
+                    <div style="margin:15px 0; padding:15px; background:var(--bg); border:1px solid var(--border); border-radius:18px; font-size:0.9rem; text-align:right; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
+                        <div style="margin-bottom:8px">👤 <span style="color:var(--muted)">الاسم:</span> <span id="finalCustName" style="font-weight:800"></span></div>
+                        <div style="margin-bottom:8px">📦 <span style="color:var(--muted)">النوع:</span> <span id="finalOrderType" style="font-weight:800"></span></div>
+                        
+                        <!-- List of Items in Tracking -->
+                        <div id="finalItemsList" style="margin:10px 0; padding-top:10px; border-top:1px dashed var(--border); font-size:0.8rem; color:var(--text)"></div>
 
-function goStep2Validated() {
-  const name  = _sec.sanitize(document.getElementById('custName').value);
-  const phone = _sec.sanitize(normalizeArabic(document.getElementById('custPhone').value));
-  let ok = true;
-  // Validate name
-  const ne = document.getElementById('nameErr');
-  if (!_sec.isName(name)) { ne.textContent='⚠️ الاسم يجب أن يكون حرفين على الأقل'; ne.style.display='block'; document.getElementById('custName').style.borderColor='rgba(255,77,26,0.5)'; ok=false; }
-  else { ne.style.display='none'; document.getElementById('custName').style.borderColor=''; }
-  // Validate phone
-  const pe = document.getElementById('phoneErr');
-  if (!_sec.isPhone(phone)) { pe.textContent='⚠️ رقم الهاتف غير صحيح'; pe.style.display='block'; document.getElementById('custPhone').style.borderColor='rgba(255,77,26,0.5)'; ok=false; }
-  else { pe.style.display='none'; document.getElementById('custPhone').style.borderColor=''; }
-  if (!ok) return;
-  if (!window.isAcceptingOrders) { toast('⚠️ المطعم لا يستقبل طلبات حالياً'); return; }
-  buildBill(name,phone); goStep(2);
-}
+                        <div style="padding-top:8px; border-top:1px dashed var(--border); color:var(--green); font-weight:900; font-size:1.1rem">💰 <span style="color:var(--muted)">المجموع:</span> <span id="finalTotal"></span> د.أ</div>
+                    </div>
 
-function buildBill(name,phone) {
-  const counts = {};
-  cart.forEach(i=>{ if(!counts[i.name])counts[i.name]={...i,qty:0}; counts[i.name].qty++; });
-  const items = Object.values(counts), total = cart.reduce((s,i)=>s+i.price,0);
-  const typeMap={'takeaway':'سفري','delivery':'توصيل','dinein':'في الصالة'};
-  document.getElementById('billBox').innerHTML = `
-    <div class="bill-ttl">تفاصيل الفاتورة</div>
-    ${items.map(it=>`<div class="brow"><span class="bn">${it.qty>1?it.qty+'× ':''} ${it.name}</span><span class="bv">${(it.price*it.qty).toFixed(2)} د.أ</span></div>`).join('')}
-    <div class="brow"><span class="bn">الاسم</span><span class="bv">${name}</span></div>
-    <div class="brow"><span class="bn">نوع الطلب</span><span class="bv">${typeMap[selectedType]||'سفري'}</span></div>
-    <div class="btotal-row"><span class="btl">المجموع الكلي</span><span class="btv">${total.toFixed(2)} د.أ</span></div>`;
-}
+                    <div class="track-wrap">
+                        <div class="track-title"><i class="fas fa-clock"></i> حالة الطلب: <span id="trackStatusText" style="font-size:0.75rem; color:var(--muted); font-weight:400; margin-right:auto">جاري التنبيه...</span></div>
+                        <div class="track-steps">
+                            <div class="track-line"></div>
+                            <div class="track-progress" id="trackProgress"></div>
+                            
+                            <div class="tstep active" id="ts-new">
+                                <div class="tpoint"><i class="fas fa-paper-plane"></i></div>
+                                <div class="tlbl">وصلنا</div>
+                            </div>
+                            <div class="tstep" id="ts-prep">
+                                <div class="tpoint"><i class="fas fa-fire-burner"></i></div>
+                                <div class="tlbl">تحضير</div>
+                            </div>
+                            <div class="tstep" id="ts-shipped">
+                                <div class="tpoint"><i class="fas fa-motorcycle"></i></div>
+                                <div class="tlbl">جاهز</div>
+                            </div>
+                            <div class="tstep" id="ts-done">
+                                <div class="tpoint"><i class="fas fa-check-double"></i></div>
+                                <div class="tlbl">استلام</div>
+                            </div>
+                        </div>
+                    </div>
 
-/* ── SEND ORDER ── */
-let sending = false;
-function sendOrder() {
-  if (sending) return;
-  if (!_sec.checkRate()) { toast('⚠️ تجاوزت الحد. انتظر ساعة ثم حاول.'); return; }
-  const name  = _sec.sanitize(document.getElementById('custName').value);
-  const phone = _sec.sanitize(normalizeArabic(document.getElementById('custPhone').value));
-  const notes = _sec.sanitize(document.getElementById('orderNotes').value);
-  if (!name||!phone) return;
-  sending = true;
-  const btn = document.getElementById('sendBtn');
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-  btn.disabled = true;
-  const typeMap = {'takeaway':'سفري','delivery':'توصيل','dinein':'في الصالة'};
-  const total = cart.reduce((s,i)=>s+i.price,0);
-  const orderNo = '#'+Math.floor(1000+Math.random()*9000);
-  const counts = {};
-  cart.forEach(i=>{ if(!counts[i.name])counts[i.name]={name:_sec.sanitize(i.name),price:i.price,qty:0}; counts[i.name].qty++; });
-  const items = Object.values(counts);
-  const order = {
-    custName:name, custPhone:phone, notes, items,
-    total:total.toFixed(2), orderNo, orderType:typeMap[selectedType]||'سفري',
-    status:'new', _tok:_sec.getToken(),
-    time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),
-    date:new Date().toLocaleDateString('ar-EG')
-  };
-  db.ref(BASE+'/orders').push(order).then(ref=>{
-    currentKey = ref.key;
-    document.getElementById('finalOrderNo').textContent = orderNo;
-    document.getElementById('sinfoCard').innerHTML = `
-      <div class="sinfo-row"><span class="lbl">👤 الاسم</span><span class="val">${name}</span></div>
-      <div class="sinfo-row"><span class="lbl">📦 النوع</span><span class="val">${typeMap[selectedType]||'سفري'}</span></div>
-      <div class="sinfo-row total"><span class="lbl">💰 المجموع</span><span class="val">${total.toFixed(2)} د.أ</span></div>`;
-    goStep(3); startTracking(ref.key); saveLocal(ref.key,orderNo);
-    cart=[]; updateCartUI(); sending=false;
-    btn.innerHTML='<i class="fas fa-paper-plane"></i> إرسال الطلب للمطعم'; btn.disabled=false;
-  }).catch(err=>{ toast('❌ '+err.message); sending=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> إرسال الطلب'; btn.disabled=false; });
-}
+                    <button class="bnext" onclick="closeModal()" style="margin-top:25px; background:var(--bg); color:var(--text); border:1px solid var(--border); box-shadow:none">العودة للمنيو</button>
+                    <div style="font-family:'IBM Plex Mono',monospace; font-size:0.55rem; color:var(--muted); margin-top:15px; text-transform:uppercase; letter-spacing:1px">Powered by Argon System</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-/* ── TRACKING ── */
-function startTracking(key) {
-  if (trkListener&&currentKey) db.ref(BASE+'/orders/'+currentKey).off('value',trkListener);
-  const SM={new:0,prep:1,ready:2,shipped:2,done:3,completed:3};
-  const LM={new:'وصل الطلب ✓',prep:'جاري التحضير 👨‍🍳',ready:'جاهز للاستلام 📦',shipped:'جاهز للاستلام 📦',done:'تم التسليم ❤️',completed:'تم التسليم ❤️',cancelled:'ملغي ❌'};
-  trkListener = db.ref(BASE+'/orders/'+key).on('value',snap=>{
-    const v=snap.val();
-    if (!v) { db.ref(BASE+'/completedOrders/'+key).once('value').then(cs=>{ if(cs.exists())updateTrack('done'); }); return; }
-    updateTrack(v.status||'new');
-  });
-  function updateTrack(st) {
-    const idx=SM[st]||0;
-    document.getElementById('trkProg').style.width=(idx/3*100)+'%';
-    document.getElementById('trkTxt').textContent=LM[st]||'قيد المعالجة';
-    [0,1,2,3].forEach(i=>{
-      const el=document.getElementById('ts'+i);
-      el.classList.toggle('on',i<=idx);
-      el.classList.toggle('done-st',i<idx);
+    <div class="toast-wrap" id="tw"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",
+            authDomain: "argon-system-pro.firebaseapp.com",
+            databaseURL: "https://argon-system-pro-default-rtdb.firebaseio.com",
+            projectId: "argon-system-pro",
+            storageBucket: "argon-system-pro.firebasestorage.app",
+            messagingSenderId: "1017089181583",
+            appId: "1:1017089181583:web:78929d28042cd9662c2dfa",
+            measurementId: "G-P5BBDVQ437"
+        };
+        firebase.initializeApp(firebaseConfig);
+        
+        const db = firebase.database();
+
+        // ══════════════════════════════════════════════
+        // CONNECTION MONITOR
+        // ══════════════════════════════════════════════
+        let isConnected = true;
+        let firstLoad = true;
+        db.ref('.info/connected').on('value', snap => {
+            const wasOff = !isConnected;
+            isConnected = snap.val() === true;
+            updateConnBar();
+            if (isConnected && wasOff && !firstLoad) {
+                toast('✅ تم إعادة الاتصال بالخادم');
+            }
+            firstLoad = false;
+        });
+        window.addEventListener('online', () => { setTimeout(() => db.goOnline(), 1000); });
+        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); db.goOffline(); });
+
+        // ── Gentle Mobile Fix ──
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !isConnected) {
+                db.goOffline();
+                setTimeout(() => db.goOnline(), 1000);
+            }
+        });
+
+        function updateConnBar() {
+            const bar = document.getElementById('connBar');
+            if(!bar) return;
+            if (isConnected) {
+                bar.className = 'conn-bar conn-ok';
+                bar.innerHTML = '<i class="fas fa-wifi"></i> متصل';
+                bar.style.display = 'flex';
+                setTimeout(() => { if (isConnected) bar.style.display = 'none'; }, 2500);
+            } else {
+                bar.style.display = 'flex';
+                bar.className = 'conn-bar conn-off';
+                bar.innerHTML = '<i class="fas fa-exclamation-triangle"></i> اتصال ضعيف — جاري المحاولة...';
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let RES_ID = urlParams.get('id');
+        if (!RES_ID) { RES_ID = localStorage.getItem('argon_store_id') || '1'; }
+        else { localStorage.setItem('argon_store_id', RES_ID); }
+
+        const BASE = 'restaurants/' + RES_ID;
+
+        // Cart: {name, price, key} keyed by product key
+        let cart = []; // array of {name, price}
+        let allProducts = [];
+        let selectedType = 'takeaway';
+
+        // ══════════════════════════════════════════════
+        // 🛡️ ARGON SECURITY MODULE v2.0
+        // ══════════════════════════════════════════════
+
+        // ── Input Sanitizer ──
+        const _sec = {
+            sanitize: (s) => String(s || '').replace(/[<>"'`\\]/g, '').trim().substring(0, 300),
+            isPhone:  (p) => /^[\d\s\+\-\(\)]{7,20}$/.test(String(p).trim()),
+            isName:   (n) => String(n).trim().length >= 2 && String(n).trim().length <= 100,
+
+            // ── Rate Limiter: max 5 orders/hour per device ──
+            RATE_KEY: 'argon_rate_' + RES_ID,
+            checkRate() {
+                try {
+                    const d = JSON.parse(localStorage.getItem(this.RATE_KEY) || '{"c":0,"t":0}');
+                    const now = Date.now();
+                    if (now - d.t > 3600000) { localStorage.setItem(this.RATE_KEY, JSON.stringify({c:1,t:now})); return true; }
+                    if (d.c >= 5) return false;
+                    d.c++; localStorage.setItem(this.RATE_KEY, JSON.stringify(d)); return true;
+                } catch(e) { return true; }
+            },
+
+            // ── CSRF-like Token (session binding) ──
+            TOKEN_KEY: 'argon_tok_' + RES_ID,
+            getToken() {
+                let tok = sessionStorage.getItem(this.TOKEN_KEY);
+                if (!tok) { tok = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem(this.TOKEN_KEY, tok); }
+                return tok;
+            },
+
+            // ── Validate full order before send ──
+            validateOrder(name, phone, cart) {
+                if (!this.isName(name))  return '⚠️ الاسم يجب أن يكون بين 2 و 100 حرف';
+                if (!this.isPhone(phone)) return '⚠️ رقم الهاتف غير صحيح';
+                if (!cart || cart.length === 0) return '⚠️ السلة فارغة';
+                if (cart.length > 50) return '⚠️ عدد الأصناف كبير جداً';
+                return null; // valid
+            }
+        };
+
+        // ── TOAST ──
+        function toast(msg) {
+            const tw = document.getElementById('tw');
+            if(!tw) return;
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            tw.appendChild(t);
+            setTimeout(() => t.classList.add('show'), 10);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+        }
+
+        // Apply accent color from Firebase
+        function applyAccent(color) {
+            const root = document.documentElement;
+            root.style.setProperty('--accent', color);
+            root.style.setProperty('--accent-dark', color);
+            root.style.setProperty('--header-to', color);
+        }
+
+        // ══════════════════════════════════════════════
+        // SPLIT LISTENERS — instead of one giant listener
+        // ══════════════════════════════════════════════
+
+        // 1️⃣ SETTINGS — name, status, color, hours
+        db.ref(BASE + '/settings').on('value', snap => {
+            try {
+                const sets = snap.val();
+                const nf = document.getElementById('notFoundScreen');
+                const lo = document.getElementById('lockoutScreen');
+
+                if (!sets) {
+                    if (nf) nf.style.display = 'flex';
+                    // If default ID 1, maybe show a hint
+                    if (RES_ID === '1') console.warn('Using default ID 1. No data found.');
+                    return;
+                } else {
+                    if (nf) nf.style.display = 'none';
+                }
+
+                if (sets.status === 'closed') {
+                    if (lo) lo.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                    return;
+                } else {
+                    if (lo) lo.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+
+                window.isAcceptingOrders = sets.acceptOrders !== false;
+                if (sets.color) applyAccent(sets.color);
+
+                const rn = document.getElementById('resName');
+                if (rn) rn.textContent = sets.name || 'مطعم أرغون';
+                document.title = (sets.name || 'أرغون') + ' | المنيو';
+
+                // Premium Logo Handling
+                const logoWrap = document.getElementById('rLogoWrap');
+                const logoImg = document.getElementById('rLogoImg');
+                const logoEmoji = document.getElementById('rLogoEmoji');
+
+                if (sets.logo) {
+                    if (logoImg) {
+                        logoImg.src = sets.logo;
+                        logoImg.style.display = 'block';
+                    }
+                    if (logoEmoji) logoEmoji.style.display = 'none';
+                    if (logoWrap) { logoWrap.style.background = 'none'; logoWrap.style.padding = '0'; }
+                } else {
+                    if (logoImg) logoImg.style.display = 'none';
+                    if (logoEmoji) logoEmoji.style.display = 'block';
+                }
+
+                const sc = document.getElementById('statusChip');
+                if (sc) {
+                    if (sets.status === 'closed') {
+                        sc.className = 'rchip chip-closed';
+                        sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مغلق مؤقتاً';
+                    } else {
+                        sc.className = 'rchip chip-open';
+                        sc.innerHTML = '<i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح الآن';
+                    }
+                }
+
+                if (sets.hours) {
+                    const hc = document.getElementById('hoursChip');
+                    if (hc) {
+                        hc.style.display = 'inline-flex';
+                        const ht = document.getElementById('hoursText');
+                        if (ht) ht.textContent = sets.hours;
+                    }
+                }
+                updateSmartUI();
+            } catch (e) { console.error('Settings error:', e); }
+        });
+
+        // 2️⃣ PRODUCTS — menu items
+        db.ref(BASE + '/products').on('value', snap => {
+            try {
+                const products = snap.val();
+                allProducts = [];
+                if (products) {
+                    for (let k in products) {
+                        if (products[k]) allProducts.push({ key: k, ...products[k] });
+                    }
+                }
+                renderMenu(allProducts);
+            } catch (e) { 
+                console.error('Products error:', e); 
+                renderMenu([]); // Fallback to hide spinner
+            }
+        });
+
+        // 3️⃣ ORDERS COUNT — only for kitchen load indicator
+        db.ref(BASE + '/orders').on('value', snap => {
+            try {
+                const orders = snap.val() || {};
+                const activeOrders = Object.keys(orders).length;
+                const lc = document.getElementById('loadChip');
+                if (!lc) return;
+                if (activeOrders > 12) {
+                    lc.style.display = 'inline-flex';
+                    lc.style.background = 'rgba(239, 68, 68, 0.1)';
+                    lc.style.color = '#ef4444';
+                    lc.innerHTML = '<i class="fas fa-fire"></i> المطبخ مزدحم حالياً';
+                } else if (activeOrders > 6) {
+                    lc.style.display = 'inline-flex';
+                    lc.style.background = 'rgba(245, 158, 11, 0.1)';
+                    lc.style.color = '#f59e0b';
+                    lc.innerHTML = '<i class="fas fa-utensils"></i> المطبخ نشط';
+                } else {
+                    lc.style.display = 'none';
+                }
+            } catch (e) { console.error('Orders check error:', e); }
+        });
+
+        // ── TIME AWARE INTELLIGENCE ──
+        function updateSmartUI() {
+            try {
+                const hour = new Date().getHours();
+                const greetEl = document.getElementById('smartGreeting');
+                const suggestEl = document.getElementById('smartSuggest');
+                if (!greetEl) return;
+                
+                let greeting = 'أهلاً بك في مطعمنا';
+                let suggestion = 'اكتشف قائمتنا المميزة';
+                if (hour >= 5 && hour < 12) {
+                    greeting = 'صباح الخير والجمال ☕';
+                    suggestion = 'ما رأيك ببدء يومك بفطور شهي؟';
+                } else if (hour >= 12 && hour < 17) {
+                    greeting = 'وقت الغداء المثالي 🍔';
+                    suggestion = 'اطلع على وجبات الغداء الأكثر طلباً';
+                } else if (hour >= 17 && hour < 21) {
+                    greeting = 'مساء الخير واللذة 🍕';
+                    suggestion = 'خفيفة أو دسمة؟ لدينا كل خيارات العشاء';
+                } else {
+                    greeting = 'ليلة هادئة وطيبة 🌙';
+                    suggestion = 'وجبات ليلية خفيفة بانتظارك';
+                }
+                greetEl.textContent = greeting;
+                if (suggestEl) suggestEl.textContent = suggestion;
+            } catch (e) {}
+        }
+        setInterval(updateSmartUI, 60000);
+
+        let currentCategory = 'all';
+
+        function filterCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            
+            // Clear search when switching categories
+            document.getElementById('searchBox').value = '';
+            
+            applyFilters();
+        }
+
+        function filterMenu() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const q = document.getElementById('searchBox').value.toLowerCase().trim();
+            let filtered = allProducts;
+            
+            // Category filter logic (based on keywords in name since there's no strict category field yet)
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => {
+                    const n = p.name.toLowerCase();
+                    if (currentCategory === 'مشروبات') return n.includes('عصير') || n.includes('مشروب') || n.includes('بيبسي') || n.includes('شاي') || n.includes('قهوة') || n.includes('كولا');
+                    if (currentCategory === 'وجبات') return n.includes('وجبة') || n.includes('برغر') || n.includes('شاورما') || n.includes('بيتزا') || n.includes('ساندويش');
+                    if (currentCategory === 'مقبلات') return n.includes('بطاطا') || n.includes('مقبلات') || n.includes('سلطة') || n.includes('حمص') || n.includes('متبل');
+                    if (currentCategory === 'حلويات') return n.includes('كيك') || n.includes('حلو') || n.includes('بوظة') || n.includes('كنافة');
+                    return false;
+                });
+            }
+            
+            // Search filter
+            if (q) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+            }
+            
+            renderMenu(filtered);
+        }
+
+        function renderMenu(products) {
+            const grid = document.getElementById('menuGrid');
+            if (!products.length) {
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--muted);background:var(--card);border-radius:24px;border:1px dashed var(--border)">
+                    <i class="fas fa-search" style="font-size:3rem;opacity:0.2;margin-bottom:15px;display:block"></i>
+                    <h4 style="font-weight:800;margin-bottom:5px">لا يوجد نتائج</h4>
+                    <p style="font-size:0.85rem">لم نتمكن من العثور على ما تبحث عنه</p>
+                </div>`;
+                return;
+            }
+            grid.innerHTML = products.map(p => `
+                <div class="icard">
+                    <div class="iimgwrap">
+                        ${p.img
+                    ? `<img src="${p.img}" class="iimg" onerror="this.parentElement.querySelector('.iimgph').style.display='flex';this.style.display='none'"><div class="iimgph" style="display:none"><i class="fas fa-utensils"></i></div>`
+                    : `<div class="iimgph"><i class="fas fa-hamburger"></i></div>`
+                }
+                    </div>
+                    <div class="ibody">
+                        <div class="iname">${p.name}</div>
+                        <div class="iprice">${parseFloat(p.price || 0).toFixed(2)} <span style="font-size:0.7rem;color:var(--muted)">د.أ</span></div>
+                        <button class="addbtn" id="abtn_${p.key}" onclick="addToCart('${(p.name || '').replace(/'/g, "\\'")}',${p.price},'${p.key}')">
+                            <i class="fas fa-plus"></i> إضافة
+                        </button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function addToCart(name, price, key) {
+            cart.push({ name, price: parseFloat(price), key });
+            updateCartUI();
+            const btn = document.getElementById('abtn_' + key);
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.classList.add('added');
+                btn.innerHTML = '<i class="fas fa-check"></i> تمت الإضافة';
+                setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 900);
+            }
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCnt').textContent = cart.length;
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            document.getElementById('cartLbl').textContent = total.toFixed(2) + ' د.أ';
+        }
+
+        // Build cart summary with counts and remove buttons
+        function buildCartSummary() {
+            const counts = {};
+            cart.forEach((item, idx) => {
+                const k = item.name;
+                if (!counts[k]) counts[k] = { name: item.name, price: item.price, qty: 0, indices: [] };
+                counts[k].qty++;
+                counts[k].indices.push(idx);
+            });
+
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const items = Object.values(counts);
+
+            document.getElementById('cartSummary').innerHTML =
+                items.map(it => `
+                    <div class="cart-item-row">
+                        <div class="ci-left">
+                            <div class="ci-qty">${it.qty}</div>
+                            <div class="ci-name">${it.name}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span class="ci-price">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                            <button class="ci-remove" onclick="removeFromCart('${(it.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>`).join('') +
+                `<div class="cart-total-row">
+                    <span class="ct-label">المجموع الكلي</span>
+                    <span class="ct-val">${total.toFixed(2)} د.أ</span>
+                </div>`;
+        }
+
+        function removeFromCart(name) {
+            const idx = cart.findLastIndex ? cart.findLastIndex(i => i.name === name) : (() => { for (let i = cart.length - 1; i >= 0; i--) if (cart[i].name === name) return i; return -1; })();
+            if (idx !== -1) { cart.splice(idx, 1); updateCartUI(); buildCartSummary(); }
+            if (!cart.length) closeModal();
+        }
+
+        function openModal(isTracking = false) {
+            if (!isTracking && cart.length === 0) return;
+            selectedType = 'takeaway';
+            const btns = document.querySelectorAll('.type-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if (btns[0]) btns[0].classList.add('active');
+
+            goStep0();
+            document.getElementById('orderModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('show');
+        }
+
+        function showStep(n) {
+            [0, 1, 2, 3].forEach(i => {
+                const el = document.getElementById('step' + i);
+                if (el) el.style.display = i === n ? 'block' : 'none';
+            });
+        }
+
+        function goStep0() {
+            buildCartSummary();
+            showStep(0);
+        }
+
+        function goStep1() {
+            showStep(1);
+        }
+
+        function goStep2() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            if (!name || !phone) { alert('يرجى إدخال الاسم ورقم الهاتف'); return; }
+            if (window.isAcceptingOrders === false) {
+                alert('عذراً، المطعم لا يستقبل طلبات حالياً.');
+                return;
+            }
+
+            // Build detailed bill
+            const counts = {};
+            cart.forEach(item => {
+                if (!counts[item.name]) counts[item.name] = { name: item.name, price: item.price, qty: 0 };
+                counts[item.name].qty++;
+            });
+            const items = Object.values(counts);
+            const total = cart.reduce((s, i) => s + i.price, 0);
+
+            document.getElementById('billBox').innerHTML =
+                `<div class="billtitle">تفاصيل فاتورتك</div>` +
+                items.map(it => `
+                    <div class="billrow">
+                        <span class="bname">${it.qty > 1 ? it.qty + 'x ' : ''}${it.name}</span>
+                        <span class="bprice">${(it.price * it.qty).toFixed(2)} د.أ</span>
+                    </div>`).join('') +
+                `<div class="billtotal"><span class="btl">المجموع الكلي</span><span class="btv">${total.toFixed(2)} د.أ</span></div>`;
+
+        showStep(2);
+        }
+
+        function setType(t, el) {
+            selectedType = t;
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        let isSending = false;
+        function sendOrder() {
+            if (isSending) return;
+            const name  = _sec.sanitize(document.getElementById('custName').value);
+            const phone = _sec.sanitize(document.getElementById('custPhone').value);
+
+            // ── Validate ──
+            const valErr = _sec.validateOrder(name, phone, cart);
+            if (valErr) { toast(valErr); return; }
+
+            // ── Rate limit ──
+            if (!_sec.checkRate()) {
+                toast('⚠️ تجاوزت الحد المسموح. انتظر ساعة ثم حاول مجدداً.');
+                return;
+            }
+
+            // ── Check clinic accepting orders ──
+            if (window.isAcceptingOrders === false) {
+                alert('عذراً، المطعم لا يستقبل طلبات حالياً.');
+                return;
+            }
+
+            isSending = true;
+            const btn = document.querySelector('.bsend');
+            const origText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            btn.disabled = true;
+
+            const notes = _sec.sanitize(document.getElementById('orderNotes').value);
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const orderNo = '#' + Math.floor(1000 + Math.random() * 9000);
+
+            // Translate type for dashboard
+            const typeLabels = { 'takeaway': 'سفري', 'delivery': 'توصيل', 'dinein': 'في الصالة' };
+
+            // Build structured items array
+            const counts = {};
+            cart.forEach(item => {
+                if (!counts[item.name]) counts[item.name] = { name: _sec.sanitize(item.name), price: item.price, qty: 0 };
+                counts[item.name].qty++;
+            });
+            const structuredItems = Object.values(counts);
+
+            const order = {
+                custName: name,
+                custPhone: phone,
+                notes: notes,
+                items: structuredItems,
+                total: total.toFixed(2),
+                orderNo: orderNo,
+                orderType: typeLabels[selectedType] || 'سفري',
+                status: 'new',
+                _tok: _sec.getToken(),
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('ar-EG')
+            };
+
+            const newOrderRef = db.ref(`restaurants/${RES_ID}/orders`).push(order);
+            newOrderRef.then(() => {
+                const orderKey = newOrderRef.key;
+                
+                // Show success with order number and info
+                document.getElementById('finalOrderNo').textContent = orderNo;
+                document.getElementById('finalCustName').textContent = name;
+                document.getElementById('finalOrderType').textContent = typeLabels[selectedType] || 'سفري';
+                document.getElementById('finalTotal').textContent = total.toFixed(2);
+                
+                // Populate items list in success screen
+                document.getElementById('finalItemsList').innerHTML = structuredItems.map(it => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>${it.qty}x ${it.name}</span>
+                        <span>${(it.price * it.qty).toFixed(2)} د.أ</span>
+                    </div>
+                `).join('');
+                
+                showStep(3);
+
+                startTracking(orderKey);
+                saveOrderLocally(orderKey, orderNo);
+
+                cart = [];
+                updateCartUI();
+                isSending = false;
+
+                // Reset button for next time
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم';
+                }
+            }).catch(err => {
+                console.error('Order error:', err);
+                alert('حدث خطأ في إرسال الطلب: ' + (err.message || 'تحقق من اتصالك'));
+                isSending = false;
+                const btn = document.querySelector('.bsend');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left:8px"></i> إرسال الطلب للمطعم';
+                }
+            });
+        }
+
+        let trackListener = null;
+        let currentTrackPath = '';
+        function startTracking(key) {
+            // Detach previous correctly
+            if (trackListener && currentTrackPath) {
+                db.ref(currentTrackPath).off('value', trackListener);
+            }
+            
+            currentTrackPath = `restaurants/${RES_ID}/orders/${key}`;
+
+            // Reset UI immediately for new order
+            document.getElementById('trackProgress').style.width = '0%';
+            const ids = ['ts-new', 'ts-prep', 'ts-shipped', 'ts-done'];
+            ids.forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById('trackStatusText').textContent = 'جاري إرسال الطلب...';
+
+            const updateUI = (status) => {
+                const steps = { 'new': 0, 'prep': 1, 'ready': 2, 'shipped': 2, 'done': 3, 'completed': 3 };
+                const labels = {
+                    'new': 'وصل الطلب للمطعم بنجاح',
+                    'prep': 'المطعم يقوم بتحضير طلبك الآن 👨‍🍳',
+                    'ready': 'طلبك جاهز للتسليم/التوصيل! 📦',
+                    'shipped': 'طلبك جاهز للتسليم/التوصيل! 📦',
+                    'done': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️',
+                    'completed': 'تم تسليم الطلب بنجاح، شكراً لك! ❤️'
+                };
+                
+                const idx = steps[status] || 0;
+                const progress = (idx / 3) * 100;
+                document.getElementById('trackProgress').style.width = progress + '%';
+                
+                const ids = ['ts-new', 'ts-prep', 'ts-shipped', 'ts-done'];
+                ids.forEach((id, i) => {
+                    const el = document.getElementById(id);
+                    if (i <= idx) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+
+                document.getElementById('trackStatusText').textContent = labels[status] || labels.new;
+            };
+
+            trackListener = db.ref(`restaurants/${RES_ID}/orders/${key}`).on('value', snap => {
+                const val = snap.val();
+                if (val) {
+                    updateUI(val.status || 'new');
+                } else {
+                    // Logic: If order is gone from 'orders', it might be in 'completedOrders'
+                    db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).once('value').then(cSnap => {
+                        const cVal = cSnap.val();
+                        if (cVal) updateUI('done');
+                    });
+                }
+            });
+        }
+
+        function closeModal() {
+            if (trackListener) {
+                // We keep it active as long as the modal is open
+            }
+            document.getElementById('orderModal').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('step3').style.display = 'none';
+                document.getElementById('step0').style.display = 'block';
+                document.getElementById('custName').value = '';
+                document.getElementById('custPhone').value = '';
+                document.getElementById('orderNotes').value = '';
+            }, 300);
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️ الوضع النهاري';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.textContent = '🌙 الوضع الليلي';
+            }
+        }
+
+        // Close on overlay click
+        document.getElementById('orderModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // RECENT ORDERS LOGIC
+        function saveOrderLocally(key, no) {
+            let list = JSON.parse(localStorage.getItem('argon_recent_' + RES_ID) || '[]');
+            // Add new at the beginning
+            list.unshift({ key, no, time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) });
+            // Keep last 3
+            if (list.length > 3) list = list.slice(0, 3);
+            localStorage.setItem('argon_recent_' + RES_ID, JSON.stringify(list));
+        }
+
+        async function openRecentOrders() {
+            const modal = document.getElementById('recentOrdersModal');
+            const listEl = document.getElementById('recentOrdersList');
+            const list = JSON.parse(localStorage.getItem('argon_recent_' + RES_ID) || '[]');
+            
+            modal.classList.add('show');
+            if (list.length === 0) return;
+
+            listEl.innerHTML = '<div style="text-align:center; padding:20px"><i class="fas fa-spinner fa-spin"></i> جاري تحديث الحالات...</div>';
+
+            let html = '';
+            for (const item of list) {
+                // Fetch current status from Firebase
+                let statusRaw = 'new';
+                try {
+                    const snap = await db.ref(`restaurants/${RES_ID}/orders/${item.key}`).once('value');
+                    if (snap.exists()) {
+                        statusRaw = snap.val().status || 'new';
+                    } else {
+                        // Check completed
+                        const cSnap = await db.ref(`restaurants/${RES_ID}/completedOrders/${item.key}`).once('value');
+                        if (cSnap.exists()) statusRaw = 'done';
+                        else statusRaw = 'expired';
+                    }
+                } catch(e) { statusRaw = 'error'; }
+
+                const labels = {
+                    'new': 'وصل للمطعم',
+                    'prep': 'قيد التحضير',
+                    'ready': 'جاهز للاستلام',
+                    'shipped': 'جاهز للاستلام',
+                    'done': 'تم التسليم ✅',
+                    'expired': 'مكتمل (قديم)',
+                    'error': 'تعذر جلب الحالة'
+                };
+
+                html += `
+                <div class="recent-item">
+                    <div class="ri-info">
+                        <div class="ri-no">طلب رقم ${item.no}</div>
+                        <div class="ri-status ${statusRaw !== 'new' ? 'active' : ''}">${labels[statusRaw] || 'تحت المعالجة'} • ${item.time}</div>
+                    </div>
+                    ${statusRaw !== 'expired' && statusRaw !== 'error' ? 
+                        `<button class="ri-track" onclick="retrack('${item.key}', '${item.no}')">تتبع</button>` : ''}
+                </div>`;
+            }
+            listEl.innerHTML = html;
+        }
+
+        async function retrack(key, no) {
+            document.getElementById('recentOrdersModal').classList.remove('show');
+            
+            // Show modal even with empty cart
+            openModal(true);
+            document.getElementById('trackStatusText').textContent = 'جاري جلب تفاصيل الطلب...';
+            
+            try {
+                let snap = await db.ref(`restaurants/${RES_ID}/orders/${key}`).once('value');
+                if (!snap.exists()) {
+                    snap = await db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).once('value');
+                }
+                
+                if (snap.exists()) {
+                    const o = snap.val();
+                    document.getElementById('finalOrderNo').textContent = o.orderNo || no;
+                    document.getElementById('finalCustName').textContent = o.custName || '-';
+                    document.getElementById('finalOrderType').textContent = o.orderType || '-';
+                    document.getElementById('finalTotal').textContent = o.total || '-';
+                    
+                    // Populate items list from Firebase data
+                    if (Array.isArray(o.items)) {
+                        document.getElementById('finalItemsList').innerHTML = o.items.map(it => `
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>${it.qty || it.q || 1}x ${it.name || it.n}</span>
+                                <span>${((it.price || 0) * (it.qty || it.q || 1)).toFixed(2)} د.أ</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('finalItemsList').innerHTML = '';
+                    }
+                } else {
+                    document.getElementById('finalOrderNo').textContent = no;
+                }
+            } catch(e) {
+                document.getElementById('finalOrderNo').textContent = no;
+            }
+            
+            showStep(3); // Go to tracking step
+            startTracking(key);
+        }
+    </script>
+
+    <script>
+    // ── PWA Service Worker ──
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                reg.addEventListener('updatefound', () => {
+                    const nw = reg.installing;
+                    nw.addEventListener('statechange', () => {
+                        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                            toast('🔄 تحديث متاح — أعد تحميل الصفحة');
+                        }
+                    });
+                });
+            }).catch(() => {});
+        });
+    }
+
+    // ── PWA Install Banner ──
+    let _dPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault(); _dPrompt = e;
+        const banner = document.getElementById('pwa-banner');
+        if (banner && !localStorage.getItem('argon_pwa_dismissed')) {
+            setTimeout(() => banner.style.display = 'flex', 4000);
+        }
     });
-  }
-}
-
-/* ── LOCAL STORAGE ── */
-function saveLocal(key,no) {
-  let list=JSON.parse(localStorage.getItem('argon_r_o_'+RES_ID)||'[]');
-  list.unshift({key,no,time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})});
-  if(list.length>5)list=list.slice(0,5);
-  localStorage.setItem('argon_r_o_'+RES_ID,JSON.stringify(list));
-}
-
-async function openMyOrders() {
-  document.getElementById('myOrdersModal').classList.add('show');
-  document.body.style.overflow='hidden';
-  const el=document.getElementById('myOrdersList');
-  const list=JSON.parse(localStorage.getItem('argon_r_o_'+RES_ID)||'[]');
-  if(!list.length){el.innerHTML='<div class="empty-s"><i class="fas fa-receipt"></i><p>لا توجد طلبات سابقة</p></div>';return;}
-  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-3)"><i class="fas fa-spinner fa-spin"></i></div>';
-  const stL={new:'جديد',prep:'يتحضر',ready:'جاهز',done:'مكتمل ✅',completed:'مكتمل ✅',cancelled:'ملغي',expired:'قديم'};
-  const stC={new:'new',prep:'new',ready:'new',done:'done',completed:'done',cancelled:'cancel',expired:'cancel'};
-  let html='';
-  for(const b of list){
-    let st='new';
-    try{const s=await db.ref(BASE+'/orders/'+b.key).once('value');if(s.exists())st=s.val().status||'new';else{const cs=await db.ref(BASE+'/completedOrders/'+b.key).once('value');st=cs.exists()?'done':'expired';}}catch(e){}
-    html+=`<div class="bi-card">
-      <div class="bi-info">
-        <div class="bi-no">${b.no}</div>
-        <div class="bi-doc">${b.time}</div>
-        <div class="bi-st ${stC[st]||'new'}">${stL[st]||st}</div>
-      </div>
-      ${st!=='expired'?`<button class="bi-track" onclick="retrack('${b.key}','${b.no}')">تتبع</button>`:''}
-    </div>`;
-  }
-  el.innerHTML=html;
-}
-function closeMy(){document.getElementById('myOrdersModal').classList.remove('show');document.body.style.overflow='';}
-
-async function retrack(key,no){
-  closeMy();
-  cart=[];updateCartUI();
-  openModal();
-  try{
-    let snap=await db.ref(BASE+'/orders/'+key).once('value');
-    if(!snap.exists())snap=await db.ref(BASE+'/completedOrders/'+key).once('value');
-    if(snap.exists()){const o=snap.val();
-      document.getElementById('finalOrderNo').textContent=o.orderNo||no;
-      document.getElementById('sinfoCard').innerHTML=`
-        <div class="sinfo-row"><span class="lbl">👤 الاسم</span><span class="val">${_sec.sanitize(o.custName||'—')}</span></div>
-        <div class="sinfo-row total"><span class="lbl">💰 المجموع</span><span class="val">${o.total||'0'} د.أ</span></div>`;
-    }else{document.getElementById('finalOrderNo').textContent=no;}
-  }catch(e){document.getElementById('finalOrderNo').textContent=no;}
-  goStep(3); currentKey=key; startTracking(key);
-}
-
-/* ── SMART LINE ── */
-function updateSmartLine() {
-  const h=new Date().getHours(),sl=document.getElementById('smartSpan');
-  if(!sl)return;
-  if(h>=5&&h<12)sl.textContent='الفطور الشهي بانتظارك ☕';
-  else if(h>=12&&h<17)sl.textContent='أفضل وجبات الغداء 🍔';
-  else if(h>=17&&h<21)sl.textContent='استمتع بعشائك المميز 🍕';
-  else sl.textContent='وجبات ليلية خفيفة 🌙';
-}
-updateSmartLine();
-setInterval(updateSmartLine,60000);
-
-/* ── THEME ── */
-function toggleTheme() {
-  const dark=document.body.getAttribute('data-theme')==='dark';
-  document.body.setAttribute('data-theme',dark?'light':'dark');
-  document.getElementById('themeBtn').textContent=dark?'🌙 مظلم':'☀️ فاتح';
-  localStorage.setItem('argon_theme_'+RES_ID,dark?'light':'dark');
-}
-const savedTheme=localStorage.getItem('argon_theme_'+RES_ID);
-if(savedTheme){document.body.setAttribute('data-theme',savedTheme);document.getElementById('themeBtn').textContent=savedTheme==='dark'?'🌙 مظلم':'☀️ فاتح';}
-
-/* ── TOAST ── */
-function toast(msg) {
-  const w=document.getElementById('toastWrap');
-  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
-  w.appendChild(t); setTimeout(()=>t.classList.add('show'),10);
-  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3000);
-}
-
-/* ── PWA ── */
-let _dP=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();_dP=e;
-  if(!localStorage.getItem('argon_pwa_d'))setTimeout(()=>document.getElementById('pwa-banner').classList.add('show'),5000);
-});
-function installPWA(){if(!_dP)return;_dP.prompt();_dP.userChoice.then(r=>{if(r.outcome==='accepted')toast('✅ تم تثبيت أرغون!');dismissPWA();_dP=null;});}
-function dismissPWA(){document.getElementById('pwa-banner').classList.remove('show');localStorage.setItem('argon_pwa_d','1');}
-window.addEventListener('appinstalled',()=>{toast('🎉 تم التثبيت!');dismissPWA();});
-
-/* ── SERVICE WORKER ── */
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js').then(reg=>{
-      reg.addEventListener('updatefound',()=>{
-        const nw=reg.installing;
-        nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)toast('🔄 تحديث متاح');});
-      });
-    }).catch(()=>{});
-  });
-}
-
-/* ── FAB BOUNCE ANIMATION ── */
-const fabStyle = document.createElement('style');
-fabStyle.textContent = `@keyframes bounce-in{0%{transform:translateX(-50%) scale(0.8);opacity:0}70%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1);opacity:1}}`;
-document.head.appendChild(fabStyle);
-</script>
+    function installPWA() {
+        if (!_dPrompt) return;
+        _dPrompt.prompt();
+        _dPrompt.userChoice.then(r => {
+            if (r.outcome === 'accepted') toast('✅ تمت إضافة أرغون لشاشتك!');
+            dismissPWA(); _dPrompt = null;
+        });
+    }
+    function dismissPWA() {
+        const b = document.getElementById('pwa-banner');
+        if (b) b.style.display = 'none';
+        localStorage.setItem('argon_pwa_dismissed', '1');
+    }
+    window.addEventListener('appinstalled', () => { toast('🎉 تم تثبيت التطبيق!'); dismissPWA(); });
+    </script>
 </body>
-</html>
