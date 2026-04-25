@@ -1783,7 +1783,10 @@
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
             document.getElementById('statCompleted').textContent = doneKeys.length;
             const avg = doneKeys.length > 0 ? (totalRev / doneKeys.length) : 0;
-            document.getElementById('avgOrder').textContent = avg.toFixed(2);
+            const avgEl = document.getElementById('avgOrder');
+            if (avgEl) {
+                avgEl.textContent = avg.toFixed(2);
+            }
 
             // Best sellers
             try {
