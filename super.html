@@ -177,6 +177,23 @@
 
     <div class="toast-wrap" id="tw"></div>
 
+    <script>
+        // EMERGENCY CACHE BUSTING & ZOMBIE SERVICE WORKER KILLER
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                let unreg = false;
+                for(let registration of registrations) {
+                    registration.unregister();
+                    unreg = true;
+                }
+                if (unreg && !sessionStorage.getItem('argon_cache_cleared')) {
+                    sessionStorage.setItem('argon_cache_cleared', '1');
+                    window.location.reload(true);
+                }
+            });
+        }
+    </script>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="super-app.js"></script>
