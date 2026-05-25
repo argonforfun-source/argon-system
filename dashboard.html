@@ -1,2126 +1,257 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARGON | لوحة التحكم</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
-        rel="stylesheet">
+    <title>ARGON Medical OS — لوحة الاستقبال</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        :root {
-            --void: #020617;
-            --panel: rgba(15, 23, 42, 0.7);
-            --surface: rgba(30, 41, 59, 0.5);
-            --border: rgba(255, 255, 255, 0.06);
-            --cyan: #22d3ee;
-            --blue: #3b82f6;
-            --purple: #8b5cf6;
-            --green: #10b981;
-            --red: #ef4444;
-            --amber: #f59e0b;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --accent: #3b82f6;
-            --glass: blur(16px) saturate(180%);
-        }
-
-        #lockoutScreen {
-            position: fixed;
-            inset: 0;
-            background: #030712;
-            z-index: 20000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px;
-            color: #fff;
-        }
-        #lockoutScreen.show { display: flex !important; }
-        .lock-icon { font-size: 80px; color: #ef4444; margin-bottom: 24px; opacity: 0.9; }
-        .lock-msg { font-size: 28px; font-weight: 800; margin-bottom: 16px; line-height: 1.5; }
-        .lock-sub { font-size: 18px; opacity: 0.7; margin-bottom: 30px; }
-        .btn-support { 
-            background: #3b82f6; color: #fff; text-decoration: none; padding: 14px 28px; 
-            border-radius: 12px; font-weight: 700; transition: 0.3s;
-        }
-        .btn-support:hover { background: #2563eb; transform: translateY(-2px); }
-        .bdel:hover { background: #ef4444; color: white; transform: translateY(-2px); }
-
-        /* ORDER TYPE BADGES */
-        .ot-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 9px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            margin: 8px 0;
-            border-width: 1px;
-            border-style: solid;
-        }
-        .ot-delivery { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border-color: rgba(59, 130, 246, 0.25); }
-        .ot-dinein { background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.25); }
-        .ot-takeaway { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.25); }
-
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: var(--void);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-        }
-
-        /* TOPBAR */
-        .topbar {
-            height: 70px;
-            background: var(--panel);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1000;
-        }
-
-        .tb-l {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .tb-logo {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 1rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #fff, var(--accent));
-            -webkit-background-clip: text;
-        background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 3px;
-        }
-
-        .tb-sep {
-            width: 1px;
-            height: 22px;
-            background: var(--border);
-        }
-
-        .tb-name {
-            font-size: 0.93rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .tb-r {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-        }
-
-        .tbadge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.73rem;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            border: 1px solid;
-        }
-
-        .tbadge-id {
-            font-family: 'IBM Plex Mono', monospace;
-            background: rgba(139, 92, 246, 0.08);
-            border-color: rgba(139, 92, 246, 0.2);
-            color: #c4b5fd;
-        }
-
-        .tbadge-open {
-            background: rgba(16, 185, 129, 0.08);
-            border-color: rgba(16, 185, 129, 0.2);
-            color: var(--green);
-        }
-
-        .tbadge-closed {
-            background: rgba(239, 68, 68, 0.08);
-            border-color: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-        }
-
-        .clkbadge {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.76rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--muted);
-            padding: 5px 12px;
-            border-radius: 8px;
-        }
-
-        .tbtn {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--muted);
-            padding: 6px 13px;
-            border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tbtn:hover {
-            border-color: rgba(59, 130, 246, 0.3);
-            color: var(--text);
-        }
-
-        .tbtn-prev {
-            background: linear-gradient(135deg, var(--accent), var(--purple));
-            border: none;
-            color: white;
-            font-weight: 600;
-        }
-
-        .tbtn-prev:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        /* LAYOUT */
-        .app-layout {
-            display: flex;
-            height: calc(100vh - 60px);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 240px;
-            background: var(--panel);
-            backdrop-filter: var(--glass);
-            -webkit-backdrop-filter: var(--glass);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 24px 0;
-            flex-shrink: 0;
-        }
-
-        .ni {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 18px;
-            margin: 4px 12px;
-            border-radius: 14px;
-            cursor: pointer;
-            color: var(--muted);
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .ni:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text);
-            transform: translateX(-4px);
-        }
-
-        .ni.active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
-            color: var(--accent);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .ni.active::before {
-            content: '';
-            position: absolute;
-            right: -12px;
-            top: 25%;
-            bottom: 25%;
-            width: 4px;
-            background: var(--accent);
-            border-radius: 4px 0 0 4px;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .nbadge {
-            margin-right: auto;
-            background: var(--red);
-            color: white;
-            font-size: 0.62rem;
-            font-family: 'IBM Plex Mono', monospace;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-weight: 700;
-        }
-
-        .nbadge.zero {
-            background: rgba(100, 116, 139, 0.2);
-            color: var(--muted);
-        }
-
-        .pwby {
-            text-align: center;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.55rem;
-            color: rgba(100, 116, 139, 0.4);
-            letter-spacing: 1.5px;
-            padding: 12px 0 4px;
-        }
-
-        .load-meter {
-            height: 38px;
-            background: rgba(59, 130, 246, 0.08);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            gap: 10px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            min-width: 140px;
-        }
-        .lm-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: var(--green);
-            transition: 0.5s;
-        }
-        .lm-text { font-size: 0.72rem; font-weight: 700; color: var(--text); z-index: 2; }
-
-        /* MAIN AREA */
-        .main-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 26px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
-        }
-
-        ::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 2px;
-        }
-
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-            animation: fu 0.3s ease;
-        }
-
-        @keyframes fu {
-            from {
-                opacity: 0;
-                transform: translateY(8px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        .ph {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 22px;
-        }
-
-        .pt {
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-
-        .ps {
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-top: 3px;
-        }
-
-        /* STATS */
-        .sr {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 13px;
-            margin-bottom: 26px;
-        }
-
-        .sb2 {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 17px;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.25s;
-        }
-
-        .sb2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--bc, transparent);
-        }
-
-        .sb2:hover {
-            border-color: rgba(59, 130, 246, 0.22);
-        }
-
-        .si {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.86rem;
-            margin-bottom: 10px;
-        }
-
-        .slb {
-            font-size: 0.7rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .sv {
-            font-size: 1.6rem;
-            font-weight: 800;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-
-        .sh {
-            font-size: 0.66rem;
-            color: var(--muted);
-            margin-top: 1px;
-        }
-
-        /* ORDERS */
-        .og {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
-            gap: 13px;
-        }
-
-        .oc {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 16px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.25s;
-        }
-
-        .oc::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent);
-        }
-
-        .oc.done::before {
-            background: var(--green);
-        }
-
-        .oc:hover {
-            border-color: rgba(59, 130, 246, 0.22);
-        }
-
-        .ono {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.76rem;
-            color: var(--accent);
-            background: rgba(59, 130, 246, 0.08);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            padding: 3px 9px;
-            border-radius: 7px;
-        }
-
-        .otm {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.66rem;
-            color: var(--muted);
-        }
-
-        .oheader {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-
-        .ocust {
-            font-size: 0.93rem;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-
-        .ophone {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        .oitems {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin: 10px 0;
-        }
-
-        .ichip {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 3px 9px;
-            border-radius: 7px;
-            font-size: 0.73rem;
-            color: var(--text);
-        }
-
-        .onote {
-            background: rgba(245, 158, 11, 0.06);
-            border: 1px solid rgba(245, 158, 11, 0.15);
-            border-radius: 8px;
-            padding: 7px 11px;
-            font-size: 0.76rem;
-            color: #fcd34d;
-            margin-bottom: 10px;
-        }
-
-        .ofooter {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ototal {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.98rem;
-            font-weight: 800;
-            color: var(--green);
-        }
-
-        .bcomplete {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.22);
-            color: var(--green);
-            padding: 7px 15px;
-            border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .bcomplete:hover {
-            background: rgba(16, 185, 129, 0.18);
-        }
-
-        .empty-o {
-            grid-column: 1/-1;
-            text-align: center;
-            padding: 50px;
-            color: var(--muted);
-        }
-
-        .empty-o i {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 12px;
-            opacity: 0.2;
-        }
-
-        /* BEST SELLERS */
-        .bsg {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-            gap: 11px;
-            margin-top: 18px;
-        }
-
-        .bsc {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .bsrank {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.62rem;
-            color: var(--amber);
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
-
-        .bsname {
-            font-size: 0.86rem;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-
-        .bscnt {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        /* HISTORY */
-        .hcard {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-right: 3px solid var(--green);
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 9px;
-            transition: all 0.2s;
-        }
-
-        .hcard:hover {
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        /* MENU */
-        .mfp {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 20px;
-            margin-bottom: 22px;
-        }
-
-        .mfr {
-            display: grid;
-            grid-template-columns: 2fr 1fr 3fr auto;
-            gap: 9px;
-            align-items: end;
-        }
-
-        .mfl {
-            display: block;
-            font-size: 0.7rem;
-            color: var(--muted);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .mfi {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 9px;
-            padding: 9px 13px;
-            color: var(--text);
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.88rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .mfi:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .badd {
-            background: linear-gradient(135deg, var(--accent), var(--purple));
-            border: none;
-            border-radius: 9px;
-            padding: 9px 16px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .badd:hover {
-            opacity: 0.85;
-        }
-
-        .mg {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-            gap: 13px;
-        }
-
-        .mic {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            overflow: hidden;
-            transition: all 0.25s;
-        }
-
-        .mic:hover {
-            border-color: rgba(59, 130, 246, 0.28);
-            transform: translateY(-2px);
-        }
-
-        .mimg {
-            width: 100%;
-            height: 108px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .mip {
-            width: 100%;
-            height: 108px;
-            background: var(--surface);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-        }
-
-        .mbody {
-            padding: 12px;
-        }
-
-        .miname {
-            font-size: 0.88rem;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-
-        .miprice {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .bdel {
-            display: block;
-            width: 100%;
-            background: rgba(239, 68, 68, 0.06);
-            border: none;
-            border-top: 1px solid rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            padding: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.76rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .bdel:hover {
-            background: rgba(239, 68, 68, 0.12);
-        }
-
-        /* SETTINGS */
-        .setp {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 26px;
-            max-width: 560px;
-        }
-
-        .setg {
-            margin-bottom: 16px;
-        }
-
-        .setl {
-            display: block;
-            font-size: 0.76rem;
-            color: var(--muted);
-            margin-bottom: 7px;
-            font-weight: 500;
-        }
-
-        .seti,
-        .setsel {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 10px;
-            padding: 11px 14px;
-            color: var(--text);
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .seti:focus,
-        .setsel:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .bsave {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--green), #059669);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.98rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 5px;
-        }
-
-        .bsave:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-        }
-
-        .bclear {
-            background: rgba(239, 68, 68, 0.06);
-            border: 1px solid rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            padding: 7px 13px;
-            border-radius: 8px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .bclear:hover {
-            background: rgba(239, 68, 68, 0.12);
-        }
-
-        /* PREVIEW MODAL */
-        #prevModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .pfw {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .pfr {
-            width: 358px;
-            height: 696px;
-            background: #fff;
-            border: 10px solid #1e293b;
-            border-radius: 46px;
-            overflow: hidden;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .bclose-prev {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 9px 22px;
-            border-radius: 10px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* COLOR PICKER in settings */
-        .color-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .color-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 9px;
-            border: 2px solid rgba(255, 255, 255, 0.12);
-            cursor: pointer;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .color-preview:hover {
-            transform: scale(1.08);
-        }
-
-        .sbtn {
-            flex: 1;
-            padding: 8px 4px;
-            font-size: 0.72rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            transition: 0.2s;
-            font-weight: 700;
-            min-width: 60px;
-        }
-        .sbtn:hover { background: var(--border); }
-        .sbtn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .wa-btn { background: #25d366; color: white; border-color: #25d366; }
-        .wa-btn:hover { background: #128c7e; }
-
-        input[type="color"].hcp {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        /* REEP MODAL */
-        #repModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-
-        .rep-card {
-            width: 100%;
-            max-width: 600px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 30px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        /* TOAST */
-        #toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(14px);
-            background: var(--surface);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: var(--green);
-            padding: 10px 20px;
-            border-radius: 11px;
-            font-size: 0.86rem;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 99999;
-            pointer-events: none;
-        }
-
-        #toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* LIGHT MODE */
-        body.light-mode {
-            --void: #f0f4ff;
-            --panel: #ffffff;
-            --surface: #f8fafc;
-            --border: rgba(0, 0, 0, 0.08);
-            --text: #0f172a;
-            --muted: #64748b;
-        }
-
-        /* NOTIF RING ANIMATION */
-        @keyframes ring {
-            0% {
-                transform: rotate(0deg)
-            }
-
-            10% {
-                transform: rotate(15deg)
-            }
-
-            20% {
-                transform: rotate(-10deg)
-            }
-
-            30% {
-                transform: rotate(10deg)
-            }
-
-            40% {
-                transform: rotate(-8deg)
-            }
-
-            50% {
-                transform: rotate(0deg)
-            }
-
-            100% {
-                transform: rotate(0deg)
-            }
-        }
-
-        .ringing {
-            animation: ring 0.6s ease infinite;
-        }
-
-        /* CONNECTION STATUS BAR */
-        .conn-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            transition: all 0.3s;
-        }
-        .conn-ok {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--green);
-            border-bottom: 1px solid rgba(16, 185, 129, 0.3);
-        }
-        .conn-off {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--red);
-            border-bottom: 1px solid rgba(239, 68, 68, 0.3);
-            animation: connPulse 2s infinite;
-        }
-        @keyframes connPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-    </style>
+    <link rel="stylesheet" href="dashboard-styles.css">
 </head>
-
 <body>
-    <!-- LOGIN OVERLAY -->
-    <div id="dashLogin" style="position:fixed;inset:0;background:var(--void);z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
-        <div style="background:var(--panel);padding:35px;border-radius:20px;border:1px solid var(--border);text-align:center;width:90%;max-width:340px;box-shadow:0 20px 40px rgba(0,0,0,0.4)">
-            <div style="font-size:3rem;margin-bottom:10px">🔒</div>
-            <h3 style="margin-bottom:8px;font-size:1.2rem;color:var(--text)">تسجيل الدخول</h3>
-            <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px" id="loginResName">جاري التحقق...</p>
-            <input type="password" id="loginPassInp" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:1rem;text-align:center;margin-bottom:15px;outline:none;" placeholder="أدخل كلمة المرور">
-            <button onclick="checkLogin()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;">دخول</button>
-            <div id="loginErr" style="color:var(--red);font-size:0.85rem;margin-top:12px;display:none;font-weight:600">كلمة المرور غير صحيحة</div>
-        </div>
-    </div>
 
-    <div id="lockoutScreen">
-        <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
-        <div class="lock-msg">تم إيقاف حساب المطعم</div>
-        <div class="lock-sub">يرجى مراجعة الدعم الفني لشركة أرغون لتفعيل الحساب</div>
-        <a href="https://argonforfun.com" target="_blank" class="btn-support">زيارة موقع الشركة: argonforfun.com</a>
-    </div>
-
-    <div class="topbar">
-        <div class="tb-l">
-            <span class="tb-logo">ARGON</span>
-            <div class="tb-sep"></div>
-            <span class="tb-name" id="resNameTop">جاري التحميل...</span>
-        </div>
-        <div class="tb-r">
-            <span class="tbadge tbadge-id"><i class="fas fa-fingerprint"></i> <span id="resIdDisp"></span></span>
-            <span class="tbadge" id="statusBadge"><i class="fas fa-circle" style="font-size:0.38rem"></i> مفتوح</span>
-            <span class="clkbadge" id="clkEl">--:--</span>
-            <div class="load-meter" id="loadMeter">
-                <div class="lm-bar" id="loadBar"></div>
-                <div class="lm-text">ضغط المطبخ: <span id="loadText">هادئ</span></div>
-            </div>
-            <button class="tbtn" onclick="toggleTheme()">🌓 المظهر</button>
-            <button class="tbtn tbtn-prev" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:6px"></i>
-                معاينة</button>
-        </div>
-    </div>
-
-    <div class="app-layout">
-        <div class="sidebar">
-            <div style="padding:0 9px">
-                <div class="sl">الإدارة</div>
-                <div class="ni active" onclick="showSec('dashSec',this)">
-                    <i class="fas fa-chart-line"></i> التقارير المالية
-                </div>
-                <div class="ni" id="liveTab" onclick="showSec('liveSecEl',this)">
-                    <i class="fas fa-bell" id="bellIcon"></i> الطلبات الحية
-                    <span class="nbadge zero" id="liveCount">0</span>
-                </div>
-                <div class="ni" onclick="showSec('histSec',this)">
-                    <i class="fas fa-clock-rotate-left"></i> سجل المبيعات
-                </div>
-                <div class="ni" onclick="showSec('menuSec',this)">
-                    <i class="fas fa-utensils"></i> إدارة المنيو
-                </div>
-                <div class="ni" onclick="showSec('settingsSec',this)">
-                    <i class="fas fa-gear"></i> الإعدادات
-                </div>
-                <div class="ni" onclick="openRep()" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.2); margin-top:10px; color:var(--accent)">
-                    <i class="fas fa-file-invoice-dollar"></i> أصدر تقرير PDF
-                </div>
-                <div class="ni" onclick="doLogout()" style="margin-top:10px; color:var(--red)">
-                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-                </div>
-            </div>
-            <div style="margin-top:auto;padding:12px 9px;border-top:1px solid var(--border)">
-                <div class="pwby">POWERED BY <span>ARGON</span></div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sb-hdr">
+            <div class="sb-logo" id="clinicLogoText">ع</div>
+            <div>
+                <div class="sb-title" id="clinicName">جاري التحميل...</div>
+                <div class="sb-subtitle">ARGON Medical OS</div>
             </div>
         </div>
+        
+        <div class="sb-nav">
+            <div class="sb-section">الاستقبال والعمليات</div>
+            <div class="sb-item active" onclick="switchTab('reception')"><i class="fas fa-home"></i><span class="sb-lbl">لوحة الاستقبال</span></div>
+            <div class="sb-item" onclick="switchTab('patients')"><i class="fas fa-users"></i><span class="sb-lbl">المرضى والملفات</span></div>
+            <div class="sb-item" onclick="switchTab('appointments')"><i class="fas fa-calendar-check"></i><span class="sb-lbl">المواعيد والحجوزات</span></div>
+            
+            <!-- Hidden by default, shown based on license -->
+            <div class="sb-section" data-feature="whatsapp_auto">التواصل الآلي</div>
+            <div class="sb-item" data-feature="whatsapp_auto" onclick="switchTab('whatsapp')"><i class="fab fa-whatsapp"></i><span class="sb-lbl">إشعارات الواتساب</span></div>
+            
+            <div class="sb-section" data-feature="invoices_advanced">المالية (قريباً)</div>
+            <div class="sb-item" data-feature="invoices_advanced"><i class="fas fa-file-invoice-dollar"></i><span class="sb-lbl">الفواتير</span></div>
 
-        <div class="main-area">
-
-            <!-- DASHBOARD -->
-            <div id="dashSec" class="section active">
-                <div class="ph">
-                    <div>
-                        <div class="pt">📊 التقارير المالية</div>
-                        <div class="ps">إحصاءات حقيقية مباشرة من قاعدة البيانات</div>
-                    </div>
-                </div>
-                <div class="sr">
-                    <div class="sb2" style="--bc:var(--green)">
-                        <div class="si" style="background:rgba(16,185,129,0.15);color:var(--green); box-shadow: 0 0 20px rgba(16,185,129,0.2)"><i
-                                class="fas fa-coins"></i></div>
-                        <div class="slb">إجمالي الدخل</div>
-                        <div class="sv" id="totalRevenue" style="color:var(--green); font-size: 2.2rem;">0.00</div>
-                        <div class="sh">صافي المبيعات المكتملة</div>
-                    </div>
-                    <div class="sb2" style="--bc:var(--accent)">
-                        <div class="si" style="background:rgba(59,130,246,0.15);color:var(--accent); box-shadow: 0 0 20px rgba(59,130,246,0.2)"><i
-                                class="fas fa-hourglass-half"></i></div>
-                        <div class="slb">مبيعات بالانتظار</div>
-                        <div class="sv" id="pendingRevenue" style="color:var(--accent); font-size: 2.2rem;">0.00</div>
-                        <div class="sh">طلبات قيد التحضير</div>
-                    </div>
-                    <div class="sb2" style="--bc:var(--cyan)">
-                        <div class="si" style="background:rgba(34,211,238,0.15);color:var(--cyan); box-shadow: 0 0 20px rgba(34,211,238,0.2)"><i
-                                class="fas fa-check-double"></i></div>
-                        <div class="slb">طلبات مكتملة</div>
-                        <div class="sv" id="statCompleted" style="color:var(--cyan); font-size: 2.2rem;">0</div>
-                        <div class="sh">إجمالي العمليات الناجحة</div>
-                    </div>
-                </div>
-                <div class="ph" style="margin-bottom:12px">
-                    <div class="pt" style="font-size:1.05rem">⭐ أعلى الأصناف مبيعاً</div>
-                </div>
-                <div class="bsg" id="bestSellerList">
-                    <div style="color:var(--muted);font-size:0.84rem">جاري التحليل...</div>
-                </div>
-            </div>
-
-            <!-- LIVE ORDERS -->
-            <div id="liveSecEl" class="section">
-                <div class="ph">
-                    <div>
-                        <div class="pt">🔔 الطلبات الحية</div>
-                        <div class="ps">تحديث فوري في الوقت الحقيقي</div>
-                    </div>
-                </div>
-                <div class="og" id="ordersGrid"></div>
-            </div>
-
-            <!-- HISTORY -->
-            <div id="histSec" class="section">
-                <div class="ph">
-                    <div>
-                        <div class="pt">📜 سجل المبيعات</div>
-                        <div class="ps">جميع الطلبات المكتملة</div>
-                    </div>
-                    <button class="bclear" onclick="clearHistory()"><i class="fas fa-trash" style="margin-left:5px"></i>
-                        مسح السجل</button>
-                </div>
-                <div id="histGrid"></div>
-            </div>
-
-            <!-- MENU -->
-            <div id="menuSec" class="section">
-                <div class="ph">
-                    <div>
-                        <div class="pt">🍽️ إدارة المنيو</div>
-                        <div class="ps">أضف وأدر أصناف قائمة طعامك</div>
-                    </div>
-                </div>
-                <div class="mfp">
-                    <div class="mfr">
-                        <div>
-                            <label class="mfl">اسم الصنف</label>
-                            <input type="text" id="itemName" class="mfi" placeholder="مثال: برجر كلاسيك">
-                        </div>
-                        <div>
-                            <label class="mfl">السعر (د.أ)</label>
-                            <input type="number" id="itemPrice" class="mfi" placeholder="3.50">
-                        </div>
-                        <div>
-                            <label class="mfl">رابط الصورة (اختياري)</label>
-                            <input type="text" id="itemImg" class="mfi" placeholder="https://...">
-                        </div>
-                        <button class="badd" onclick="addItem()"><i class="fas fa-plus" style="margin-left:5px"></i>
-                            إضافة</button>
-                    </div>
-
-        <!-- REPORTS MODAL -->
-        <div id="repModal" class="modal">
-            <div class="mcont" style="width:95%; max-width:700px">
-                <div class="mh">
-                    <div class="mheader-title">📊 التقارير المالية والتحليلية</div>
-                    <button class="mclose" onclick="closeRep()">×</button>
-                </div>
-                <div class="mb" style="max-height:85vh; overflow-y:auto; padding:20px">
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px; margin-bottom:25px">
-                        <div class="sb2" style="background:var(--bg); border:1px solid var(--border)">
-                            <div class="slb">إجمالي المبيعات</div>
-                            <div class="sv" id="repRev" style="font-size:1.5rem">0</div>
-                        </div>
-                        <div class="sb2" style="background:var(--bg); border:1px solid var(--border)">
-                            <div class="slb">عدد الطلبات</div>
-                            <div class="sv" id="repCnt" style="font-size:1.5rem">0</div>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:25px">
-                        <div class="ph"><div class="pt" style="font-size:1rem">⏰ ساعات الذروة (الضغط)</div></div>
-                        <div id="peakGraf" style="margin-top:15px; background:var(--bg); padding:15px; border-radius:15px; border:1px solid var(--border)">
-                            <!-- Peak hour bars go here -->
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="ph"><div class="pt" style="font-size:1rem">📈 الأصناف الأكثر مبيعاً</div></div>
-                        <div id="repBest" style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                            <!-- Best items go here -->
-                        </div>
-                    </div>
-                    
-                    <button class="bcomplete" onclick="exportPDF()" style="margin-top:30px; width:100%; height:50px; font-size:1.1rem; background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                        <i class="fas fa-file-pdf" style="margin-left:8px"></i> تصدير التقرير كـ PDF 
-                    </button>
-                    <p style="text-align:center; color:var(--muted); font-size:0.75rem; margin-top:10px">سيتم تنزيل ملف PDF يحتوي على كافة الإحصائيات الحالية</p>
-                </div>
-            </div>
+            <div class="sb-section">إدارة النظام</div>
+            <div class="sb-item" onclick="switchTab('settings')"><i class="fas fa-cog"></i><span class="sb-lbl">إعدادات العيادة</span></div>
         </div>
+        
+        <div class="sb-foot">
+            <div class="user-info">
+                <div class="ui-avatar"><i class="fas fa-user-shield"></i></div>
+                <div class="ui-details">
+                    <div class="ui-name">مدير النظام</div>
+                    <div class="ui-role">Reception Admin</div>
                 </div>
-                <div class="mg" id="menuGrid"></div>
             </div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+        </div>
+    </aside>
 
-            <!-- SETTINGS -->
-            <div id="settingsSec" class="section">
-                <div class="ph">
-                    <div>
-                        <div class="pt">⚙️ إعدادات المطعم</div>
-                        <div class="ps">تعديل معلومات وبيانات مطعمك</div>
+    <!-- MAIN APP -->
+    <main class="main-wrapper">
+        <header class="topbar">
+            <div class="page-title"><i class="fas fa-clinic-medical" style="color:var(--teal)"></i> <span id="topbarTitle">لوحة الاستقبال</span></div>
+            <div class="tb-actions">
+                <button class="btn btn-outline"><i class="fas fa-bell"></i></button>
+                <button class="btn btn-primary" onclick="openAddPatient()"><i class="fas fa-user-plus"></i> مريض جديد</button>
+                <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="openAddAppointment()"><i class="fas fa-calendar-plus"></i> حجز موعد</button>
+            </div>
+        </header>
+
+        <div class="content-area">
+
+            <!-- 1. RECEPTION VIEW -->
+            <section id="view-reception" class="view-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--blue-l);color:var(--blue)"><i class="fas fa-calendar-day"></i></div>
+                        <div><div class="stat-num" id="stat-today">0</div><div class="stat-lbl">مواعيد اليوم</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--orange-l);color:var(--orange)"><i class="fas fa-clock"></i></div>
+                        <div><div class="stat-num" id="stat-waiting">0</div><div class="stat-lbl">في غرفة الانتظار</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--teal-l);color:var(--teal)"><i class="fas fa-users"></i></div>
+                        <div><div class="stat-num" id="stat-patients">0</div><div class="stat-lbl">إجمالي المرضى</div></div>
                     </div>
                 </div>
-                <div class="setp">
-                    <div class="setg">
-                        <label class="setl">اسم المطعم</label>
-                        <input type="text" id="resNameInp" class="seti">
-                    </div>
-                    <div class="setg">
-                        <label class="setl">رقم الواتساب</label>
-                        <input type="text" id="resPhoneInp" class="seti" placeholder="+962700000000">
-                    </div>
-                    <div class="setg" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div>
-                            <label class="setl">حالة المطعم</label>
-                            <select id="resStatusInp" class="setsel">
-                                <option value="open">مفتوح الآن ✅</option>
-                                <option value="closed">مغلق مؤقتاً ❌</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="setl">ساعات العمل</label>
-                            <input type="text" id="resHoursInp" class="seti" placeholder="9ص - 11م">
-                        </div>
-                    </div>
-                    <div class="setg">
-                        <label class="setl">لون هوية المطعم</label>
-                        <div class="color-row" style="position:relative">
-                            <div class="color-preview" id="colorPreview"
-                                onclick="document.getElementById('colorPicker').click()"></div>
-                            <input type="color" id="colorPicker" class="hcp" onchange="onColorChange(this.value)">
-                            <div>
-                                <div style="font-size:0.88rem;font-weight:600" id="colorHex">#3b82f6</div>
-                                <div style="font-size:0.7rem;color:var(--muted)">يؤثر على لون التمييز في جميع الصفحات
-                                </div>
+
+                <div class="form-grid">
+                    <!-- Live Queue -->
+                    <div class="panel">
+                        <div class="panel-hdr"><div class="panel-title"><i class="fas fa-desktop"></i> غرفة الانتظار المباشرة (Live Queue)</div></div>
+                        <div class="panel-body">
+                            <div class="queue-list" id="receptionQueue">
+                                <div style="text-align:center;padding:20px;color:var(--muted)">جاري التحميل...</div>
                             </div>
                         </div>
                     </div>
-                    <div class="setg">
-                        <label class="setl">كلمة مرور الدخول</label>
-                        <div style="position:relative">
-                            <input type="password" id="resPassInp" class="seti" placeholder="••••••">
-                            <button onclick="togglePass('resPassInp')" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer;">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                    
+                    <!-- Quick Actions -->
+                    <div class="panel">
+                        <div class="panel-hdr"><div class="panel-title"><i class="fas fa-bolt"></i> روابط سريعة للعيادة</div></div>
+                        <div class="panel-body">
+                            <div style="display:flex;flex-direction:column;gap:10px">
+                                <button class="btn btn-outline" style="justify-content:flex-start" onclick="window.open(getBase()+'booking.html?id='+CID, '_blank')"><i class="fas fa-link"></i> رابط الحجز المباشر للمرضى (بوابة الحجز)</button>
+                                <button class="btn btn-outline" style="justify-content:flex-start" onclick="window.open(getBase()+'patient-portal.html?id='+CID, '_blank')"><i class="fas fa-mobile-alt"></i> بوابة تتبع المرضى</button>
+                                <button class="btn btn-outline" style="justify-content:flex-start" data-feature="invoices_advanced" onclick="generateDemoInvoice()"><i class="fas fa-file-invoice-dollar"></i> توليد فاتورة (PDF تجريبي)</button>
+                                <button class="btn btn-primary" style="justify-content:flex-start" data-feature="emr" onclick="window.open(getBase()+'emr.html?id='+CID, '_blank')"><i class="fas fa-stethoscope"></i> فتح شاشة الطبيب (EMR)</button>
+                            </div>
                         </div>
                     </div>
-                    <button class="bsave" onclick="saveSets()">
-                        <i class="fas fa-floppy-disk" style="margin-left:8px"></i> حفظ جميع التغييرات
-                    </button>
                 </div>
+            </section>
+
+            <!-- 2. PATIENTS VIEW -->
+            <section id="view-patients" class="view-section">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <div class="panel-title"><i class="fas fa-users"></i> سجل المرضى والملفات الطبية</div>
+                        <div style="display:flex;gap:10px">
+                            <button class="btn btn-outline" style="color:var(--green);border-color:var(--green)" onclick="exportPatientsExcel()"><i class="fas fa-file-excel"></i> تصدير (Excel)</button>
+                            <input type="text" class="fi" style="width:250px;padding:8px" placeholder="🔍 بحث بالاسم أو الهاتف...">
+                            <button class="btn btn-primary" onclick="openAddPatient()"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>اسم المريض</th><th>رقم الهاتف</th><th>الرقم الوطني / الهوية</th><th>إجراءات</th></tr></thead>
+                            <tbody id="patientsTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. APPOINTMENTS VIEW -->
+            <section id="view-appointments" class="view-section">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <div class="panel-title"><i class="fas fa-calendar-alt"></i> المواعيد والحجوزات</div>
+                        <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="openAddAppointment()"><i class="fas fa-plus"></i> حجز جديد</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th># الدور</th><th>المريض</th><th>التاريخ والوقت</th><th>الحالة</th><th>تحديث الحالة</th></tr></thead>
+                            <tbody id="aptsTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. WHATSAPP CENTER -->
+            <section id="view-whatsapp" class="view-section">
+                <div class="panel">
+                    <div class="panel-hdr"><div class="panel-title"><i class="fab fa-whatsapp" style="color:#25D366"></i> إعدادات الأتمتة وإشعارات الواتساب</div></div>
+                    <div class="panel-body">
+                        <div class="form-grid">
+                            <div class="fg">
+                                <label>رقم هاتف العيادة المرسل</label>
+                                <input type="text" class="fi" id="waNumber" placeholder="962790000000" dir="ltr" oninput="autoSaveSettings()">
+                                <small style="color:var(--muted)">تأكد من إدخال رمز الدولة</small>
+                            </div>
+                            <div class="fg">
+                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                                    <input type="checkbox" id="waEnabled" style="width:20px;height:20px" onchange="autoSaveSettings()">
+                                    تفعيل إرسال إشعارات الواتساب تلقائياً للـ (Booking, Reminders)
+                                </label>
+                            </div>
+                        </div>
+                        <hr style="border:0;border-top:1px solid var(--border);margin:24px 0">
+                        <h4 style="margin-bottom:16px;color:var(--teal)">نماذج الرسائل (Templates)</h4>
+                        <div class="form-grid">
+                            <div class="fg">
+                                <label>رسالة تأكيد الحجز (Booking Confirm)</label>
+                                <textarea class="fi fi-area" id="tmplBooking" oninput="autoSaveSettings()"></textarea>
+                                <small style="color:var(--muted)">المتغيرات المتاحة: {patientName}, {clinicName}, {date}, {time}, {queueNum}, {trackingUrl}</small>
+                            </div>
+                            <div class="fg">
+                                <label>تذكير بالموعد (Reminder 30m)</label>
+                                <textarea class="fi fi-area" id="tmplRemind" oninput="autoSaveSettings()"></textarea>
+                                <small style="color:var(--muted)">المتغيرات المتاحة: {patientName}, {clinicName}, {time}</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top:20px" onclick="saveWhatsAppConfig()">حفظ إعدادات الواتساب</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS -->
+            <section id="view-settings" class="view-section">
+                <div class="panel">
+                    <div class="panel-hdr"><div class="panel-title"><i class="fas fa-cog"></i> إعدادات العيادة العامة</div></div>
+                    <div class="panel-body">
+                        <div class="form-grid">
+                            <div class="fg"><label>رقم الهاتف</label><input type="text" class="fi" id="setPhone" dir="ltr" oninput="autoSaveSettings()"></div>
+                            <div class="fg"><label>العنوان</label><input type="text" class="fi" id="setAddr" oninput="autoSaveSettings()"></div>
+                            <div class="fg"><label>وقت الفتح</label><input type="time" class="fi" id="setOpen" oninput="autoSaveSettings()"></div>
+                            <div class="fg"><label>وقت الإغلاق</label><input type="time" class="fi" id="setClose" oninput="autoSaveSettings()"></div>
+                        </div>
+                        <div style="margin-top:16px;font-size:12px;color:var(--muted)"><i class="fas fa-save"></i> يتم حفظ الإعدادات تلقائياً عند التعديل</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL: ADD/EDIT PATIENT -->
+    <div class="modal-bg" id="ptModal">
+        <div class="modal">
+            <div class="modal-hdr">
+                <div class="modal-title"><i class="fas fa-user-edit"></i> إضافة / تعديل مريض</div>
+                <button class="modal-close" onclick="closeModal('ptModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ptId">
+                <div class="fg" style="margin-bottom:12px"><label>اسم المريض *</label><input type="text" class="fi" id="ptName"></div>
+                <div class="fg" style="margin-bottom:12px"><label>رقم الهاتف *</label><input type="tel" class="fi" id="ptPhone" dir="ltr"></div>
+                <div class="fg"><label>الرقم الوطني / رقم الهوية</label><input type="text" class="fi" id="ptIdNum" dir="ltr"></div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-outline" onclick="closeModal('ptModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="savePatient()"><i class="fas fa-save"></i> حفظ المريض</button>
             </div>
         </div>
     </div>
 
-    <!-- PREVIEW MODAL -->
-    <div id="prevModal">
-        <div class="pfw">
-            <button class="bclose-prev" onclick="closePreview()"><i class="fas fa-xmark" style="margin-left:6px"></i>
-                إغلاق المعاينة</button>
-            <div class="pfr"><iframe id="prevFrame" style="width:100%;height:100%;border:none;"></iframe></div>
+    <!-- MODAL: ADD APPOINTMENT -->
+    <div class="modal-bg" id="aptModal">
+        <div class="modal">
+            <div class="modal-hdr">
+                <div class="modal-title"><i class="fas fa-calendar-plus"></i> حجز موعد جديد</div>
+                <button class="modal-close" onclick="closeModal('aptModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="fg" style="margin-bottom:12px">
+                    <label>اختر المريض *</label>
+                    <select class="fi" id="aptPatient"></select>
+                </div>
+                <div class="form-grid">
+                    <div class="fg"><label>التاريخ *</label><input type="date" class="fi" id="aptDate"></div>
+                    <div class="fg"><label>الوقت المتوقع *</label><input type="time" class="fi" id="aptTime"></div>
+                </div>
+                <div class="fg" style="margin-top:12px">
+                    <label>نوع الحجز</label>
+                    <select class="fi" id="aptType">
+                        <option value="consultation">كشفية (Consultation)</option>
+                        <option value="followup">مراجعة (Follow-up)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-outline" onclick="closeModal('aptModal')">إلغاء</button>
+                <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="saveAppointment()"><i class="fas fa-check"></i> تأكيد الحجز</button>
+            </div>
         </div>
     </div>
-
-    <!-- REPORT MODAL -->
-    <div id="repModal">
-        <div class="rep-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <div>
-                    <h2 style="font-weight:900; color:var(--accent);">📑 تقرير المبيعات الذكي</h2>
-                    <p style="color:var(--muted); font-size:0.8rem;">تحليل الشامل لأداء المطعم</p>
-                </div>
-                <button onclick="closeRep()" style="background:rgba(255,255,255,0.05); border:none; color:white; width:35px; height:35px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
-                <div style="background:rgba(59,130,246,0.05); padding:15px; border-radius:15px; border:1px solid rgba(59,130,246,0.1);">
-                    <div style="font-size:0.7rem; color:var(--muted);">إجمالي المبيعات</div>
-                    <div id="repRev" style="font-size:1.4rem; font-weight:900; color:var(--accent);">0.00</div>
-                </div>
-                <div style="background:rgba(16,185,129,0.05); padding:15px; border-radius:15px; border:1px solid rgba(16,185,129,0.1);">
-                    <div style="font-size:0.7rem; color:var(--muted);">عدد الطلبات المكتملة</div>
-                    <div id="repCnt" style="font-size:1.4rem; font-weight:900; color:var(--green);">0</div>
-                </div>
-            </div>
-
-            <div id="peakGraf" style="margin-bottom:25px;"></div>
-            
-            <div style="margin-bottom:25px;">
-                <div style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">أكثر 10 أصناف مبيعاً:</div>
-                <div id="repBest" style="display:grid; gap:8px;"></div>
-            </div>
-
-            <button onclick="exportPDF()" style="width:100%; padding:15px; background:linear-gradient(135deg, var(--accent), var(--purple)); border:none; border-radius:15px; color:white; font-weight:800; cursor:pointer; font-size:1rem; box-shadow: 0 10px 20px rgba(59,130,246,0.2);">
-                <i class="fas fa-file-pdf" style="margin-left:10px;"></i> تحميل التقرير بصيغة PDF
-            </button>
-        </div>
-    </div>
-
-    <div id="connBar" class="conn-bar"></div>
-    <div id="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script>
-        // ═══════════════════════════════════════════════════════════
-        // ARGON DASHBOARD v3.0 — PRODUCTION BUILD (Optimized)
-        // Split listeners + Connection monitor + Scale-ready
-        // ═══════════════════════════════════════════════════════════
-        const firebaseConfig = {
-            apiKey: "AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",
-            authDomain: "argon-system-pro.firebaseapp.com",
-            databaseURL: "https://argon-system-pro-default-rtdb.firebaseio.com",
-            projectId: "argon-system-pro",
-            storageBucket: "argon-system-pro.firebasestorage.app",
-            messagingSenderId: "1017089181583",
-            appId: "1:1017089181583:web:78929d28042cd9662c2dfa",
-            measurementId: "G-P5BBDVQ437"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let RES_ID = urlParams.get('id');
-        
-        // Fallback to localStorage session from login.html
-        if (!RES_ID) {
-            try {
-                const sessionStr = localStorage.getItem('argon_session');
-                if (sessionStr) {
-                    const session = JSON.parse(sessionStr);
-                    if (session && session.restaurantId) {
-                        RES_ID = session.restaurantId;
-                    }
-                }
-            } catch(e) {}
-        }
-        
-        // Ultimate fallback
-        if (!RES_ID) RES_ID = '1';
-
-        const BASE = 'restaurants/' + RES_ID;
-        document.getElementById('resIdDisp').textContent = RES_ID;
-
-        // ── CLOCK ──
-        setInterval(() => {
-            document.getElementById('clkEl').textContent =
-                new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
-        }, 1000);
-
-        // ── STATE ──
-        let audioCtx = null;
-        let prevLiveCount = 0;
-        let firstLoad = true;
-        let correctPassword = '1122';
-        let isLogged = false;
-        let ordersCache = {};
-        let globalCompleted = {};
-        let _settingsData = {};
-        let _ordersData = {};
-        let _completedData = {};
-        let _productsData = {};
-        let isConnected = true;
-
-        // ══════════════════════════════════════════════
-        // 🛡️ ARGON SECURITY MODULE v2.0
-        // ══════════════════════════════════════════════
-        const _sec = {
-            // ── Input Sanitizer ──
-            sanitize: (s) => String(s || '').replace(/[<>"'`\\]/g, '').trim().substring(0, 300),
-            isPrice:  (p) => !isNaN(parseFloat(p)) && parseFloat(p) >= 0 && parseFloat(p) < 10000,
-            isName:   (n) => String(n).trim().length >= 1 && String(n).trim().length <= 100,
-
-            // ── Brute-force: max 5 attempts → 60s lock ──
-            BF_KEY: 'argon_dash_bf',
-            attempts: 0,
-            lockedUntil: 0,
-            checkBF() {
-                try {
-                    const d = JSON.parse(sessionStorage.getItem(this.BF_KEY) || '{"a":0,"l":0}');
-                    this.attempts = d.a; this.lockedUntil = d.l;
-                } catch(e) {}
-                return Date.now() < this.lockedUntil;
-            },
-            failBF() {
-                this.attempts++;
-                if (this.attempts >= 5) this.lockedUntil = Date.now() + 60000;
-                sessionStorage.setItem(this.BF_KEY, JSON.stringify({a:this.attempts, l:this.lockedUntil}));
-            },
-            resetBF() {
-                this.attempts = 0; this.lockedUntil = 0;
-                sessionStorage.removeItem(this.BF_KEY);
-            },
-
-            // ── Session token ──
-            SESSION_KEY: 'argon_dash_sess',
-            createSession(resId) {
-                const tok = { id: resId, ts: Date.now(), key: Math.random().toString(36).slice(2) };
-                sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(tok));
-            },
-            validateSession(resId) {
-                try {
-                    const tok = JSON.parse(sessionStorage.getItem(this.SESSION_KEY) || 'null');
-                    if (!tok) return false;
-                    if (tok.id !== resId) return false;
-                    if (Date.now() - tok.ts > 8 * 3600000) { this.clearSession(); return false; } // 8h expiry
-                    return true;
-                } catch(e) { return false; }
-            },
-            clearSession() { sessionStorage.removeItem(this.SESSION_KEY); }
-        };
-
-        // ── Auto-restore session ──
-        if (_sec.validateSession(RES_ID)) {
-            isLogged = true;
-            setTimeout(() => {
-                const ls = document.getElementById('dashLogin');
-                if (ls) { ls.style.display = 'none'; }
-            }, 100);
-        }
-        // CONNECTION MONITOR — prevents blank screen
-        // ══════════════════════════════════════════════
-        db.ref('.info/connected').on('value', snap => {
-            const wasOff = !isConnected;
-            isConnected = snap.val() === true;
-            updateConnBar();
-            if (isConnected && wasOff && !firstLoad) {
-                toast('✅ تم إعادة الاتصال بالخادم');
-            }
-        });
-        window.addEventListener('online', () => { setTimeout(() => db.goOnline(), 1000); });
-        window.addEventListener('offline', () => { isConnected = false; updateConnBar(); db.goOffline(); });
-        
-        // ── Gentle Mobile Fix ──
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && !isConnected) {
-                db.goOffline();
-                setTimeout(() => db.goOnline(), 1000);
-            }
-        });
-
-        function updateConnBar() {
-            const bar = document.getElementById('connBar');
-            if (!bar) return;
-            if (isConnected) {
-                bar.className = 'conn-bar conn-ok';
-                bar.innerHTML = '<i class="fas fa-wifi"></i> متصل';
-                bar.style.display = 'flex';
-                setTimeout(() => { if (isConnected) bar.style.display = 'none'; }, 2500);
-            } else {
-                bar.style.display = 'flex';
-                bar.className = 'conn-bar conn-off';
-                bar.innerHTML = '<i class="fas fa-exclamation-triangle"></i> فقد الاتصال — جاري إعادة الربط تلقائياً...';
-            }
-        }
-
-        // ── LOGIN ──
-        document.getElementById('loginPassInp').addEventListener('keyup', e => {
-            if (e.key === 'Enter') checkLogin();
-            document.getElementById('loginErr').style.display = 'none';
-        });
-
-        function checkLogin() {
-            // ── Brute-force check ──
-            if (_sec.checkBF()) {
-                const secs = Math.ceil((_sec.lockedUntil - Date.now()) / 1000);
-                const err = document.getElementById('loginErr');
-                err.textContent = `⛔ تم قفل الدخول لمدة ${secs} ثانية`;
-                err.style.display = 'block';
-                return;
-            }
-
-            const val = document.getElementById('loginPassInp').value;
-            const MASTER = 'argon_master_2026';
-            if (val === correctPassword || val === MASTER) {
-                _sec.resetBF();
-                _sec.createSession(RES_ID);
-                const loginScr = document.getElementById('dashLogin');
-                loginScr.style.opacity = '0';
-                loginScr.style.pointerEvents = 'none';
-                setTimeout(() => { 
-                    loginScr.style.display = 'none'; 
-                    isLogged = true; 
-                    toast('✅ تم تسجيل الدخول بنجاح');
-                }, 400);
-            } else {
-                _sec.failBF();
-                const err = document.getElementById('loginErr');
-                const remaining = 5 - _sec.attempts;
-                err.textContent = remaining > 0 
-                    ? `كلمة المرور غير صحيحة (${remaining} محاولة متبقية)`
-                    : '⛔ تم قفل الدخول 60 ثانية';
-                err.style.display = 'block';
-                err.classList.add('ringing'); 
-                setTimeout(() => err.classList.remove('ringing'), 400);
-                setTimeout(() => err.style.display = 'none', 4000);
-            }
-        }
-
-        // ── SOUND ──
-        function getAudioCtx() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            return audioCtx;
-        }
-        function playNotifSound() {
-            try {
-                const ctx = getAudioCtx();
-                // Professional Double-Chime Alert (High Penetration)
-                [880, 1108, 1318, 1760].forEach((freq, i) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain); 
-                    gain.connect(ctx.destination);
-                    
-                    osc.type = 'triangle'; // Better than sine, cuts through noise without being harsh
-                    osc.frequency.value = freq;
-                    
-                    const t = ctx.currentTime + (i < 2 ? 0 : 0.4); // Two distinct chirps
-                    gain.gain.setValueAtTime(0, t);
-                    gain.gain.linearRampToValueAtTime(0.6, t + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-                    
-                    osc.start(t);
-                    osc.stop(t + 0.4);
-                });
-            } catch (e) { }
-        }
-
-        // ── ACCENT COLOR ──
-        function applyAccent(color) {
-            document.documentElement.style.setProperty('--accent', color);
-            const cp = document.getElementById('colorPicker');
-            const cprev = document.getElementById('colorPreview');
-            const chex = document.getElementById('colorHex');
-            if (cp) cp.value = color;
-            if (cprev) cprev.style.background = color;
-            if (chex) chex.textContent = color;
-        }
-        function onColorChange(color) { applyAccent(color); }
-
-        // ── FORMAT ITEMS ──
-        function fmtItems(raw) {
-            if (!raw) return '';
-            const cnt = {};
-            if (Array.isArray(raw)) {
-                raw.forEach(item => {
-                    if (typeof item === 'object' && item !== null) {
-                        const n = item.name || item.n || '؟';
-                        const q = parseInt(item.qty || item.q || 1);
-                        cnt[n] = (cnt[n] || 0) + q;
-                    } else if (typeof item === 'string' && item.trim()) {
-                        cnt[item.trim()] = (cnt[item.trim()] || 0) + 1;
-                    }
-                });
-            } else {
-                String(raw).split(' + ').forEach(i => { i = i.trim(); if (i) cnt[i] = (cnt[i] || 0) + 1; });
-            }
-            return Object.entries(cnt).map(([n, c]) => `<span class="ichip">${c > 1 ? c + 'x ' : ''}${n}</span>`).join('');
-        }
-
-        // ── ERROR HANDLER ──
-        function handleFBError(err) {
-            console.error('Firebase error:', err.code, err.message);
-            if (err.code === 'PERMISSION_DENIED') {
-                const og = document.getElementById('ordersGrid');
-                if (og) og.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444">
-                    <i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:10px"></i>
-                    <b>خطأ في الصلاحيات: ${err.code}</b><br>
-                    <small style="color:#94a3b8;display:block;margin-top:8px">تأكد من إعدادات Firebase Rules</small>
-                </div>`;
-            }
-        }
-
-        // ══════════════════════════════════════════════
-        // GRANULAR FIREBASE LISTENERS (Performance Core)
-        // Instead of 1 giant listener, we use 4 separate
-        // ones. Each only fires when its data changes.
-        // ══════════════════════════════════════════════
-
-        // 1️⃣ SETTINGS — lightweight, rarely changes
-        db.ref(BASE + '/settings').on('value', snap => {
-            _settingsData = snap.val() || {};
-            const sets = _settingsData;
-
-            const lockEl = document.getElementById('lockoutScreen');
-            if (sets.status === 'closed') { if (lockEl) lockEl.classList.add('show'); }
-            else { if (lockEl) lockEl.classList.remove('show'); }
-            if (sets.color) applyAccent(sets.color);
-
-            const name = sets.name || 'مطعم أرغون';
-            document.getElementById('resNameTop').textContent = name;
-            document.getElementById('loginResName').textContent = name;
-            document.title = 'ARGON | ' + name;
-            correctPassword = sets.password || '1122';
-
-            const ri = document.getElementById('resNameInp');
-            if (ri && !ri.matches(':focus')) ri.value = sets.name || '';
-            const rp = document.getElementById('resPhoneInp');
-            if (rp && !rp.matches(':focus')) rp.value = sets.phone || '';
-
-            const sb = document.getElementById('statusBadge');
-            if (sb) {
-                sb.className = 'tbadge ' + (sets.status === 'closed' ? 'tbadge-closed' : 'tbadge-open');
-                sb.innerHTML = `<i class="fas fa-circle" style="font-size:0.38rem"></i> ${sets.status === 'closed' ? 'مغلق' : 'مفتوح'}`;
-            }
-        }, handleFBError);
-
-        // 2️⃣ LIVE ORDERS — changes often but small dataset
-        db.ref(BASE + '/orders').on('value', snap => {
-            _ordersData = snap.val() || {};
-            ordersCache = _ordersData;
-            const liveKeys = Object.keys(_ordersData);
-
-            // Badge
-            const lce = document.getElementById('liveCount');
-            if (lce) { lce.textContent = liveKeys.length; lce.className = 'nbadge' + (liveKeys.length === 0 ? ' zero' : ''); }
-
-            // Pending revenue
-            let pendRev = 0;
-            for (let k in _ordersData) pendRev += parseFloat(_ordersData[k].total || 0);
-            document.getElementById('pendingRevenue').textContent = pendRev.toFixed(2);
-
-            // Kitchen load
-            const lb = document.getElementById('loadBar'), lt = document.getElementById('loadText');
-            if (lb) {
-                const perc = Math.min((liveKeys.length / 15) * 100, 100);
-                lb.style.width = perc + '%';
-                if (liveKeys.length > 10) { lt.textContent = 'مرتفع 🔥'; lb.style.background = 'var(--red)'; }
-                else if (liveKeys.length > 5) { lt.textContent = 'متوسط ⚖️'; lb.style.background = 'var(--amber)'; }
-                else { lt.textContent = 'هادئ ✨'; lb.style.background = 'var(--green)'; }
-            }
-
-            // Sound
-            if (!firstLoad && liveKeys.length > prevLiveCount) {
-                playNotifSound();
-                const bell = document.getElementById('bellIcon');
-                if (bell) { bell.classList.add('ringing'); setTimeout(() => bell.classList.remove('ringing'), 2000); }
-            }
-            prevLiveCount = liveKeys.length;
-
-            // Render live orders
-            try {
-                const og = document.getElementById('ordersGrid');
-                og.innerHTML = '';
-                if (!liveKeys.length) {
-                    og.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><i class="fas fa-inbox" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد طلبات نشطة حالياً</div>';
-                } else {
-                    liveKeys.reverse().forEach(k => {
-                        const o = _ordersData[k], ih = fmtItems(o.items), isN = o.status === 'new';
-                        og.innerHTML += `
-                        <div class="oc ${isN ? 'oc-new' : ''}">
-                            <div class="oc-h"><span class="oc-no">#${o.orderNo || '؟'}</span>
-                            <span class="oc-st tbadge-${o.status || 'new'}">${o.status === 'prep' ? 'تحضير' : o.status === 'ready' ? 'جاهز' : 'طلب جديد'}</span></div>
-                            <div class="oc-b">
-                                <div style="font-weight:800;font-size:1.1rem;margin-bottom:5px;color:var(--text)">${o.custName || 'زبون'}</div>
-                                <div style="color:var(--muted);font-size:0.8rem;margin-bottom:12px">
-                                    <i class="fas fa-calendar-alt"></i> ${o.date || '-'} | <i class="fas fa-clock"></i> ${o.time || '-'}
-                                </div>
-                                <div style="color:var(--muted);font-size:0.85rem;margin-bottom:12px"><i class="fas fa-phone"></i> ${o.custPhone || '-'} | <i class="fas fa-truck"></i> ${o.orderType || '-'}</div>
-                                <div class="oc-i">${ih}</div>
-                                ${o.notes ? `<div style="margin-top:10px;padding:8px;background:rgba(245,158,11,0.05);border-radius:8px;font-size:0.8rem;color:var(--amber);border:1px dashed var(--amber)">📝 ${o.notes}</div>` : ''}
-                            </div>
-                            <div class="oc-f">
-                                <div style="font-size:1.2rem;font-weight:900;color:var(--accent)">${o.total} <small style="font-size:0.7rem">د.أ</small></div>
-                                <div style="display:flex;gap:6px">
-                                    ${isN ? `<button class="bprep" onclick="updateStatus('${k}','prep')">تحضير</button>` : ''}
-                                    ${o.status === 'prep' ? `<button class="bread" onclick="updateStatus('${k}','ready')">جاهز</button>` : ''}
-                                    <button class="bwa" onclick="sendWhatsApp('${o.custPhone}','${o.status}','${o.orderNo}','${o.custName}')"><i class="fab fa-whatsapp"></i></button>
-                                    <button class="bcomplete" onclick="completeOrder('${k}')">إنهاء</button>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                }
-            } catch (e) { console.warn('Render orders error:', e); }
-
-            firstLoad = false;
-        }, handleFBError);
-
-        // 3️⃣ COMPLETED ORDERS — limited to last 200 for speed
-        db.ref(BASE + '/completedOrders').orderByKey().limitToLast(200).on('value', snap => {
-            _completedData = snap.val() || {};
-            globalCompleted = _completedData;
-            const doneKeys = Object.keys(_completedData);
-
-            // Revenue & best sellers
-            let totalRev = 0;
-            const salesMap = {};
-            for (let k in _completedData) {
-                const o = _completedData[k];
-                totalRev += parseFloat(o.total || 0);
-                
-                // Handle different item formats (Array of objects, Array of strings, single object, or combined string)
-                let items = [];
-                if (Array.isArray(o.items)) {
-                    items = o.items;
-                } else if (typeof o.items === 'object' && o.items !== null) {
-                    items = [o.items]; // single object
-                } else if (typeof o.items === 'string') {
-                    items = o.items.split(/[+,|]|\s\+\s/).map(s => s.trim()).filter(s => s);
-                }
-                
-                items.forEach(i => {
-                    let n = '';
-                    let q = 1;
-                    if (typeof i === 'object' && i !== null) {
-                        n = i.name || i.n || i.title;
-                        q = parseInt(i.qty || i.q || i.quantity || 1);
-                    } else if (typeof i === 'string') {
-                        n = i.trim();
-                    }
-                    if (n && n !== 'undefined') salesMap[n] = (salesMap[n] || 0) + q;
-                });
-            }
-            document.getElementById('totalRevenue').textContent = totalRev.toFixed(2);
-            document.getElementById('statCompleted').textContent = doneKeys.length;
-            const avg = doneKeys.length > 0 ? (totalRev / doneKeys.length) : 0;
-            const avgEl = document.getElementById('avgOrder');
-            if (avgEl) {
-                avgEl.textContent = avg.toFixed(2);
-            }
-
-            // Best sellers
-            try {
-                const bsl = document.getElementById('bestSellerList');
-                if (bsl) {
-                    const sorted = Object.entries(salesMap)
-                        .filter(([n, c]) => n && n !== 'undefined')
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 10); // Show top 10
-
-                    if (sorted.length > 0) {
-                        bsl.innerHTML = sorted.map(([n, c], i) => `
-                            <div class="bsc">
-                                <div class="bsrank">#${i + 1} BESTSELLER</div>
-                                <div class="bsname">${n}</div>
-                                <div class="bscnt">${c} طلبات</div>
-                            </div>`).join('');
-                    } else {
-                        bsl.innerHTML = '<div style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px">لا توجد مبيعات مسجلة حالياً</div>';
-                    }
-                }
-            } catch (e) { console.error('Best sellers error:', e); }
-
-            // History table
-            try {
-                const hg = document.getElementById('histGrid');
-                if (!hg) return;
-                if (!doneKeys.length) {
-                    hg.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);background:var(--panel);border-radius:20px;border:1px solid var(--border)"><i class="fas fa-history" style="font-size:3rem;display:block;margin-bottom:15px;opacity:0.2"></i>لا توجد مبيعات في السجل حالياً</div>';
-                } else {
-                    hg.innerHTML = `<div class="htable-wrap"><table class="htable">
-                        <thead><tr><th>التاريخ</th><th>الزبون</th><th>الطلب</th><th>المبلغ</th><th>النوع</th></tr></thead>
-                        <tbody>${doneKeys.reverse().slice(0, 50).map(k => {
-                            const o = _completedData[k]; if (!o) return '';
-                            return `<tr><td><div style="font-weight:700">${o.time || '-'}</div><div style="font-size:0.7rem;opacity:0.6">${o.date || '-'}</div></td>
-                            <td><b>${o.custName || '-'}</b><br><small>${o.custPhone || '-'}</small></td>
-                            <td>${fmtItems(o.items)}</td>
-                            <td style="color:var(--green);font-weight:800">${o.total || '0.00'}</td>
-                            <td><span class="tbadge tbadge-id" style="font-size:0.65rem">${o.orderType || '-'}</span></td></tr>`;
-                        }).join('')}</tbody></table></div>`;
-                }
-            } catch (e) { console.warn('History render error:', e); }
-        }, handleFBError);
-
-        // 4️⃣ PRODUCTS — rarely changes
-        db.ref(BASE + '/products').on('value', snap => {
-            _productsData = snap.val() || {};
-            try {
-                const mg = document.getElementById('menuGrid');
-                if (!mg) return;
-                const pKeys = Object.keys(_productsData);
-                mg.innerHTML = pKeys.map(k => {
-                    const p = _productsData[k];
-                    return `<div class="pb" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.05);border-radius:20px;overflow:hidden;transition:0.3s;position:relative;">
-                        <div style="height:140px;overflow:hidden;position:relative;">
-                            <img src="${p.img || 'https://via.placeholder.com/150'}" style="width:100%;height:100%;object-fit:cover;">
-                            <div style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);color:#fff;padding:4px 10px;border-radius:10px;font-weight:800;font-size:0.85rem;">${p.price} د.أ</div>
-                        </div>
-                        <div style="padding:15px;">
-                            <div style="font-weight:800;font-size:1rem;color:var(--text);margin-bottom:12px;">${p.name}</div>
-                            <div style="display:flex;gap:10px;">
-                                <button class="bdel" style="flex:1;border-radius:10px;padding:10px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);" onclick="db.ref('restaurants/${RES_ID}/products/${k}').remove()"><i class="fas fa-trash"></i> حذف الصنف</button>
-                            </div>
-                        </div>
-                    </div>`;
-                }).join('');
-                if (!pKeys.length) mg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">لا توجد أصناف في المنيو</div>';
-            } catch (e) { console.warn('Menu render error:', e); }
-        }, handleFBError);
-
-        function saveSets() {
-            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
-            const color  = document.getElementById('colorPicker').value || '#3b82f6';
-            const name   = _sec.sanitize(document.getElementById('resNameInp').value);
-            const phone  = _sec.sanitize(document.getElementById('resPhoneInp').value);
-            const hours  = _sec.sanitize(document.getElementById('resHoursInp').value);
-            const newPass = document.getElementById('resPassInp').value.trim();
-            if (!name) { toast('⚠️ اسم المطعم مطلوب'); return; }
-            const update = { name, phone, status: document.getElementById('resStatusInp').value, hours, color };
-            if (newPass.length >= 4) update.password = newPass;
-            db.ref('restaurants/' + RES_ID + '/settings').update(update)
-                .then(() => { toast('✅ تم حفظ الإعدادات بنجاح'); document.getElementById('resPassInp').value = ''; })
-                .catch(err => toast('❌ ' + err.message));
-        }
-
-        function updateStatus(key, s) {
-            if (!isLogged) return;
-            const allowed = ['new','prep','ready','shipped','done','completed'];
-            if (!allowed.includes(s)) return;
-            db.ref(`restaurants/${RES_ID}/orders/${key}/status`).set(s);
-            toast('تم تحديث حالة الطلب');
-        }
-
-        function sendWhatsApp(phone, status, orderNo, name) {
-            if (!phone) { toast('رقم الهاتف غير موجود'); return; }
-            const safePhone = String(phone).replace(/\D/g,'');
-            const safeName  = _sec.sanitize(name);
-            const safeNo    = _sec.sanitize(orderNo);
-            let msg = '';
-            if (status === 'prep') msg = `مرحباً ${safeName}، طلبك رقم ${safeNo} جاري تحضيره الآن في مطعمنا! 👨‍🍳`;
-            else if (status === 'shipped' || status === 'ready') msg = `مرحباً ${safeName}، طلبك رقم ${safeNo} أصبح جاهزاً للاستلام! 📦 صحتين وعافية.`;
-            else msg = `مرحباً ${safeName}، بخصوص طلبك رقم ${safeNo} من مطعمنا...`;
-            window.open(`https://wa.me/${safePhone}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function completeOrder(key) {
-            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
-            const orderData = ordersCache[key];
-            if (!orderData) { toast('⚠️ لم يتم العثور على الطلب'); return; }
-            db.ref(`restaurants/${RES_ID}/completedOrders/${key}`).set(orderData)
-                .then(() => db.ref(`restaurants/${RES_ID}/orders/${key}`).remove()
-                    .then(() => toast('✅ تم إكمال الطلب'))
-                ).catch(err => toast('❌ خطأ: ' + err.message));
-        }
-
-        function addItem() {
-            if (!isLogged) { toast('⚠️ غير مصرح لك'); return; }
-            const name  = _sec.sanitize(document.getElementById('itemName').value);
-            const price = document.getElementById('itemPrice').value.trim();
-            const img   = _sec.sanitize(document.getElementById('itemImg').value);
-            if (!_sec.isName(name)) { toast('⚠️ اسم الصنف مطلوب'); return; }
-            if (!_sec.isPrice(price)) { toast('⚠️ السعر غير صحيح'); return; }
-            db.ref('restaurants/' + RES_ID + '/products').push({ name, price: parseFloat(price), img })
-                .then(() => { document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemImg').value = ''; toast('✅ تم إضافة الصنف'); });
-        }
-
-        function clearHistory() {
-            if (!isLogged) return;
-            if (!confirm('هل أنت متأكد من مسح سجل المبيعات؟')) return;
-            db.ref('restaurants/' + RES_ID + '/completedOrders').remove().then(() => toast('🗑️ تم مسح السجل'));
-        }
-
-        function showSec(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
-
-        function openRep() {
-            document.getElementById('repModal').style.display = 'flex';
-            renderRep();
-        }
-        function closeRep() { document.getElementById('repModal').style.display = 'none'; }
-
-        function renderRep() {
-            const rev = document.getElementById('totalRevenue').textContent;
-            const cnt = document.getElementById('statCompleted').textContent;
-            document.getElementById('repRev').textContent = rev + ' د.أ';
-            document.getElementById('repCnt').textContent = cnt;
-
-            const hourMap = {};
-            for (let i = 0; i < 24; i++) hourMap[i] = 0;
-            
-            // Helper to get 24h from Arabic time string
-            const get24H = (t) => {
-                try {
-                    // Convert Arabic digits to English
-                    const d = t.replace(/[٠-٩]/g, c => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
-                    let [h, m_and_suffix] = d.split(':');
-                    let hr = parseInt(h);
-                    if (d.includes('م') && hr !== 12) hr += 12; // PM
-                    if (d.includes('ص') && hr === 12) hr = 0;   // 12 AM
-                    return isNaN(hr) ? null : hr;
-                } catch(e) { return null; }
-            };
-            
-            for (let k in globalCompleted) {
-                const o = globalCompleted[k];
-                if (o.time) {
-                    const hr = get24H(o.time);
-                    if (hr !== null) hourMap[hr]++;
-                }
-            }
-
-            const pg = document.getElementById('peakGraf');
-            pg.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">توزيع الطلبات حسب الساعة (Peak Hours):</div>';
-            
-            const max = Math.max(...Object.values(hourMap), 1);
-            for(let h=0; h<24; h++) {
-                if (hourMap[h] === 0 && (h < 9 || h > 23)) continue; // Skip empty late night
-                const perc = (hourMap[h] / max) * 100;
-                pg.innerHTML += `
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-                    <span style="width:50px;font-size:0.75rem;font-weight:700;color:var(--muted)">${h}:00</span>
-                    <div style="flex:1;height:14px;background:rgba(59,130,246,0.05);border-radius:7px;overflow:hidden;border:1px solid var(--border)">
-                        <div style="width:${perc}%;height:100%;background:linear-gradient(90deg,var(--accent),#8b5cf6);box-shadow:0 0 10px rgba(99,102,241,0.3)"></div>
-                    </div>
-                    <span style="font-size:0.75rem;font-weight:700;color:var(--accent);min-width:20px">${hourMap[h]}</span>
-                </div>`;
-            }
-
-            // Best Items
-            try {
-                const rb = document.getElementById('repBest');
-                const prb = document.getElementById('printRepBest');
-                const sMap = {};
-                for (let k in globalCompleted) {
-                    const o = globalCompleted[k];
-                    if (Array.isArray(o.items)) {
-                        o.items.forEach(i => {
-                            const n = i.name || i.n;
-                            const q = parseInt(i.qty || i.q || 1);
-                            if (n) sMap[n] = (sMap[n] || 0) + q;
-                        });
-                    }
-                }
-                const sorted = Object.entries(sMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                const html = sorted.map(([n,c]) => `
-                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(59,130,246,0.03);border-radius:10px;border:1px solid var(--border)">
-                    <span style="font-weight:700">${n}</span>
-                    <span style="color:var(--accent);font-weight:800">${c} طلب</span>
-                </div>`).join('');
-                
-                if(rb) rb.innerHTML = html;
-                if(prb) prb.innerHTML = html;
-
-                // Sync Peak Hours to Print Template
-                const prp = document.getElementById('printRepPeak');
-                if (prp) {
-                    const peaks = Object.entries(hourMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
-                    prp.innerHTML = peaks.map(([h, c]) => `• الساعة <b>${h}:00</b> سجلت <b>${c} طلبات</b>`).join('<br>');
-                }
-            } catch(e) {}
-        }
-
-        async function exportPDF() {
-            toast('⏳ جاري تجهيز التقرير... يرجى الانتظار');
-            
-            const element = document.getElementById('reportTemplate');
-            element.style.display = 'block'; // Temporary show for capture
-            
-            // Populate template data
-            document.getElementById('repResName').textContent = document.getElementById('resNameTop').textContent;
-            document.getElementById('repDate').textContent = new Date().toLocaleString('ar-JO');
-            document.getElementById('repTotalRev').textContent = document.getElementById('totalRevenue').textContent + ' دينار أردني';
-            document.getElementById('repCount').textContent = document.getElementById('statCompleted').textContent;
-            
-            const opt = {
-                margin: 10,
-                filename: `Report_${document.getElementById('resNameTop').textContent}_${new Date().toLocaleDateString()}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.style.display = 'none';
-                toast('✅ تم تحميل تقرير مبيعاتك بنجاح');
-            });
-        }
-
-        function showSec(id, el) { 
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); 
-            document.getElementById(id).classList.add('active'); 
-            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active')); 
-            if(el) el.classList.add('active'); 
-        }
-
-        function openPreview() { document.getElementById('prevFrame').src = `index.html?id=${RES_ID}`; document.getElementById('prevModal').style.display = 'flex'; }
-        function closePreview() { document.getElementById('prevModal').style.display = 'none'; document.getElementById('prevFrame').src = ''; }
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
-
-        function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
-
-        function togglePass(id) {
-            const el = document.getElementById(id);
-            const icon = event.currentTarget.querySelector('i');
-            if (el.type === 'password') {
-                el.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                el.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-
-        // Unlock audio on first interaction
-        document.addEventListener('click', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
-        
-        function fmtItems(items) {
-            if (!items) return '<span style="color:var(--muted)">-</span>';
-            let list = [];
-            if (Array.isArray(items)) {
-                list = items;
-            } else if (typeof items === 'object' && items !== null) {
-                list = [items];
-            } else if (typeof items === 'string') {
-                list = items.split(/[+,|]|\s\+\s/).map(s => ({ name: s.trim() })).filter(x => x.name);
-            }
-            if (!list.length) return '<span style="color:var(--muted)">-</span>';
-            return list.map(it => {
-                const n = it.name || it.n || (typeof it === 'string' ? it : 'صنف');
-                const q = it.qty || it.q || 1;
-                return `<div style="font-size:0.75rem;margin-bottom:2px">• <b>${q}x</b> ${n}</div>`;
-            }).join('');
-        }
-
-        function doLogout() {
-            if (!confirm('هل تريد الخروج من لوحة التحكم؟')) return;
-            localStorage.removeItem('argon_session');
-            window.location.href = 'login.html';
-        }
-    </script>
-    
-    <div id="reportTemplate" style="display:none; padding:40px; font-family:'Tajawal',sans-serif; direction:rtl; color:#333; background:white;">
-        <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #3b82f6; padding-bottom:20px;">
-            <div style="font-size:24px; font-weight:900; color:#3b82f6;">تقرير مبيعات نظام أرغون</div>
-            <div id="repResName" style="font-size:18px; margin-top:5px; font-weight:700;"></div>
-            <div style="font-size:12px; color:#666; margin-top:5px;">تاريخ التقرير: <span id="repDate"></span></div>
-        </div>
-        
-        <div style="margin-bottom:30px;">
-            <h3 style="color:#111; border-right:4px solid #3b82f6; padding-right:10px;">📈 ملخص عام</h3>
-            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                <tr>
-                    <td style="padding:10px; border:1px solid #eee; background:#f9f9f9;">إجمالي الدخل</td>
-                    <td id="repTotalRev" style="padding:10px; border:1px solid #eee; font-weight:700;"></td>
-                </tr>
-                <tr>
-                    <td style="padding:10px; border:1px solid #eee; background:#f9f9f9;">عدد الطلبات</td>
-                    <td id="repCount" style="padding:10px; border:1px solid #eee; font-weight:700;"></td>
-                </tr>
-            </table>
-        </div>
-
-        <div style="margin-bottom:30px;">
-            <h3 style="color:#111; border-right:4px solid #3b82f6; padding-right:10px;">⭐ أفضل الأصناف مبيعاً</h3>
-            <div id="printRepBest" style="margin-top:10px;"></div>
-        </div>
-
-        <div style="margin-bottom:30px;">
-            <h3 style="color:#111; border-right:4px solid #3b82f6; padding-right:10px;">🕒 ساعات الذروة</h3>
-            <div id="printRepPeak" style="margin-top:10px; font-size:14px; line-height:1.6;"></div>
-        </div>
-
-        <div style="text-align:center; font-size:10px; color:#999; margin-top:50px; border-top:1px solid #eee; padding-top:20px;">
-            هذا التقرير تم إنشاؤه تلقائياً بواسطة نظام ARGON OS © 2026
-        </div>
-    </div>
+    <script src="argon-medical-core.js"></script>
+    <script src="argon-enterprise.js"></script>
+    <script src="dashboard-app.js"></script>
 </body>
 </html>

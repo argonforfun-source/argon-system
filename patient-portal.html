@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع الموعد الطبي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-l: rgba(13,148,136,0.1);
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(0,0,0,0.08);
+            --red: #ef4444;
+            --orange: #f59e0b;
+            --blue: #3b82f6;
+            --green: #10b981;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        
+        .portal-card { background: var(--card); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 480px; overflow: hidden; animation: slideUp 0.5s; border: 1px solid var(--border); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .header { background: linear-gradient(135deg, var(--primary), #0f766e); color: white; padding: 30px 20px; text-align: center; position: relative; }
+        .clinic-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .pt-name { font-size: 15px; opacity: 0.9; margin-top: 10px; background: rgba(0,0,0,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px; }
+        
+        .body { padding: 30px 24px; text-align: center; }
+        
+        .queue-box { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 30px; position: relative; overflow: hidden; }
+        .queue-num { font-size: 48px; font-weight: 900; color: var(--primary); line-height: 1; margin: 10px 0; }
+        .queue-lbl { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+        
+        /* Pulse animation for active states */
+        .pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 50%; background: var(--primary-l); animation: pulse 2s infinite; z-index: 0; pointer-events: none; }
+        @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
+        .q-content { position: relative; z-index: 1; }
+
+        /* Timeline */
+        .timeline { display: flex; flex-direction: column; gap: 16px; text-align: right; }
+        .t-step { display: flex; align-items: center; gap: 16px; opacity: 0.4; transition: .3s; }
+        .t-step.active { opacity: 1; }
+        .t-step.done { opacity: 1; }
+        
+        .t-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; background: #e2e8f0; color: var(--muted); position: relative; z-index: 2; transition: .3s; }
+        .t-step.active .t-icon { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-l); }
+        .t-step.done .t-icon { background: var(--green); color: white; }
+        
+        .t-line { position: absolute; top: 40px; bottom: -16px; left: 50%; transform: translateX(-50%); width: 2px; background: #e2e8f0; z-index: 1; }
+        .t-step:last-child .t-line { display: none; }
+        .t-step.done .t-line { background: var(--green); }
+        
+        .t-text { flex: 1; }
+        .t-title { font-size: 15px; font-weight: 800; color: var(--text); }
+        .t-desc { font-size: 12px; color: var(--muted); }
+
+        #loadingOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay"><i class="fas fa-spinner fa-spin" style="font-size:32px;margin-bottom:16px"></i> جاري التحميل...</div>
+
+    <div class="portal-card" id="mainCard" style="display:none">
+        
+        <div class="header" id="cHeader">
+            <div class="clinic-name" id="cName">العيادة</div>
+            <div style="font-size:12px;opacity:0.8">بوابة تتبع المريض المباشرة</div>
+            <div class="pt-name" id="pName"><i class="fas fa-user"></i> المريض</div>
+        </div>
+
+        <div class="body">
+            
+            <div class="queue-box">
+                <div class="pulse-ring" id="pulseRing"></div>
+                <div class="q-content">
+                    <div class="queue-lbl">رقم الدور الخاص بك</div>
+                    <div class="queue-num" id="qNum">-</div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:8px" id="qStatusTxt">الرجاء التوجه للاستقبال</div>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <div class="t-step active" id="ts-booked">
+                    <div style="position:relative">
+                        <div class="t-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="t-line"></div>
+                    </div>
+                    <div class="t-text">
+                        <div class="t-title">تم الحجز</div>
+                        <div class="t-desc">موعدك مؤكد في النظام</div>
+                    </div>
+                </div>
+                
+                <div class="t-step" id="ts-waiting">
+                    <div style="position:relative">
+                        <div class="t-icon"><i class="fas fa-couch"></i></div>
+                        <div class="t-line"></div>
+                    </div>
+                    <div class="t-text">
+                        <div class="t-title">في الانتظار</div>
+                        <div class="t-desc">يرجى الانتظار في صالة العيادة</div>
+                    </div>
+                </div>
+                
+                <div class="t-step" id="ts-doctor">
+                    <div style="position:relative">
+                        <div class="t-icon"><i class="fas fa-user-md"></i></div>
+                        <div class="t-line" id="tl-doctor"></div>
+                    </div>
+                    <div class="t-text">
+                        <div class="t-title">عند الطبيب</div>
+                        <div class="t-desc">تفضل بالدخول لغرفة الطبيب</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Step (Pharmacy or Lab) -->
+                <div class="t-step" id="ts-extra" style="display:none">
+                    <div style="position:relative">
+                        <div class="t-icon" id="ti-extra"><i class="fas fa-pills"></i></div>
+                        <div class="t-line"></div>
+                    </div>
+                    <div class="t-text">
+                        <div class="t-title" id="tt-extra">الصيدلية</div>
+                        <div class="t-desc" id="td-extra">يتم تجهيز الوصفة</div>
+                    </div>
+                </div>
+                
+                <div class="t-step" id="ts-done">
+                    <div style="position:relative">
+                        <div class="t-icon"><i class="fas fa-check-double"></i></div>
+                    </div>
+                    <div class="t-text">
+                        <div class="t-title">مكتمل</div>
+                        <div class="t-desc">نتمنى لك السلامة الدائمة</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="argon-medical-core.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const CID = params.get('id');
+        const APTID = params.get('apt');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!CID || !APTID) { showError('الرابط غير صالح أو مفقود المعرفات.'); return; }
+            
+            try {
+                const settings = await ArgonMedical.License.load(CID);
+                
+                document.getElementById('cName').textContent = settings.name || 'العيادة';
+                if (settings.color) {
+                    document.documentElement.style.setProperty('--primary', settings.color);
+                    document.getElementById('cHeader').style.background = `linear-gradient(135deg, ${settings.color}, ${settings.color}cc)`;
+                }
+
+                startTracking();
+
+            } catch (e) {
+                showError('العيادة غير موجودة.');
+            }
+        });
+
+        function showError(msg) {
+            document.getElementById('loadingOverlay').innerHTML = `<i class="fas fa-exclamation-triangle" style="font-size:32px;color:var(--red);margin-bottom:16px"></i><div style="color:var(--red)">${msg}</div>`;
+        }
+
+        async function startTracking() {
+            // Get initial patient details
+            const aptSnap = await ArgonMedical.DB.ref(`clinics/${CID}/appointments/${APTID}`).once('value');
+            const apt = aptSnap.val();
+            if (!apt) { showError('الموعد غير موجود.'); return; }
+
+            const ptSnap = await ArgonMedical.DB.ref(`clinics/${CID}/patients/${apt.patientId}`).once('value');
+            const pt = ptSnap.val();
+            if (pt) document.getElementById('pName').innerHTML = `<i class="fas fa-user"></i> ${pt.name}`;
+            
+            document.getElementById('qNum').textContent = apt.queueNum || '-';
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('mainCard').style.display = 'block';
+
+            // Real-time listener
+            ArgonMedical.DB.ref(`clinics/${CID}/appointments/${APTID}`).on('value', snap => {
+                const data = snap.val();
+                if (data) updateUI(data.status);
+            });
+        }
+
+        function updateUI(status) {
+            // Reset all
+            document.querySelectorAll('.t-step').forEach(el => {
+                el.classList.remove('active', 'done');
+                const icon = el.querySelector('.t-icon');
+                if(icon) icon.style.background = '';
+            });
+            document.getElementById('ts-extra').style.display = 'none';
+            document.getElementById('tl-doctor').style.display = 'block';
+
+            const pRing = document.getElementById('pulseRing');
+            const qTxt = document.getElementById('qStatusTxt');
+            const qNum = document.getElementById('qNum');
+            
+            pRing.style.display = 'none';
+            qNum.style.color = 'var(--primary)';
+
+            // Booked
+            if (status === 'booked') {
+                document.getElementById('ts-booked').classList.add('active');
+                qTxt.textContent = 'بانتظار وصولك للعيادة وتأكيد الموعد';
+                qTxt.style.color = 'var(--muted)';
+            }
+            // Waiting
+            else if (status === 'waiting') {
+                document.getElementById('ts-booked').classList.add('done');
+                document.getElementById('ts-waiting').classList.add('active');
+                pRing.style.display = 'block';
+                pRing.style.background = 'rgba(245,158,11,0.1)';
+                qNum.style.color = 'var(--orange)';
+                qTxt.textContent = 'أنت الآن في غرفة الانتظار.. يرجى البقاء قريباً';
+                qTxt.style.color = 'var(--orange)';
+            }
+            // In Doctor
+            else if (status === 'in_doctor') {
+                document.getElementById('ts-booked').classList.add('done');
+                document.getElementById('ts-waiting').classList.add('done');
+                document.getElementById('ts-doctor').classList.add('active');
+                pRing.style.display = 'block';
+                pRing.style.background = 'rgba(13,148,136,0.1)';
+                qNum.style.color = 'var(--primary)';
+                qTxt.textContent = 'يرجى التفضل بالدخول للطبيب الآن';
+                qTxt.style.color = 'var(--primary)';
+            }
+            // In Pharmacy / Lab / Radiology (Dynamic Step)
+            else if (status === 'in_pharmacy' || status === 'in_lab' || status === 'in_radiology') {
+                document.getElementById('ts-booked').classList.add('done');
+                document.getElementById('ts-waiting').classList.add('done');
+                document.getElementById('ts-doctor').classList.add('done');
+                
+                const extra = document.getElementById('ts-extra');
+                extra.style.display = 'flex';
+                extra.classList.add('active');
+                
+                if (status === 'in_pharmacy') {
+                    document.getElementById('ti-extra').innerHTML = '<i class="fas fa-pills"></i>';
+                    document.getElementById('tt-extra').textContent = 'الصيدلية';
+                    document.getElementById('td-extra').textContent = 'يتم تجهيز أدويتك';
+                    qNum.style.color = '#f59e0b';
+                    qTxt.textContent = 'يرجى التوجه للصيدلية لاستلام الأدوية';
+                    qTxt.style.color = '#f59e0b';
+                    pRing.style.background = 'rgba(245,158,11,0.1)';
+                } else if (status === 'in_lab') {
+                    document.getElementById('ti-extra').innerHTML = '<i class="fas fa-microscope"></i>';
+                    document.getElementById('tt-extra').textContent = 'المختبر';
+                    document.getElementById('td-extra').textContent = 'بانتظار سحب العينة / النتائج';
+                    qNum.style.color = '#8b5cf6';
+                    qTxt.textContent = 'يرجى التوجه للمختبر';
+                    qTxt.style.color = '#8b5cf6';
+                    pRing.style.background = 'rgba(139,92,246,0.1)';
+                } else {
+                    document.getElementById('ti-extra').innerHTML = '<i class="fas fa-x-ray"></i>';
+                    document.getElementById('tt-extra').textContent = 'الأشعة';
+                    document.getElementById('td-extra').textContent = 'بانتظار التصوير';
+                    qNum.style.color = '#3b82f6';
+                    qTxt.textContent = 'يرجى التوجه لقسم الأشعة';
+                    qTxt.style.color = '#3b82f6';
+                    pRing.style.background = 'rgba(59,130,246,0.1)';
+                }
+                pRing.style.display = 'block';
+            }
+            // Completed
+            else if (status === 'completed') {
+                document.getElementById('ts-booked').classList.add('done');
+                document.getElementById('ts-waiting').classList.add('done');
+                document.getElementById('ts-doctor').classList.add('done');
+                document.getElementById('tl-doctor').style.display = 'none'; // hide line to extra
+                
+                document.getElementById('ts-done').classList.add('done');
+                qNum.style.color = 'var(--green)';
+                qTxt.textContent = 'الزيارة مكتملة.. نتمنى لك السلامة';
+                qTxt.style.color = 'var(--green)';
+            }
+            else if (status === 'cancelled') {
+                qNum.style.color = 'var(--red)';
+                qNum.textContent = 'X';
+                qTxt.textContent = 'تم إلغاء الموعد';
+                qTxt.style.color = 'var(--red)';
+            }
+        }
+    </script>
+</body>
+</html>

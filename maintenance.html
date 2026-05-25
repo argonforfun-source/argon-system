@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGON Medical OS — النظام متوقف</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8fafc;
+            --card: rgba(255,255,255,0.85);
+            --border: rgba(0,0,0,0.06);
+            --teal: #0d9488;
+            --teal-light: rgba(13,148,136,0.1);
+            --red: #ef4444;
+            --red-light: rgba(239,68,68,0.08);
+            --text: #0f172a;
+            --muted: #64748b;
+            --gold: #d4a843;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 30% 20%, rgba(13,148,136,0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(212,168,67,0.04) 0%, transparent 50%);
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: rgba(13,148,136,0.15);
+            border-radius: 50%;
+            animation: float-particle linear infinite;
+        }
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        .maint-container {
+            position: relative; z-index: 1;
+            max-width: 520px; width: 100%;
+            text-align: center;
+            animation: slideUp 0.8s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo */
+        .logo-wrap {
+            margin-bottom: 32px;
+        }
+        .logo-icon {
+            width: 100px; height: 100px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+            animation: pulse-logo 3s ease-in-out infinite;
+            backdrop-filter: blur(12px);
+        }
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(13,148,136,0.12); }
+        }
+        .logo-brand {
+            font-size: 11px; letter-spacing: 6px; color: var(--muted);
+            font-weight: 700; text-transform: uppercase;
+        }
+
+        /* Clinic Name */
+        .clinic-name {
+            font-size: 26px; font-weight: 900; color: var(--text);
+            margin-bottom: 8px; line-height: 1.4;
+        }
+
+        /* Card */
+        .maint-card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px; border-radius: 30px;
+            font-size: 14px; font-weight: 700;
+            margin-bottom: 24px;
+        }
+        .status-suspended {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1px solid rgba(239,68,68,0.15);
+        }
+        .status-maintenance {
+            background: rgba(245,158,11,0.08);
+            color: #f59e0b;
+            border: 1px solid rgba(245,158,11,0.15);
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .maint-title {
+            font-size: 22px; font-weight: 900; color: var(--text);
+            margin-bottom: 12px;
+        }
+        .maint-msg {
+            font-size: 15px; color: var(--muted); line-height: 1.9;
+            margin-bottom: 28px;
+        }
+
+        /* Info Items */
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 24px;
+        }
+        .info-item {
+            background: rgba(0,0,0,0.02);
+            border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px;
+            text-align: center;
+        }
+        .info-icon { font-size: 20px; margin-bottom: 6px; }
+        .info-label { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.5px; }
+        .info-value { font-size: 14px; font-weight: 800; color: var(--text); margin-top: 2px; }
+
+        /* Retry Button */
+        .retry-btn {
+            background: linear-gradient(135deg, var(--teal), #0f766e);
+            color: white; border: none;
+            padding: 14px 32px; border-radius: 16px;
+            font-size: 15px; font-weight: 800;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 6px 20px rgba(13,148,136,0.25);
+        }
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(13,148,136,0.35);
+        }
+
+        /* Footer */
+        .maint-footer {
+            font-size: 11px; color: #94a3b8;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        .maint-footer span { color: var(--teal); }
+
+        /* Auto-check countdown */
+        .auto-check {
+            font-size: 12px; color: var(--muted);
+            margin-top: 16px;
+        }
+        .auto-check strong { color: var(--teal); }
+
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #020617;
+                --card: rgba(15,23,42,0.9);
+                --border: rgba(255,255,255,0.06);
+                --text: #f1f5f9;
+                --muted: #94a3b8;
+            }
+            body {
+                background-image:
+                    radial-gradient(circle at 30% 20%, rgba(13,148,136,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 80%, rgba(212,168,67,0.05) 0%, transparent 50%);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .maint-card { padding: 28px 20px; }
+            .clinic-name { font-size: 22px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="maint-container">
+        <div class="logo-wrap">
+            <div class="logo-icon" id="clinicLogo">🏥</div>
+            <div class="logo-brand">ARGON MEDICAL OS</div>
+        </div>
+
+        <div class="clinic-name" id="clinicName">—</div>
+
+        <div class="maint-card">
+            <div class="status-badge status-suspended" id="statusBadge">
+                <span class="status-dot"></span>
+                <span id="statusText">النظام موقوف</span>
+            </div>
+
+            <div class="maint-title">النظام متوقف حالياً</div>
+            <div class="maint-msg" id="maintMsg">
+                يتم حالياً إجراء صيانة على النظام أو تم إيقافه مؤقتاً من قبل الإدارة.<br>
+                يرجى المحاولة لاحقاً.
+            </div>
+
+            <div class="info-grid" id="infoGrid">
+                <div class="info-item">
+                    <div class="info-icon">📞</div>
+                    <div class="info-label">التواصل</div>
+                    <div class="info-value" id="contactPhone">—</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">📍</div>
+                    <div class="info-label">العنوان</div>
+                    <div class="info-value" id="contactAddr">—</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">⏰</div>
+                    <div class="info-label">أوقات العمل</div>
+                    <div class="info-value" id="workHours">—</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">📅</div>
+                    <div class="info-label">الحالة منذ</div>
+                    <div class="info-value" id="sincDate">—</div>
+                </div>
+            </div>
+
+            <button class="retry-btn" onclick="checkStatus()">
+                🔄 تحقق من حالة النظام
+            </button>
+
+            <div class="auto-check">
+                فحص تلقائي بعد <strong id="countdown">30</strong> ثانية
+            </div>
+        </div>
+
+        <div class="maint-footer">
+            POWERED BY <span>ARGON</span> MEDICAL OS
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        // ── Firebase Init ──
+        const FC = {
+            apiKey: "AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",
+            authDomain: "argon-system-pro.firebaseapp.com",
+            databaseURL: "https://argon-system-pro-default-rtdb.firebaseio.com",
+            projectId: "argon-system-pro",
+            storageBucket: "argon-system-pro.firebasestorage.app",
+            messagingSenderId: "1017089181583",
+            appId: "1:1017089181583:web:78929d28042cd9662c2dfa"
+        };
+        firebase.initializeApp(FC);
+        const db = firebase.database();
+
+        // ── Get Clinic ID from URL ──
+        const params = new URLSearchParams(window.location.search);
+        const clinicId = params.get('id') || params.get('clinicId') || '';
+        const returnTo = params.get('return') || 'dashboard.html';
+
+        // ── Load Clinic Info ──
+        if (clinicId) {
+            db.ref(`clinics/${clinicId}/settings`).once('value', snap => {
+                const s = snap.val() || {};
+                document.getElementById('clinicName').textContent = s.name || 'عيادة غير معروفة';
+                document.getElementById('contactPhone').textContent = s.phone || '—';
+                document.getElementById('contactAddr').textContent = s.address || '—';
+                document.getElementById('workHours').textContent = (s.openTime || '08:00') + ' — ' + (s.closeTime || '23:00');
+
+                if (s.status === 'maintenance') {
+                    document.getElementById('statusBadge').className = 'status-badge status-maintenance';
+                    document.getElementById('statusText').textContent = 'صيانة مجدولة';
+                }
+
+                if (s.suspendedAt) {
+                    try {
+                        document.getElementById('sincDate').textContent = new Date(s.suspendedAt).toLocaleDateString('ar-JO');
+                    } catch(e) {}
+                }
+            });
+
+            // ── Real-time status listener — auto-redirect if reactivated ──
+            db.ref(`clinics/${clinicId}/settings/status`).on('value', snap => {
+                const status = snap.val();
+                if (status === 'active') {
+                    window.location.href = `${returnTo}?id=${clinicId}`;
+                }
+            });
+        }
+
+        // ── Check Status ──
+        function checkStatus() {
+            const btn = document.querySelector('.retry-btn');
+            btn.innerHTML = '⏳ جاري الفحص...';
+            btn.disabled = true;
+            db.ref(`clinics/${clinicId}/settings/status`).once('value', snap => {
+                const status = snap.val();
+                if (status === 'active') {
+                    window.location.href = `${returnTo}?id=${clinicId}`;
+                } else {
+                    btn.innerHTML = '🔄 تحقق من حالة النظام';
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // ── Auto-check countdown ──
+        let cdVal = 30;
+        setInterval(() => {
+            cdVal--;
+            document.getElementById('countdown').textContent = cdVal;
+            if (cdVal <= 0) { cdVal = 30; checkStatus(); }
+        }, 1000);
+
+        // ── Decorative particles ──
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (8 + Math.random() * 12) + 's';
+                p.style.animationDelay = Math.random() * 8 + 's';
+                p.style.width = p.style.height = (3 + Math.random() * 5) + 'px';
+                container.appendChild(p);
+            }
+        })();
+    </script>
+</body>
+</html>

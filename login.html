@@ -3,159 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول النظام | ARGON SMART</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>ARGON Medical OS — تسجيل الدخول</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
-            --primary: #3b82f6;
-            --bg: #020617;
+            --bg: #f8fafc;
+            --card: rgba(255,255,255,0.85);
+            --border: rgba(0,0,0,0.06);
+            --teal: #0d9488;
+            --teal-light: rgba(13,148,136,0.1);
+            --red: #ef4444;
+            --red-light: rgba(239,68,68,0.08);
+            --text: #0f172a;
+            --muted: #64748b;
+            --glass: blur(20px) saturate(180%);
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            height: 100vh;
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(13,148,136,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212,168,67,0.05) 0%, transparent 50%);
+        }
+
+        /* Animated Particles */
+        .particles { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .particle {
+            position: absolute; width: 6px; height: 6px;
+            background: var(--teal-light); border-radius: 50%;
+            animation: float 10s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-20vh) scale(1.5); opacity: 0; }
+        }
+
+        .login-wrapper {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 440px;
+            padding: 20px;
+            animation: slideUp 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            padding: 50px 40px;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            background: var(--card);
+            backdrop-filter: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 48px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
             text-align: center;
         }
 
-        .logo-title {
-            font-weight: 900;
-            font-size: 3.5rem;
-            color: #fff;
-            letter-spacing: 3px;
-            margin-bottom: 5px;
-            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        .logo-wrap { margin-bottom: 32px; }
+        .logo-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, var(--teal), #0f766e);
+            border-radius: 22px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; color: white;
+            margin: 0 auto 16px;
+            box-shadow: 0 12px 30px rgba(13,148,136,0.25);
+            animation: pulse-icon 3s infinite;
+        }
+        @keyframes pulse-icon {
+            0%, 100% { transform: scale(1); box-shadow: 0 12px 30px rgba(13,148,136,0.25); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(13,148,136,0.35); }
         }
 
-        .form-control {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 2px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
-            border-radius: 18px !important;
-            padding: 15px !important;
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            text-align: center;
+        .login-title { font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 6px; }
+        .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+        .divider { width: 50px; height: 3px; background: var(--teal); border-radius: 2px; margin: 0 auto 28px; }
+
+        .input-group { margin-bottom: 16px; position: relative; }
+        .input-group i {
+            position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+            color: var(--muted); font-size: 16px; transition: 0.3s;
         }
-
-            .form-control:focus {
-                border-color: var(--primary) !important;
-                background: rgba(255, 255, 255, 0.12) !important;
-                box-shadow: none !important;
-            }
-
-        .btn-login {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border: none;
-            border-radius: 18px;
-            padding: 16px;
+        .input-field {
             width: 100%;
-            color: white;
-            font-weight: 800;
-            font-size: 1.2rem;
-            transition: 0.4s;
-            cursor: pointer;
+            background: rgba(0,0,0,0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 45px 16px 16px;
+            font-size: 15px; font-family: 'Tajawal', sans-serif;
+            color: var(--text); outline: none; transition: 0.3s;
+        }
+        .input-field:focus {
+            background: var(--teal-light);
+            border-color: rgba(13,148,136,0.4);
+            box-shadow: 0 0 0 4px rgba(13,148,136,0.1);
+        }
+        .input-field:focus + i { color: var(--teal); }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px; margin-top: 10px;
+            background: linear-gradient(135deg, var(--teal), #0f766e);
+            border: none; border-radius: 16px;
+            color: white; font-size: 16px; font-weight: 800; font-family: 'Tajawal', sans-serif;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 8px 24px rgba(13,148,136,0.25);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(13,148,136,0.35);
+        }
+        .login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .error-msg {
+            background: var(--red-light); color: var(--red);
+            padding: 12px; border-radius: 12px;
+            font-size: 13px; font-weight: 700; margin-top: 16px;
+            display: none; border: 1px solid rgba(239,68,68,0.2);
+            animation: shake 0.4s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
 
-            .btn-login:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
+        .clinic-info {
+            display: none; margin-bottom: 24px; padding: 12px;
+            background: var(--teal-light); border-radius: 14px;
+            border: 1px solid rgba(13,148,136,0.2); text-align: right;
+            animation: fadeIn 0.4s;
+        }
+        .clinic-info-name { font-size: 15px; font-weight: 800; color: var(--teal); margin-bottom: 4px; }
+        .clinic-info-type { font-size: 11px; color: var(--muted); font-weight: 700; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #020617;
+                --card: rgba(15,23,42,0.85);
+                --border: rgba(255,255,255,0.08);
+                --text: #f8fafc;
+                --muted: #94a3b8;
             }
-
-        .status-msg {
-            margin-bottom: 20px;
-            font-weight: 700;
-            display: none;
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        .err {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .wait {
-            background: #dcfce7;
-            color: #166534;
+            .input-field { background: rgba(255,255,255,0.03); color: white; }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="logo-title">ARGON</div>
-        <p style="color: #94a3b8; margin-bottom: 40px; font-weight: 600;">نظام الإدارة الفخم - تسجيل دخول</p>
+    <div class="particles" id="particles"></div>
 
-        <div id="status" class="status-msg"></div>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="logo-wrap">
+                <div class="logo-icon">🏥</div>
+                <div class="login-title">تسجيل الدخول</div>
+                <div class="login-sub">ARGON MEDICAL OS</div>
+                <div class="divider"></div>
+            </div>
 
-        <form id="entryForm">
-            <input type="text" id="resIdInp" class="form-control" placeholder="أدخل الـ ID الخاص بك" required>
-            <input type="password" id="passInp" class="form-control" placeholder="كلمة المرور" required>
+            <!-- Clinic Info (shows if ID in URL) -->
+            <div class="clinic-info" id="clinicInfo">
+                <div class="clinic-info-name" id="cName">جاري التحميل...</div>
+                <div class="clinic-info-type" id="cType">—</div>
+            </div>
 
-            <button type="submit" class="btn-login" id="subBtn">دخول لوحة التحكم <i class="fas fa-arrow-left ms-2"></i></button>
-        </form>
+            <div class="input-group" id="idGroup">
+                <input type="text" class="input-field" id="clinicId" placeholder="معرف العيادة (Clinic ID)" dir="ltr" autocomplete="off">
+                <i class="fas fa-clinic-medical"></i>
+            </div>
+
+            <div class="input-group">
+                <input type="password" class="input-field" id="password" placeholder="كلمة المرور">
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <button class="login-btn" id="loginBtn" onclick="attemptLogin()">
+                <i class="fas fa-sign-in-alt"></i> دخول النظام
+            </button>
+
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
+    <script src="argon-medical-core.js"></script>
+    
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",
-            authDomain: "argon-system-pro.firebaseapp.com",
-            databaseURL: "https://argon-system-pro-default-rtdb.firebaseio.com",
-            projectId: "argon-system-pro",
-            storageBucket: "argon-system-pro.firebasestorage.app",
-            messagingSenderId: "1017089181583",
-            appId: "1:1017089181583:web:78929d28042cd9662c2dfa",
-            measurementId: "G-P5BBDVQ437"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // Create particles
+        const pCont = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (8 + Math.random() * 10) + 's';
+            p.style.animationDelay = Math.random() * 5 + 's';
+            pCont.appendChild(p);
+        }
 
-        document.getElementById('entryForm').onsubmit = function (e) {
-            e.preventDefault();
-            const id = document.getElementById('resIdInp').value.trim();
-            const pass = document.getElementById('passInp').value;
-            const status = document.getElementById('status');
+        // Setup UI
+        const params = new URLSearchParams(window.location.search);
+        let clinicIdFromUrl = params.get('id') || params.get('clinicId') || '';
+        
+        if (clinicIdFromUrl) {
+            document.getElementById('clinicId').value = clinicIdFromUrl;
+            document.getElementById('idGroup').style.display = 'none'; // Hide ID field if provided in URL
+            loadClinicInfo(clinicIdFromUrl);
+        }
 
-            status.className = "status-msg wait";
-            status.innerText = "جاري فتح النظام...";
-            status.style.display = "block";
+        document.getElementById('password').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+        document.getElementById('clinicId').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') document.getElementById('password').focus();
+        });
 
-            // التحقق من وجود الـ ID في النظام
-            db.ref('restaurants/' + id).once('value', (snap) => {
-                if (snap.exists()) {
-                    // حفظ الجلسة والانتقال فوراً
-                    const session = { restaurantId: id, name: "أدمن أرغون" };
-                    localStorage.setItem('argon_session', JSON.stringify(session));
-
-                    status.innerText = "أهلاً بك.. جاري التحويل 🚀";
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
-                } else {
-                    status.className = "status-msg err";
-                    status.innerText = "❌ المعرف (ID) غير مسجل في أرغون";
+        async function loadClinicInfo(cid) {
+            document.getElementById('clinicInfo').style.display = 'block';
+            try {
+                const s = await ArgonMedical.License.load(cid);
+                document.getElementById('cName').textContent = s.name || cid;
+                document.getElementById('cType').textContent = s.type === 'complex' ? '🏢 مجمع طبي' : '🩺 عيادة منفردة';
+                
+                // Check if suspended
+                if (s.status === 'suspended' || s.status === 'maintenance') {
+                    showError('العيادة موقوفة حالياً، لا يمكن الدخول.');
+                    document.getElementById('loginBtn').disabled = true;
                 }
-            });
-        };
+            } catch (e) {
+                document.getElementById('cName').textContent = 'عيادة غير موجودة';
+                showError('المعرف غير صحيح أو العيادة محذوفة.');
+                document.getElementById('loginBtn').disabled = true;
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            el.classList.remove('shake');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('shake');
+        }
+
+        async function attemptLogin() {
+            if (ArgonMedical.BruteForce.isLocked()) {
+                showError(`تم قفل الدخول مؤقتاً. جرب بعد ${ArgonMedical.BruteForce.getLockSeconds()} ثانية.`);
+                return;
+            }
+
+            const cid = document.getElementById('clinicId').value.trim().toLowerCase();
+            const pass = document.getElementById('password').value;
+
+            if (!cid) { showError('يرجى إدخال معرف العيادة.'); return; }
+            if (!pass) { showError('يرجى إدخال كلمة المرور.'); return; }
+
+            const btn = document.getElementById('loginBtn');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+            btn.disabled = true;
+            document.getElementById('errorMsg').style.display = 'none';
+
+            try {
+                // Fetch passwords from Firebase
+                const snap = await ArgonMedical.DB.ref(`clinics/${cid}/settings/passwords`).once('value');
+                const pwds = snap.val();
+                
+                if (!pwds) {
+                    // Fallback to legacy structure if passwords node doesn't exist
+                    const legSnap = await ArgonMedical.DB.ref(`clinics/${cid}/settings/password`).once('value');
+                    const legPwd = legSnap.val();
+                    if (!legPwd || legPwd !== pass) throw new Error('invalid');
+                    loginSuccess(cid, 'admin');
+                    return;
+                }
+
+                // Check roles
+                let role = null;
+                if (pass === pwds.admin) role = 'admin';
+                else if (pass === pwds.doctor) role = 'doctor';
+                else if (pass === pwds.pharmacy) role = 'pharmacy';
+                else if (pass === pwds.lab) role = 'lab';
+                else if (pass === pwds.radiology) role = 'radiology';
+
+                if (!role) throw new Error('invalid');
+
+                // Success!
+                loginSuccess(cid, role);
+
+            } catch (e) {
+                const remaining = ArgonMedical.BruteForce.recordFailure();
+                if (remaining === 0) {
+                    showError(`تم قفل الدخول بسبب المحاولات الخاطئة.`);
+                } else {
+                    showError(`كلمة المرور غير صحيحة. (${remaining} محاولات متبقية)`);
+                }
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function loginSuccess(cid, role) {
+            ArgonMedical.BruteForce.reset();
+            ArgonMedical.Session.create(cid, role);
+            ArgonMedical.Audit.log(cid, 'LOGIN', { details: `User logged in as ${role}` });
+            
+            // Redirect based on role
+            let target = 'dashboard.html';
+            if (role === 'doctor') target = 'emr.html';
+            else if (role === 'pharmacy') target = 'pharmacy.html';
+            else if (role === 'lab') target = 'lab.html';
+            else if (role === 'radiology') target = 'radiology.html';
+            
+            window.location.href = `${target}?id=${cid}`;
+        }
+
+        // Auto-login if session exists
+        if (ArgonMedical.Session.isValid()) {
+            const role = ArgonMedical.Session.getRole();
+            const cid = ArgonMedical.Session.getClinicId();
+            if (cid === clinicIdFromUrl || !clinicIdFromUrl) {
+                let target = 'dashboard.html';
+                if (role === 'doctor') target = 'emr.html';
+                else if (role === 'pharmacy') target = 'pharmacy.html';
+                else if (role === 'lab') target = 'lab.html';
+                else if (role === 'radiology') target = 'radiology.html';
+                window.location.href = `${target}?id=${cid}`;
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حجز موعد طبي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-l: rgba(13,148,136,0.1);
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(0,0,0,0.08);
+            --red: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        
+        .booking-card { background: var(--card); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 480px; overflow: hidden; animation: slideUp 0.5s; border: 1px solid var(--border); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .header { background: linear-gradient(135deg, var(--primary), #0f766e); color: white; padding: 30px 20px; text-align: center; position: relative; }
+        .logo-icon { width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 12px; backdrop-filter: blur(4px); }
+        .clinic-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .clinic-desc { font-size: 13px; opacity: 0.8; }
+        
+        .body { padding: 30px 24px; }
+        .step-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        
+        .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .fg label { font-size: 13px; font-weight: 700; color: var(--muted); }
+        .fi { width: 100%; padding: 14px 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 12px; font-family: 'Tajawal', sans-serif; font-size: 14px; color: var(--text); outline: none; transition: .3s; }
+        .fi:focus { border-color: var(--primary); background: var(--primary-l); box-shadow: 0 0 0 3px rgba(13,148,136,0.15); }
+        
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        .btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; transition: .3s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,148,136,0.3); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        
+        .error { color: var(--red); font-size: 13px; font-weight: 700; margin-top: 10px; text-align: center; display: none; }
+        
+        .success-view { display: none; text-align: center; padding: 40px 24px; }
+        .suc-icon { width: 80px; height: 80px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; }
+        
+        #loadingOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay"><i class="fas fa-spinner fa-spin" style="font-size:32px;margin-bottom:16px"></i> جاري التحميل...</div>
+
+    <div class="booking-card" id="mainCard" style="display:none">
+        
+        <div class="header" id="cHeader">
+            <div class="logo-icon">🏥</div>
+            <div class="clinic-name" id="cName">العيادة</div>
+            <div class="clinic-desc" id="cAddress">بوابة الحجز المباشر للمرضى</div>
+        </div>
+
+        <div class="body" id="formView">
+            <div class="step-title"><i class="fas fa-user"></i> بيانات المريض الأساسية</div>
+            <div class="fg">
+                <label>الاسم الرباعي *</label>
+                <input type="text" class="fi" id="pName" placeholder="الاسم الكامل...">
+            </div>
+            <div class="fg">
+                <label>رقم الهاتف *</label>
+                <input type="tel" class="fi" id="pPhone" placeholder="مثال: 0790000000" dir="ltr">
+            </div>
+            
+            <div style="height:1px;background:var(--border);margin:20px 0"></div>
+            
+            <div class="step-title"><i class="fas fa-calendar-alt"></i> تفاصيل الموعد</div>
+            <div class="row">
+                <div class="fg">
+                    <label>تاريخ الحجز *</label>
+                    <input type="date" class="fi" id="aDate">
+                </div>
+                <div class="fg">
+                    <label>الوقت المفضل *</label>
+                    <input type="time" class="fi" id="aTime">
+                </div>
+            </div>
+
+            <div class="error" id="errorMsg"></div>
+            <button class="btn" id="submitBtn" onclick="submitBooking()"><i class="fas fa-check-circle"></i> تأكيد وحجز الموعد</button>
+        </div>
+
+        <!-- SUCCESS VIEW -->
+        <div class="success-view" id="successView">
+            <div class="suc-icon"><i class="fas fa-check"></i></div>
+            <h2 style="margin-bottom:12px;color:#10b981">تم حجز الموعد بنجاح!</h2>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:24px" id="sucMsg">تم تسجيل موعدك في النظام وسنرسل لك رسالة تأكيد قريباً.</p>
+            
+            <div style="background:#f1f5f9;padding:16px;border-radius:12px;margin-bottom:24px;text-align:right">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:4px">رقم دورك التقريبي:</div>
+                <div style="font-size:24px;font-weight:900;color:var(--primary)" id="sucQueue">-</div>
+            </div>
+
+            <button class="btn" id="trackBtn"><i class="fas fa-mobile-alt"></i> تتبع موعدك المباشر</button>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="argon-medical-core.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const CID = params.get('id');
+        let CSETTINGS = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!CID) { showError('رابط غير صالح. معرف العيادة مفقود.'); return; }
+            
+            try {
+                CSETTINGS = await ArgonMedical.License.load(CID);
+                
+                // Check Lockout
+                if (CSETTINGS.status === 'suspended' || CSETTINGS.status === 'maintenance') {
+                    showError('عذراً، الحجز الإلكتروني متوقف لهذه العيادة حالياً.');
+                    return;
+                }
+
+                // Apply UI
+                document.getElementById('cName').textContent = CSETTINGS.name || 'العيادة';
+                document.getElementById('cAddress').textContent = CSETTINGS.address || 'بوابة الحجز المباشر';
+                
+                if (CSETTINGS.color) {
+                    document.documentElement.style.setProperty('--primary', CSETTINGS.color);
+                    document.getElementById('cHeader').style.background = `linear-gradient(135deg, ${CSETTINGS.color}, ${CSETTINGS.color}cc)`;
+                }
+
+                // Set min date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('aDate').min = today;
+                document.getElementById('aDate').value = today;
+
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('mainCard').style.display = 'block';
+
+            } catch (e) {
+                showError('العيادة غير موجودة أو الرابط غير صحيح.');
+            }
+        });
+
+        function showError(msg) {
+            document.getElementById('loadingOverlay').innerHTML = `<i class="fas fa-exclamation-triangle" style="font-size:32px;color:var(--red);margin-bottom:16px"></i><div style="color:var(--red)">${msg}</div>`;
+        }
+
+        function showFormError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        async function submitBooking() {
+            const name = document.getElementById('pName').value.trim();
+            const phone = document.getElementById('pPhone').value.trim();
+            const date = document.getElementById('aDate').value;
+            const time = document.getElementById('aTime').value;
+
+            if (!name || !phone || !date || !time) {
+                showFormError('يرجى تعبئة جميع الحقول بشكل صحيح.');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحجز...';
+            btn.disabled = true;
+
+            try {
+                // 1. Create Patient or find existing (simplified for MVP: just create new entry, in real app we search by phone)
+                const ptRef = await ArgonMedical.DB.ref(`clinics/${CID}/patients`).push({
+                    name, phone, createdAt: new Date().toISOString()
+                });
+                const patientId = ptRef.key;
+
+                // 2. Generate Queue Number
+                const snap = await ArgonMedical.DB.ref(`clinics/${CID}/appointments`).once('value');
+                const apts = snap.val() || {};
+                const dayApts = Object.values(apts).filter(a => a.date === date);
+                const queueNum = dayApts.length + 1;
+
+                // 3. Create Appointment
+                const aptRef = await ArgonMedical.DB.ref(`clinics/${CID}/appointments`).push({
+                    patientId, date, time, status: 'booked', queueNum, source: 'online', createdAt: new Date().toISOString()
+                });
+                const aptId = aptRef.key;
+
+                // 4. WhatsApp Automation
+                if (CSETTINGS?.whatsapp?.enabled) {
+                    const trackingUrl = `${window.location.origin}${window.location.pathname.replace('booking.html', 'patient-portal.html')}?id=${CID}&apt=${aptId}`;
+                    const msg = ArgonMedical.WhatsApp.buildMessage(
+                        CSETTINGS.whatsapp.templates?.BOOKING_CONFIRM || ArgonMedical.WhatsApp.TEMPLATES.BOOKING_CONFIRM,
+                        { patientName: name, clinicName: CSETTINGS.name, date, time, queueNum, trackingUrl }
+                    );
+                    ArgonMedical.WhatsApp.queue(CID, { phone, message: msg, type: 'booking', patientId, appointmentId: aptId });
+                }
+
+                // 5. Show Success
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successView').style.display = 'block';
+                document.getElementById('sucQueue').textContent = queueNum;
+                document.getElementById('trackBtn').onclick = () => {
+                    window.location.href = `patient-portal.html?id=${CID}&apt=${aptId}`;
+                };
+
+            } catch (e) {
+                showFormError('حدث خطأ أثناء الاتصال بالنظام. حاول مرة أخرى.');
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد وحجز الموعد';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

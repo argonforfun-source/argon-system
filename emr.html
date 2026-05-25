@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGON Medical OS — شاشة الطبيب EMR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="emr-styles.css">
+</head>
+<body>
+
+    <!-- SIDEBAR: WAITING ROOM -->
+    <aside class="emr-sidebar">
+        <div class="wr-hdr">
+            <div class="wr-title"><i class="fas fa-users" style="color:var(--teal)"></i> غرفة الانتظار المباشرة</div>
+        </div>
+        <div class="wr-list" id="wrList">
+            <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">جاري تحميل قائمة المرضى...</div>
+        </div>
+    </aside>
+
+    <!-- MAIN EMR WORKSPACE -->
+    <main class="emr-main">
+        
+        <!-- EMPTY WORKSPACE -->
+        <div id="emptyWs" class="empty-ws">
+            <i class="fas fa-stethoscope"></i>
+            <p>يرجى اختيار مريض من غرفة الانتظار لبدء الزيارة</p>
+        </div>
+
+        <!-- ACTIVE WORKSPACE -->
+        <div id="activeWs" style="display:none; flex-direction:column; height:100%">
+            
+            <header class="topbar">
+                <div class="tb-patient">
+                    <div class="tb-avatar" id="tbAvatar">ع</div>
+                    <div>
+                        <div class="tb-name" id="tbName">اسم المريض</div>
+                        <div class="tb-meta">
+                            <span><i class="fas fa-id-card"></i> <span id="tbId">—</span></span>
+                            <span><i class="fas fa-phone"></i> <span id="tbPhone" dir="ltr">—</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tb-actions">
+                    <button class="btn btn-outline"><i class="fas fa-history"></i> السجل المرضي</button>
+                    <button class="btn btn-primary" data-feature="lab" onclick="completeVisit('lab')"><i class="fas fa-flask"></i> تحويل للمختبر</button>
+                    <button class="btn btn-primary" data-feature="radiology" onclick="completeVisit('radiology')"><i class="fas fa-x-ray"></i> تحويل للأشعة</button>
+                    <button class="btn btn-success" onclick="completeVisit('done')"><i class="fas fa-check-double"></i> إنهاء الزيارة وحفظ</button>
+                </div>
+            </header>
+
+            <div class="workspace">
+                
+                <!-- MEDICAL HISTORY & VITALS -->
+                <div class="g-2">
+                    <div class="panel">
+                        <div class="panel-hdr"><i class="fas fa-file-medical"></i> بيانات المريض الحرجة</div>
+                        <div class="panel-body">
+                            <div class="fg" style="margin-bottom:16px">
+                                <label>الحساسية (Allergies)</label>
+                                <div class="tag-input-wrap">
+                                    <input type="text" class="fi" id="inpAllergy" placeholder="أضف حساسية...">
+                                    <button class="btn btn-outline" onclick="addTag('allergy')"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="tags-list" id="allergyList"></div>
+                            </div>
+                            <div class="fg">
+                                <label>الأمراض المزمنة (Chronic Conditions)</label>
+                                <div class="tag-input-wrap">
+                                    <input type="text" class="fi" id="inpChronic" placeholder="أضف مرض مزمن...">
+                                    <button class="btn btn-outline" onclick="addTag('chronic')"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="tags-list" id="chronicList"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-hdr"><i class="fas fa-heartbeat"></i> العلامات الحيوية (Vitals)</div>
+                        <div class="panel-body g-2">
+                            <div class="fg"><label>الحرارة (Temp °C)</label><input type="number" class="fi" id="vTemp" placeholder="37.0"></div>
+                            <div class="fg"><label>ضغط الدم (BP)</label><input type="text" class="fi" id="vBp" placeholder="120/80"></div>
+                            <div class="fg"><label>نبض القلب (HR)</label><input type="number" class="fi" id="vHr" placeholder="75"></div>
+                            <div class="fg"><label>الأكسجين (SpO2 %)</label><input type="number" class="fi" id="vO2" placeholder="98"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLINICAL NOTES & DIAGNOSIS -->
+                <div class="panel">
+                    <div class="panel-hdr"><i class="fas fa-notes-medical"></i> التشخيص والملاحظات السريرية</div>
+                    <div class="panel-body">
+                        <div class="fg" style="margin-bottom:16px">
+                            <label>التشخيص المبدئي (Diagnosis)</label>
+                            <input type="text" class="fi" id="cDiag" placeholder="اكتب التشخيص المبدئي للحالة...">
+                        </div>
+                        <div class="fg">
+                            <label>الملاحظات السريرية (Clinical Notes)</label>
+                            <textarea class="fi fi-area" id="cNotes" placeholder="أضف الملاحظات والتفاصيل السريرية..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMART PRESCRIPTION ENGINE -->
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <div><i class="fas fa-pills"></i> الوصفة الطبية (Rx)</div>
+                        <span style="font-size:11px;color:var(--muted);font-weight:400"><i class="fas fa-bolt" style="color:#f59e0b"></i> محرك بحث ذكي لحظي</span>
+                    </div>
+                    <div class="panel-body">
+                        
+                        <div class="rx-search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="rx-search" id="rxSearch" placeholder="ابحث عن الدواء بالاسم العلمي أو التجاري (عربي / English)..." autocomplete="off" oninput="searchDrug()">
+                            <div class="rx-results" id="rxResults"></div>
+                        </div>
+
+                        <table class="rx-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40%">اسم الدواء</th>
+                                    <th style="width:20%">الجرعة</th>
+                                    <th style="width:30%">التكرار والمدة</th>
+                                    <th style="width:10%">إزالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rxTbody">
+                                <tr><td colspan="4" style="text-align:center;color:var(--muted)">لم يتم إضافة أدوية</td></tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="argon-medical-core.js"></script>
+    <script src="emr-app.js"></script>
+</body>
+</html>

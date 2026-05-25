@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGON Medical OS — الصيدلية المركزية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="pharmacy-styles.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sb-hdr">
+            <div class="sb-logo"><i class="fas fa-pills"></i></div>
+            <div>
+                <div class="sb-title" id="clinicName">جاري التحميل...</div>
+                <div style="font-size:11px;color:var(--muted);font-weight:700">ARGON Pharmacy</div>
+            </div>
+        </div>
+        
+        <div class="sb-nav">
+            <div class="sb-item active" onclick="switchTab('queue')">
+                <i class="fas fa-clipboard-list"></i><span style="flex:1">الوصفات المعلقة</span>
+                <span class="sb-badge" id="qBadge">0</span>
+            </div>
+            <div class="sb-item" onclick="switchTab('inventory')"><i class="fas fa-boxes"></i><span>المخزون والأدوية</span></div>
+        </div>
+        
+        <div class="sb-foot">
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+        </div>
+    </aside>
+
+    <!-- MAIN APP -->
+    <main class="main-wrapper">
+        <header class="topbar">
+            <div class="page-title"><i class="fas fa-pills" style="color:var(--orange)"></i> الصيدلية المركزية</div>
+        </header>
+
+        <div class="content-area">
+
+            <!-- 1. QUEUE VIEW -->
+            <section id="view-queue" class="view-section active">
+                <div class="rx-grid" id="rxGrid">
+                    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">جاري التحميل...</div>
+                </div>
+            </section>
+
+            <!-- 2. INVENTORY VIEW -->
+            <section id="view-inventory" class="view-section">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <div class="panel-title"><i class="fas fa-boxes"></i> مخزون الأدوية (Inventory)</div>
+                        <button class="btn btn-primary" onclick="openAddDrug()"><i class="fas fa-plus"></i> إضافة دواء</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>اسم الدواء</th><th>الجرعة (Dose)</th><th>السعر</th><th>حالة المخزون</th><th>إجراءات</th></tr></thead>
+                            <tbody id="invTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL: ADD/EDIT DRUG -->
+    <div class="modal-bg" id="drgModal">
+        <div class="modal">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                <div style="font-size:16px;font-weight:800;color:var(--text)"><i class="fas fa-pills"></i> إضافة / تعديل دواء</div>
+                <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px" onclick="closeModal('drgModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="drgId">
+            <div class="fg"><label>الاسم التجاري (Brand Name) *</label><input type="text" class="fi" id="drgName"></div>
+            <div class="fg"><label>الاسم العلمي (Generic Name)</label><input type="text" class="fi" id="drgGeneric"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="fg"><label>الجرعة (مثال: 500mg)</label><input type="text" class="fi" id="drgDose" dir="ltr"></div>
+                <div class="fg"><label>الكمية المتوفرة</label><input type="number" class="fi" id="drgStock"></div>
+            </div>
+            <div class="fg"><label>السعر (JOD)</label><input type="number" step="0.01" class="fi" id="drgPrice"></div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+                <button class="btn btn-outline" onclick="closeModal('drgModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveDrug()"><i class="fas fa-save"></i> حفظ في المخزون</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="argon-medical-core.js"></script>
+    <script src="pharmacy-app.js"></script>
+</body>
+</html>

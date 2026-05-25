@@ -1,44 +1,89 @@
 {
   "rules": {
-    /* 🛡️ ARGON SYSTEM CORE SECURITY RULES v3.0 */
+    /* 🛡️ ARGON MEDICAL OS — Security Rules v4.0 */
     ".read": false,
     ".write": false,
 
     "super_admin": {
-      /* Only the super admin interface should access this. 
-         Ideally, this would be restricted to a specific Auth UID. 
-         For now, we keep it highly restricted. */
-      ".read": true, 
+      ".read": true,
       ".write": true
     },
 
-    "restaurants": {
-      "$restaurantId": {
+    "clinics": {
+      "$clinicId": {
         "settings": {
           ".read": true,
-          /* Only allow status and acceptOrders to be public-read for the menu */
-          ".write": true, 
-          "password": {
+          ".write": true,
+          "passwords": {
             ".read": false,
             ".write": true
           }
         },
-        "products": {
+        "patients": {
+          ".read": true,
+          ".write": true,
+          "$patientId": {
+            ".validate": "newData.hasChildren(['name', 'phone'])"
+          }
+        },
+        "appointments": {
+          ".read": true,
+          ".write": true,
+          "$appointmentId": {
+            ".validate": "newData.hasChildren(['patientId', 'date', 'status'])"
+          }
+        },
+        "prescriptions": {
           ".read": true,
           ".write": true
         },
-        "orders": {
+        "pharmacy_inventory": {
           ".read": true,
-          ".write": true,
-          "$orderId": {
-            /* Basic validation for incoming orders */
-            ".validate": "newData.hasChildren(['custName', 'custPhone', 'items', 'total'])"
-          }
+          ".write": true
         },
-        "completedOrders": {
+        "lab_requests": {
+          ".read": true,
+          ".write": true
+        },
+        "lab_results": {
+          ".read": true,
+          ".write": true
+        },
+        "radiology_requests": {
+          ".read": true,
+          ".write": true
+        },
+        "radiology_results": {
+          ".read": true,
+          ".write": true
+        },
+        "invoices": {
+          ".read": true,
+          ".write": true
+        },
+        "whatsapp_queue": {
+          ".read": true,
+          ".write": true
+        },
+        "whatsapp_settings": {
+          ".read": true,
+          ".write": true
+        },
+        "audit_logs": {
+          ".read": true,
+          ".write": true
+        },
+        "waiting_room": {
           ".read": true,
           ".write": true
         }
+      }
+    },
+
+    "restaurants": {
+      "$restaurantId": {
+        ".read": true,
+        ".write": true
       }
     }
   }
