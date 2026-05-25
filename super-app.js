@@ -4,7 +4,7 @@
  */
 
 // ══ FIREBASE ══
-const FC={apiKey:"AIzaSyCR598ICldRETDxUVXgSHCqgvy_fET8Afk",authDomain:"argon-system-pro.firebaseapp.com",databaseURL:"https://argon-system-pro-default-rtdb.firebaseio.com",projectId:"argon-system-pro",storageBucket:"argon-system-pro.firebasestorage.app",messagingSenderId:"1017089181583",appId:"1:1017089181583:web:78929d28042cd9662c2dfa"};
+const FC={apiKey:"AIzaSyCDT_H-1klxbtuVR5n5GOVHKlxcmvY_2GA",authDomain:"clinica-system-e71b9.firebaseapp.com",databaseURL:"https://clinica-system-e71b9-default-rtdb.firebaseio.com",projectId:"clinica-system-e71b9",storageBucket:"clinica-system-e71b9.firebasestorage.app",messagingSenderId:"833103541884",appId:"1:833103541884:web:f8ee6ca4b3d8400cf0fbf9"};
 firebase.initializeApp(FC);
 const db=firebase.database();
 
