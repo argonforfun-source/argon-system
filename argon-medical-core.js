@@ -717,6 +717,110 @@ const PatientAPI = {
     },
 
     /**
+     * Unified Timeline Engine
+     * Dynamically merges legacy visits and modern events into a single sorted timeline.
+     * The UI loops through this without knowing the underlying source.
+     */
+    async getUnifiedTimeline(uid) {
+        const base = this._getBase();
+        if (!base || !uid) return [];
+
+        const timeline = [];
+
+        try {
+            // 1. Fetch Event-Sourced Timeline
+            const eventsSnap = await argonDB.ref(`${base}/patient_timeline/${uid}`).once('value');
+            if (eventsSnap.exists()) {
+                Object.values(eventsSnap.val()).forEach(evt => timeline.push(evt));
+            }
+
+            // 2. Fetch Legacy Visits (Only if they weren't migrated silently yet)
+            const legacySnap = await argonDB.ref(`${base}/patients/${uid}/visits`).once('value');
+            if (legacySnap.exists()) {
+                Object.entries(legacySnap.val()).forEach(([vk, visit]) => {
+                    // Check if this visit was already migrated into an event
+                    const alreadyMigrated = timeline.some(t => t.payload?.originalKey === vk);
+                    if (!alreadyMigrated) {
+                        timeline.push({
+                            eventId: `legacy_${vk}`,
+                            eventType: 'VISIT_CREATED',
+                            timestamp: visit.date || new Date(0).toISOString(),
+                            author: 'Legacy System',
+                            payload: visit
+                        });
+                    }
+                });
+            }
+
+            // 3. Sort Chronologically (Newest First)
+            timeline.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            return timeline;
+
+        } catch (e) {
+            console.error('[PatientAPI] Timeline Merge Error:', e);
+            return [];
+        }
+    },
+
+    /**
+     * Fail-Safe Patient Context Resolver
+     * Prevents Cross-Linking. NEVER GUESSES.
+     */
+    async resolvePatientContext(bookingData) {
+        // 1. Direct UUID match
+        if (bookingData.patientId) {
+            const p = await this.getIdentity(bookingData.patientId);
+            if (p) return { resolved: true, patient: p, patientId: bookingData.patientId };
+        }
+
+        // 2. We need phone to search
+        if (!bookingData.phone) {
+            return { resolved: false, requiresManualSelection: true, reason: 'NO_PHONE' };
+        }
+
+        // 3. Find candidates
+        const candidates = await SearchAPI.searchPatients({ query: bookingData.phone, limit: 10 });
+        const candidateKeys = Object.keys(candidates);
+        
+        if (candidateKeys.length === 0) {
+            return { resolved: false, requiresCreation: true }; // New patient
+        }
+
+        if (candidateKeys.length === 1) {
+            const uid = candidateKeys[0];
+            const p = candidates[uid];
+            // Validate via MPI
+            const match = MPIEngine.calculateMatchProbability({ info: bookingData }, p);
+            if (match.score >= 98) {
+                return { resolved: true, patient: p, patientId: uid };
+            } else {
+                return { resolved: false, requiresManualSelection: true, candidates, reason: 'MPI_DOUBT' };
+            }
+        }
+
+        // Multiple candidates (Family Cluster)
+        let exactMatchCount = 0;
+        let exactMatchUid = null;
+
+        for (const uid of candidateKeys) {
+            const p = candidates[uid];
+            const match = MPIEngine.calculateMatchProbability({ info: bookingData }, p);
+            if (match.score >= 98) {
+                exactMatchCount++;
+                exactMatchUid = uid;
+            }
+        }
+
+        // Only Auto-Resolve if there is EXACTLY ONE Exact Match
+        if (exactMatchCount === 1) {
+            return { resolved: true, patient: candidates[exactMatchUid], patientId: exactMatchUid };
+        }
+
+        // Otherwise (0 or >1 exact matches), never guess.
+        return { resolved: false, requiresManualSelection: true, candidates, reason: 'MULTIPLE_CANDIDATES' };
+    },
+
+    /**
      * Dual-Write Engine
      * Writes to both legacy patients/ and new patient_identity/
      */
@@ -764,7 +868,7 @@ const PatientAPI = {
     },
 
     /**
-     * Event-Sourced Timeline Layer
+     * Event-Sourced Timeline Layer (Immutable Events)
      */
     async pushTimelineEvent(uid, eventType, payload) {
         const base = this._getBase();
@@ -773,10 +877,13 @@ const PatientAPI = {
         const eventRef = argonDB.ref(`${base}/patient_timeline/${uid}`).push();
         const eventData = {
             eventId: eventRef.key,
+            immutableId: btoa(Date.now().toString() + Math.random()),
             eventType,
             timestamp: new Date().toISOString(),
-            payload,
-            author: ArgonSession.getRole() || 'System'
+            schemaVersion: 1,
+            author: ArgonSession.getRole() || 'System',
+            sourceModule: window.location.pathname.split('/').pop().replace('.html', ''),
+            payload
         };
 
         await eventRef.set(eventData);
@@ -918,29 +1025,127 @@ const TimelineAPI = {
 //  ENTERPRISE MPI ENGINE (Master Patient Index)
 // ══════════════════════════════════════════
 const MPIEngine = {
-    calculateMatchProbability(patientA, patientB) {
-        let score = 0;
-        let maxScore = 100;
+    /**
+     * Arabic Phonetic Normalizer
+     * Strips diacritics, normalizes Alef/Yaa/Taa Marboota, removes family prefixes.
+     */
+    normalizeArabic(str) {
+        if (!str) return '';
+        let s = str.trim().toLowerCase();
         
+        // Remove diacritics (Tashkeel)
+        s = s.replace(/[\u064B-\u065F]/g, '');
+        
+        // Normalize Alef, Yaa, Waw, Taa Marboota
+        s = s.replace(/[أإآ]/g, 'ا');
+        s = s.replace(/ة/g, 'ه');
+        s = s.replace(/ى/g, 'ي');
+        s = s.replace(/ؤ/g, 'و');
+        s = s.replace(/ئ/g, 'ي');
+        
+        // Remove duplicate spaces and common symbols
+        s = s.replace(/[^\w\s\u0600-\u06FF]/g, ' ');
+        s = s.replace(/\s+/g, ' ');
+
+        // Remove stop words and family prefixes
+        const prefixes = ['ابو ', 'ابن ', 'ال ', 'آل ', 'عبد '];
+        prefixes.forEach(p => {
+            if (s.startsWith(p)) s = s.substring(p.length);
+        });
+
+        return s.trim();
+    },
+
+    /**
+     * Levenshtein Distance Algorithm
+     * Returns the minimum number of single-character edits required to change one word into the other.
+     */
+    levenshteinDistance(a, b) {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1, // substitution
+                        Math.min(matrix[i][j - 1] + 1, // insertion
+                        matrix[i - 1][j] + 1) // deletion
+                    );
+                }
+            }
+        }
+        return matrix[b.length][a.length];
+    },
+
+    /**
+     * Calculates Name Similarity Percentage (0 to 1) using Levenshtein distance on normalized names
+     */
+    nameSimilarity(name1, name2) {
+        const n1 = this.normalizeArabic(name1);
+        const n2 = this.normalizeArabic(name2);
+        if (n1 === n2) return 1.0;
+        
+        const maxLength = Math.max(n1.length, n2.length);
+        if (maxLength === 0) return 0;
+        
+        const distance = this.levenshteinDistance(n1, n2);
+        return (maxLength - distance) / maxLength;
+    },
+
+    /**
+     * Enterprise Smart Match Probability Engine
+     */
+    calculateMatchProbability(patientA, patientB) {
         const infoA = patientA?.info || {};
         const infoB = patientB?.info || {};
 
-        const nameA = (infoA.name || '').trim().toLowerCase();
-        const nameB = (infoB.name || '').trim().toLowerCase();
+        let score = 0;
+
+        // 1. National ID (Highest Weight - Absolute Match)
+        if (infoA.nationalId && infoB.nationalId && infoA.nationalId === infoB.nationalId) {
+            return 100; 
+        }
+
+        // 2. Phone Match (Strong indicator, but can be family)
         const phoneA = (infoA.phone || '').replace(/\D/g, '');
         const phoneB = (infoB.phone || '').replace(/\D/g, '');
+        const phoneMatch = phoneA && phoneB && phoneA === phoneB;
+        if (phoneMatch) score += 40;
 
-        if (nameA && nameB) {
-            if (nameA === nameB) score += 60;
-            else if (nameA.includes(nameB) || nameB.includes(nameA)) score += 30;
+        // 3. Name Similarity via Levenshtein
+        const nameSim = this.nameSimilarity(infoA.name, infoB.name);
+        score += (nameSim * 50); // Up to 50 points
+
+        // 4. Demographic Modifiers (Age, Gender)
+        if (infoA.gender && infoB.gender) {
+            if (infoA.gender === infoB.gender) score += 5;
+            else score -= 20; // High penalty for gender mismatch
         }
         
-        if (phoneA && phoneB) {
-            if (phoneA === phoneB) score += 40;
+        if (infoA.age && infoB.age) {
+            const ageDelta = Math.abs(infoA.age - infoB.age);
+            if (ageDelta <= 1) score += 5;
+            else if (ageDelta > 10) score -= 15; // Penalty for large age gap (likely father/son)
         }
 
-        // Return a percentage
-        return Math.min(100, Math.round((score / maxScore) * 100));
+        // Cap at 100
+        const finalScore = Math.min(100, Math.max(0, Math.round(score)));
+        
+        // Categorize
+        let category = 'DIFFERENT_PERSON';
+        if (finalScore >= 98) category = 'EXACT_MATCH';
+        else if (finalScore >= 90) category = 'HIGH_MATCH';
+        else if (finalScore >= 75) category = 'SUGGESTED_MATCH';
+        else if (finalScore >= 50) category = 'POSSIBLE_FAMILY';
+
+        return { score: finalScore, category };
     }
 };
 
