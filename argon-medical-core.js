@@ -1209,8 +1209,126 @@ const MPIEngine = {
     }
 };
 
-// Placeholder APIs for Phase 4 & 5
-const AttachmentAPI = {};
+// ══════════════════════════════════════════
+//  ENTERPRISE ATTACHMENT API (Phase 5)
+// ══════════════════════════════════════════
+const AttachmentAPI = {
+    async generateSHA256(file) {
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    async compressImageToWebP(file, maxDimension = 1200, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = Math.round((height *= maxDimension / width));
+                        width = maxDimension;
+                    } else {
+                        width = Math.round((width *= maxDimension / height));
+                        height = maxDimension;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(blob => {
+                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
+                }, 'image/webp', quality);
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    },
+
+    async validateUpload(file) {
+        const MAX_SIZE = 20 * 1024 * 1024; // 20MB
+        if (file.size > MAX_SIZE) throw new Error("File exceeds 20MB limit.");
+
+        const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!allowedMime.includes(file.type)) throw new Error("Invalid file type.");
+
+        // Minimal Magic Bytes check (Header validation)
+        const buffer = await file.slice(0, 4).arrayBuffer();
+        const header = new Uint8Array(buffer);
+        let headerHex = '';
+        for (let i = 0; i < header.length; i++) headerHex += header[i].toString(16);
+        
+        // JPEG: ffd8ff, PNG: 89504e47, PDF: 25504446, WebP: 52494646
+        const validHeaders = ['ffd8ff', '89504e47', '25504446', '52494646'];
+        if (!validHeaders.some(vh => headerHex.startsWith(vh))) {
+            throw new Error("Invalid file signature (magic bytes mismatch).");
+        }
+        return true;
+    },
+
+    async uploadClinicalAsset(uid, file, category, linkedEntities = {}) {
+        await this.validateUpload(file);
+        
+        const base = PatientAPI._getBase();
+        if (!base) throw new Error("Not authenticated");
+
+        // 1. Prepare
+        let uploadFile = file;
+        let isImage = file.type.startsWith('image/');
+
+        if (isImage && file.type !== 'image/webp') {
+            uploadFile = await this.compressImageToWebP(file);
+        }
+
+        const immutableHash = await this.generateSHA256(uploadFile);
+        
+        // In a real environment, integrate Firebase Storage: 
+        // await firebase.storage().ref(storageRef).put(uploadFile);
+        const storageRef = `clinics/cid/patients/${uid}/attachments/${new Date().getFullYear()}/${new Date().getMonth() + 1}/${immutableHash}`;
+        const thumbnailRef = isImage ? storageRef + '_thumb.webp' : null;
+
+        // 2. Register Metadata Node
+        const attachmentId = argonDB.ref().push().key;
+        const metadata = {
+            attachmentId,
+            patientUUID: uid,
+            category,
+            mimeType: uploadFile.type,
+            size: uploadFile.size,
+            storageRef,
+            thumbnailRef,
+            immutableHash,
+            uploadedBy: ArgonSession.getRole() || 'System',
+            uploadedAt: new Date().toISOString(),
+            schemaVersion: 1,
+            status: 'active',
+            linkedEntities,
+            classification: {
+                containsPHI: true,
+                medicalSensitivity: (category === 'LAB_RESULT' || category === 'RADIOLOGY_IMAGE') ? 'HIGH' : 'NORMAL',
+                retentionPolicy: '7_YEARS',
+                legalHold: false
+            },
+            versionChain: { rootAssetId: attachmentId, previousVersionId: null, versionNumber: 1 }
+        };
+
+        await argonDB.ref(`${base}/patient_attachments/${uid}/${attachmentId}`).set(metadata);
+
+        // 3. Push to Timeline
+        await TimelineAPI.pushEvent(uid, 'ATTACHMENT_ADDED', {
+            assetSummary: {
+                attachmentId, category, storageRef, thumbnailRef, previewAvailable: isImage, modality: linkedEntities.modality || 'DOC'
+            }
+        });
+
+        return metadata;
+    }
+};
+
 const AuditAPI = {
     log: ArgonAudit.log // Map to existing audit logger
 };

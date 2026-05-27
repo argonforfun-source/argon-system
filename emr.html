@@ -44,6 +44,7 @@
                     </div>
                 </div>
                 <div class="tb-actions">
+                    <button class="btn btn-outline" onclick="triggerAssetUpload('CLINICAL_NOTE')"><i class="fas fa-upload"></i> رفع مستند</button>
                     <button class="btn btn-outline" onclick="openClinicalStream()"><i class="fas fa-history"></i> السجل المرضي</button>
                     <button class="btn btn-primary" data-feature="lab" onclick="completeVisit('lab')"><i class="fas fa-flask"></i> تحويل للمختبر</button>
                     <button class="btn btn-primary" data-feature="radiology" onclick="completeVisit('radiology')"><i class="fas fa-x-ray"></i> تحويل للأشعة</button>
@@ -179,6 +180,33 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ENTERPRISE CLINICAL ASSET VIEWER -->
+    <div id="assetViewerModal" class="stream-drawer" style="display:none; z-index: 100000;">
+        <div class="stream-overlay" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);" onclick="closeAssetViewer()"></div>
+        <div style="position:relative; width:90%; max-width:1000px; height:90%; margin:auto; background:#1e293b; border-radius:24px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
+            <header style="padding: 16px 24px; background: #0f172a; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div style="color:white; display:flex; align-items:center; gap:12px;">
+                    <i class="fas fa-file-medical-alt" style="color:var(--teal)"></i>
+                    <div>
+                        <div id="avTitle" style="font-weight:800; font-size:16px;">مستند طبي</div>
+                        <div id="avMeta" style="font-size:12px; color:var(--muted2); font-family:monospace;">—</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-outline" style="color:white; border-color:rgba(255,255,255,0.2)" onclick="downloadCurrentAsset()"><i class="fas fa-download"></i></button>
+                    <button class="btn btn-outline" style="color:white; border-color:rgba(255,255,255,0.2)" onclick="closeAssetViewer()"><i class="fas fa-times"></i></button>
+                </div>
+            </header>
+            <div id="avContainer" style="flex:1; display:flex; align-items:center; justify-content:center; padding:24px; overflow:auto; background:#0f172a;">
+                <!-- Preview Content Injected Here -->
+            </div>
+            <footer style="padding: 12px 24px; background: #020617; color: var(--muted2); font-size: 11px; font-family: monospace; display:flex; justify-content:space-between;">
+                <div><i class="fas fa-shield-alt" style="color:#10b981"></i> IMMUTABLE HASH: <span id="avHash">—</span></div>
+                <div>SECURE ASSET PIPELINE</div>
+            </footer>
         </div>
     </div>
 

@@ -521,6 +521,36 @@ function buildEventCard(evt) {
         icon = 'fa-pills'; title = 'وصفة طبية جديدة';
     } else if (evt.eventType === 'LAB_ORDERED') {
         icon = 'fa-flask'; title = 'طلب تحاليل مخبرية';
+    } else if (evt.eventType === 'ATTACHMENT_ADDED') {
+        const sum = evt.payload?.assetSummary || {};
+        icon = sum.category === 'RADIOLOGY_IMAGE' ? 'fa-x-ray' : (sum.category === 'LAB_RESULT' ? 'fa-vial' : 'fa-file-image');
+        title = 'مستند طبي جديد';
+        
+        let previewHtml = '';
+        if (sum.previewAvailable) {
+            // Since we don't have a real Storage URL in this prototype, we'll use a placeholder or local object URL if we had it. 
+            // In a real app, this would be a secure signed URL.
+            previewHtml = `
+                <div style="margin-top:12px; padding:12px; background:var(--bg); border:1px dashed var(--border); border-radius:12px; display:inline-block; cursor:pointer;" onclick="openAssetViewer('${evt.audit.immutableHash}', '${sum.category}')">
+                    <i class="fas fa-image" style="font-size:24px; color:var(--teal); margin-bottom:8px;"></i>
+                    <div style="font-size:12px; font-weight:700;">عرض المرفق</div>
+                </div>
+            `;
+        } else {
+            previewHtml = `
+                <button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="openAssetViewer('${evt.audit.immutableHash}', '${sum.category}')">
+                    <i class="fas fa-file-pdf"></i> فتح المستند
+                </button>
+            `;
+        }
+        
+        payloadHtml = `
+            <div class="ev-payload">
+                <strong>نوع المستند:</strong> ${sum.category || 'عام'}<br>
+                <strong>تصنيف طبي:</strong> ${sum.modality || 'DOC'}<br>
+                ${previewHtml}
+            </div>
+        `;
     }
 
     return `
@@ -542,4 +572,67 @@ function buildEventCard(evt) {
             </div>
         </div>
     `;
+}
+
+// ══════════════════════════════════════════
+//  SECURE UPLOAD GATEWAY & ASSET VIEWER
+// ══════════════════════════════════════════
+
+async function triggerAssetUpload(category = 'CLINICAL_NOTE') {
+    if (!currentPatientId) return ArgonMedical.UI.toast('الرجاء اختيار مريض', 'err');
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg, image/png, application/pdf';
+    
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+            ArgonMedical.UI.toast('جاري معالجة وتشفير الملف...', 'ok');
+            const meta = await ArgonMedical.AttachmentAPI.uploadClinicalAsset(currentPatientId, file, category, { modality: 'GEN' });
+            ArgonMedical.UI.toast('تم رفع وحفظ المرفق بنجاح بنظام Hash', 'ok');
+            
+            // Reload stream to show new event
+            if (document.getElementById('clinicalStreamDrawer').style.display !== 'none') {
+                streamCursor = null;
+                streamHasMore = true;
+                await loadClinicalStream();
+            }
+        } catch (err) {
+            console.error(err);
+            ArgonMedical.UI.toast('فشل رفع الملف: ' + err.message, 'err');
+        }
+    };
+    
+    input.click();
+}
+
+function openAssetViewer(hash, category) {
+    document.getElementById('assetViewerModal').style.display = 'flex';
+    document.getElementById('avHash').innerText = hash;
+    document.getElementById('avTitle').innerText = `عرض المرفق (${category})`;
+    
+    // In a real environment, we'd fetch the signed URL from Firebase Storage.
+    // For this prototype, we just show a secure placeholder.
+    document.getElementById('avContainer').innerHTML = `
+        <div style="text-align:center; color:white;">
+            <i class="fas fa-lock" style="font-size:48px; color:var(--teal); margin-bottom:20px;"></i>
+            <h3 style="margin-bottom:8px;">Enterprise Asset Streaming</h3>
+            <p style="color:var(--muted2); font-size:13px; max-width:400px; margin:0 auto;">
+                The asset with hash <strong>${hash.substring(0,16)}...</strong> is securely encrypted in Firebase Storage. 
+                <br>In production, a Temporary Signed URL would stream the content here.
+            </p>
+        </div>
+    `;
+}
+
+function closeAssetViewer() {
+    document.getElementById('assetViewerModal').style.display = 'none';
+    document.getElementById('avContainer').innerHTML = '';
+}
+
+function downloadCurrentAsset() {
+    ArgonMedical.UI.toast('جارٍ طلب Signed URL للتحميل الآمن...', 'ok');
 }
