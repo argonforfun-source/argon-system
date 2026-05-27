@@ -53,7 +53,22 @@ function loadWaitingRoom() {
 
 function renderWaitingRoom() {
     const listEl = document.getElementById('wrList');
-    const q = Object.entries(waitingList).map(([id, data]) => ({ id, ...data }));
+    const session = ArgonMedical.Session.get() || {};
+    const loggedInDoctorId = session.userId || session.username || null;
+    const isComplex = ArgonMedical.License.getType() === 'complex';
+    const isAdmin = session.role === 'admin';
+
+    // Filter list based on doctor role and clinic type
+    let q = Object.entries(waitingList)
+        .map(([id, data]) => ({ id, ...data }))
+        .filter(item => {
+            if (!isComplex || isAdmin) return true; // Show all for Single clinics or Admins
+            if (session.role === 'doctor' && loggedInDoctorId) {
+                // If appointment has a specific doctor assigned, only show it to that doctor
+                if (item.doctorId && item.doctorId !== loggedInDoctorId) return false;
+            }
+            return true;
+        });
     
     // Sort by priority then time added
     q.sort((a,b) => {
@@ -119,6 +134,15 @@ async function selectPatient(aptId, ptId) {
     
     // Load patient medical history (allergies, etc.)
     loadMedicalHistory(ptId);
+}
+
+// ── WORKSPACE NAVIGATION ──
+function closeActiveWorkspace() {
+    currentAptId = null;
+    currentPatientId = null;
+    document.getElementById('emptyWs').style.display = 'flex';
+    document.getElementById('activeWs').style.display = 'none';
+    renderWaitingRoom(); // to remove active highlight
 }
 
 // ── MEDICAL HISTORY & ALLERGIES ──
