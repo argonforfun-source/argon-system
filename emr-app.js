@@ -636,3 +636,76 @@ function closeAssetViewer() {
 function downloadCurrentAsset() {
     ArgonMedical.UI.toast('جارٍ طلب Signed URL للتحميل الآمن...', 'ok');
 }
+
+// ══════════════════════════════════════════
+//  ENTERPRISE MIGRATION DASHBOARD (Phase 6)
+// ══════════════════════════════════════════
+
+let migrationMonitorInterval = null;
+
+function openMigrationDashboard() {
+    document.getElementById('migrationDashboardModal').style.display = 'flex';
+    monitorMigration();
+}
+
+function closeMigrationDashboard() {
+    document.getElementById('migrationDashboardModal').style.display = 'none';
+    if (migrationMonitorInterval) clearInterval(migrationMonitorInterval);
+}
+
+function startCanaryMigration() {
+    if (confirm("هل أنت متأكد من بدء فحص عينة Canary؟ (10 سجلات)")) {
+        ArgonMedical.MigrationAPI.startCanaryMigration();
+        ArgonMedical.UI.toast('بدأ فحص Canary بنجاح', 'ok');
+        monitorMigration();
+    }
+}
+
+function startEnterpriseMigration() {
+    if (confirm("تحذير: سيتم تهجير جميع السجلات في الخلفية. هل تريد الاستمرار؟")) {
+        ArgonMedical.MigrationAPI.startMigrationJob();
+        ArgonMedical.UI.toast('تم تشغيل التهجير الشامل بنجاح', 'ok');
+        monitorMigration();
+    }
+}
+
+function stopMigration() {
+    ArgonMedical.MigrationAPI.pauseMigrationJob();
+    ArgonMedical.UI.toast('تم إيقاف التهجير مؤقتاً', 'ok');
+}
+
+function monitorMigration() {
+    if (migrationMonitorInterval) clearInterval(migrationMonitorInterval);
+    const base = ArgonMedical.PatientAPI._getBase();
+    if (!base) return;
+
+    migrationMonitorInterval = setInterval(async () => {
+        const jobId = ArgonMedical.MigrationAPI._jobId;
+        if (!jobId) {
+            document.getElementById('migState').innerText = 'IDLE';
+            return;
+        }
+
+        const snap = await ArgonMedical.DB.ref(`${base}/migration_jobs/${jobId}`).once('value');
+        if (!snap.exists()) return;
+
+        const job = snap.val();
+        document.getElementById('migState').innerText = job.status?.phase || 'UNKNOWN';
+        
+        const prog = job.progress || { processed:0, success:0, failed:0 };
+        document.getElementById('migSuccess').innerText = prog.success;
+        document.getElementById('migFailed').innerText = prog.failed;
+        
+        // Rough estimate for UI if we don't fetch total patients count
+        // For a real app, we'd query total patient count at start
+        let percentage = prog.processed > 0 ? Math.min(100, Math.round((prog.processed / 1000) * 100)) : 0; 
+        if (job.status?.phase === 'COMPLETED') percentage = 100;
+        
+        document.getElementById('migProgressText').innerText = `${prog.processed} ملف (${percentage}%)`;
+        document.getElementById('migProgressBar').style.width = `${percentage}%`;
+
+        if (job.status?.phase === 'COMPLETED' || job.status?.phase === 'FAILED') {
+            clearInterval(migrationMonitorInterval);
+        }
+    }, 2000);
+}

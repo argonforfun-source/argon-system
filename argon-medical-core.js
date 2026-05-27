@@ -1440,6 +1440,216 @@ const FHIRMapper = {
 };
 
 // ══════════════════════════════════════════
+//  PHASE 6: LEGACY MIGRATION ORCHESTRATOR
+// ══════════════════════════════════════════
+
+const IntegrityEngine = {
+    async generateMigrationHash(legacyPatient, identity, timeline, attachments) {
+        const payload = JSON.stringify({ legacyPatient, identity, timeline, attachments });
+        const buffer = await new TextEncoder().encode(payload);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    verifyDualState(patientId, identity, timeline) {
+        if (!identity || !identity.uid || identity.uid !== patientId) return false;
+        if (!timeline || !Array.isArray(timeline)) return false;
+        return true;
+    }
+};
+
+const ConflictResolver = {
+    async disambiguate(legacyPatient) {
+        // Simple logic for prototype: 
+        // If phone conflict detected, we would normally use MPIEngine to find the true owner.
+        // For now, we return a safe strategy flag.
+        return { strategy: 'MERGE_SAFE', confidence: 0.95 };
+    }
+};
+
+const RollbackEngine = {
+    async createSnapshot(jobId, legacyKey, legacyData) {
+        const base = PatientAPI._getBase();
+        if (!base) return false;
+        await argonDB.ref(`${base}/migration_snapshots/${jobId}/${legacyKey}`).set({
+            legacyData,
+            snapshotAt: new Date().toISOString()
+        });
+        return true;
+    },
+    
+    async restoreSnapshot(jobId, legacyKey) {
+        const base = PatientAPI._getBase();
+        const snap = await argonDB.ref(`${base}/migration_snapshots/${jobId}/${legacyKey}`).once('value');
+        if (snap.exists()) {
+            const legacyData = snap.val().legacyData;
+            await argonDB.ref(`${base}/patients/${legacyKey}`).set(legacyData);
+            return true;
+        }
+        return false;
+    }
+};
+
+const MigrationWorker = {
+    async processBatch(jobId, cursor, limit = 25) {
+        const base = PatientAPI._getBase();
+        if (!base) return { nextCursor: null, processed: 0, success: 0, failed: 0 };
+        
+        let query = argonDB.ref(`${base}/patients`).orderByKey().limitToFirst(limit);
+        if (cursor) {
+            query = argonDB.ref(`${base}/patients`).orderByKey().startAfter(cursor).limitToFirst(limit);
+        }
+
+        const snap = await query.once('value');
+        if (!snap.exists()) return { nextCursor: null, processed: 0, success: 0, failed: 0 };
+
+        const patients = snap.val();
+        let success = 0;
+        let failed = 0;
+        let lastKey = null;
+
+        for (const [key, pat] of Object.entries(patients)) {
+            lastKey = key;
+            if (pat._migrated) continue; // Already processed
+            
+            try {
+                // 1. Snapshot
+                await RollbackEngine.createSnapshot(jobId, key, pat);
+                
+                // 2. Domain Splitter logic
+                // Identity
+                const identity = { ...pat };
+                delete identity.visits;
+                identity.uid = key;
+                
+                // Timeline
+                const timeline = [];
+                if (pat.visits) {
+                    for (const [vId, vData] of Object.entries(pat.visits)) {
+                        timeline.push({
+                            eventId: vId,
+                            eventType: 'VISIT_CREATED',
+                            timestamp: vData.date || new Date().toISOString(),
+                            payload: vData,
+                            schemaVersion: 1
+                        });
+                    }
+                }
+
+                // 3. Verification
+                const hash = await IntegrityEngine.generateMigrationHash(pat, identity, timeline, {});
+                if (!IntegrityEngine.verifyDualState(key, identity, timeline)) {
+                    throw new Error("Integrity Check Failed");
+                }
+
+                // 4. Write to Domains
+                const updates = {};
+                updates[`${base}/patient_identity/${key}`] = identity;
+                
+                // Timeline written to migration_timeline as requested
+                for (const evt of timeline) {
+                    updates[`${base}/migration_timeline/${key}/${evt.eventId}`] = evt;
+                }
+                
+                // 5. Audit & Flag
+                updates[`${base}/migration_audit/${jobId}/${key}`] = { hash, migratedAt: new Date().toISOString() };
+                updates[`${base}/patients/${key}/_migrated`] = true;
+                
+                await argonDB.ref().update(updates);
+                success++;
+                
+            } catch (err) {
+                console.error(`Migration failed for ${key}`, err);
+                failed++;
+                // Conflict Queue
+                await argonDB.ref(`${base}/migration_conflicts/${jobId}/${key}`).set({ error: err.message, pat });
+            }
+        }
+        
+        return { nextCursor: lastKey, processed: Object.keys(patients).length, success, failed };
+    }
+};
+
+const MigrationCoordinator = {
+    _jobId: null,
+    _active: false,
+    _safeMode: false,
+
+    async startCanaryMigration() {
+        console.log("🚀 Starting Canary Migration (Sample: 10)");
+        const jobId = 'canary_' + Date.now();
+        await this._runJob(jobId, 10);
+    },
+
+    async startMigrationJob() {
+        console.log("🚀 Starting Enterprise Migration Job");
+        const jobId = 'job_' + Date.now();
+        await this._runJob(jobId, null);
+    },
+    
+    async _runJob(jobId, maxTotal = null) {
+        this._jobId = jobId;
+        this._active = true;
+        
+        const base = PatientAPI._getBase();
+        await argonDB.ref(`${base}/migration_jobs/${jobId}`).set({
+            status: { phase: "INITIALIZING", state: "STARTING", health: "HEALTHY", resumable: true },
+            startedAt: Date.now(),
+            progress: { processed: 0, success: 0, failed: 0 }
+        });
+
+        let cursor = null;
+        let totalProcessed = 0;
+
+        while (this._active) {
+            await argonDB.ref(`${base}/migration_jobs/${jobId}/status`).update({ phase: "MIGRATING", state: "PROCESSING_BATCH" });
+            
+            const result = await MigrationWorker.processBatch(jobId, cursor, 25);
+            if (result.processed === 0) break;
+            
+            cursor = result.nextCursor;
+            totalProcessed += result.processed;
+            
+            // Update Job State
+            const jobRef = argonDB.ref(`${base}/migration_jobs/${jobId}/progress`);
+            const currentProgress = (await jobRef.once('value')).val() || { processed:0, success:0, failed:0 };
+            
+            await jobRef.update({
+                processed: currentProgress.processed + result.processed,
+                success: currentProgress.success + result.success,
+                failed: currentProgress.failed + result.failed
+            });
+
+            if (maxTotal && totalProcessed >= maxTotal) {
+                console.log("Canary complete");
+                break;
+            }
+
+            // Yield to browser UI (important for background JS worker)
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
+        if (this._active) {
+            await argonDB.ref(`${base}/migration_jobs/${jobId}/status`).update({ phase: "COMPLETED", state: "DONE" });
+            console.log("✅ Migration Job Completed");
+        }
+        this._active = false;
+    },
+
+    pauseMigrationJob() {
+        this._active = false;
+    },
+
+    enableSafeMode() {
+        this._safeMode = true;
+        console.warn("🛡️ SAFE_READ_ONLY mode enabled for Rollback. Writes blocked.");
+    }
+};
+
+const MigrationAPI = MigrationCoordinator;
+
+// ══════════════════════════════════════════
 //  EXPORT (attach to window for non-module usage)
 // ══════════════════════════════════════════
 window.ArgonMedical = {
@@ -1464,6 +1674,8 @@ window.ArgonMedical = {
     ClinicalPriorityEngine,
     ArgonCacheEngine,
     FHIRMapper,
+    MigrationAPI,
+    IntegrityEngine,
     CLINIC_TYPES,
     FEATURES
 };

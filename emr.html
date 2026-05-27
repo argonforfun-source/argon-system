@@ -12,8 +12,9 @@
 
     <!-- SIDEBAR: WAITING ROOM -->
     <aside class="emr-sidebar">
-        <div class="wr-hdr">
+        <div class="wr-hdr" style="display:flex; justify-content:space-between; align-items:center;">
             <div class="wr-title"><i class="fas fa-users" style="color:var(--teal)"></i> غرفة الانتظار المباشرة</div>
+            <button class="btn btn-outline btn-sm" onclick="openMigrationDashboard()" style="padding:4px 8px; font-size:12px;" title="منصة التهجير"><i class="fas fa-server"></i></button>
         </div>
         <div class="wr-list" id="wrList">
             <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">جاري تحميل قائمة المرضى...</div>
@@ -207,6 +208,64 @@
                 <div><i class="fas fa-shield-alt" style="color:#10b981"></i> IMMUTABLE HASH: <span id="avHash">—</span></div>
                 <div>SECURE ASSET PIPELINE</div>
             </footer>
+        </div>
+    </div>
+
+    <!-- ENTERPRISE MIGRATION DASHBOARD -->
+    <div id="migrationDashboardModal" class="stream-drawer" style="display:none; z-index: 100000;">
+        <div class="stream-overlay" style="background: rgba(15,23,42,0.95); backdrop-filter: blur(10px);" onclick="closeMigrationDashboard()"></div>
+        <div style="position:relative; width:95%; max-width:1100px; height:90%; margin:auto; background:var(--bg); border-radius:24px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border:1px solid var(--border2);">
+            
+            <header style="padding: 24px; background: white; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2 style="font-weight:900; color:var(--text); display:flex; align-items:center; gap:12px;">
+                        <i class="fas fa-server" style="color:var(--teal)"></i> منصة تهجير البيانات (Data Governance & Migration)
+                    </h2>
+                    <p style="color:var(--muted); font-size:13px; margin-top:4px;">Distributed Migration Orchestrator - Phase 6</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline" onclick="closeMigrationDashboard()"><i class="fas fa-times"></i> إغلاق</button>
+                </div>
+            </header>
+
+            <div style="flex:1; padding:32px; overflow-y:auto; display:flex; flex-direction:column; gap:24px;">
+                
+                <!-- Migration Controls -->
+                <div style="display:flex; gap:16px; background:white; padding:24px; border-radius:16px; border:1px solid var(--border);">
+                    <button class="btn btn-primary" onclick="startCanaryMigration()"><i class="fas fa-vial"></i> بدء فحص Canary (عينة تجريبية)</button>
+                    <button class="btn btn-success" onclick="startEnterpriseMigration()"><i class="fas fa-play"></i> تشغيل التهجير الشامل (Production)</button>
+                    <button class="btn btn-outline" style="color:var(--red); border-color:rgba(239,68,68,0.2);" onclick="stopMigration()"><i class="fas fa-stop"></i> إيقاف مؤقت</button>
+                </div>
+
+                <!-- Live Metrics -->
+                <div class="g-3">
+                    <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border); text-align:center;">
+                        <div style="color:var(--muted); font-weight:700; font-size:13px; margin-bottom:8px;">حالة المحرك (State)</div>
+                        <div id="migState" style="font-size:24px; font-weight:900; color:var(--teal);">IDLE</div>
+                    </div>
+                    <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border); text-align:center;">
+                        <div style="color:var(--muted); font-weight:700; font-size:13px; margin-bottom:8px;">الملفات الناجحة</div>
+                        <div id="migSuccess" style="font-size:32px; font-weight:900; color:var(--green);">0</div>
+                    </div>
+                    <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border); text-align:center;">
+                        <div style="color:var(--muted); font-weight:700; font-size:13px; margin-bottom:8px;">التعارضات (Conflicts)</div>
+                        <div id="migFailed" style="font-size:32px; font-weight:900; color:var(--red);">0</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; font-weight:700; font-size:14px; margin-bottom:12px;">
+                        <span>تقدم التهجير</span>
+                        <span id="migProgressText">0%</span>
+                    </div>
+                    <div style="height:12px; background:var(--bg2); border-radius:10px; overflow:hidden;">
+                        <div id="migProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--teal), var(--green)); transition:width 0.3s;"></div>
+                    </div>
+                </div>
+                
+            </div>
+            
         </div>
     </div>
 
