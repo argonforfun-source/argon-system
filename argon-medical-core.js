@@ -906,6 +906,12 @@ const PatientAPI = {
         const versionId = new Date().getTime().toString();
         updates[`${base}/profile_versions/${uid}/${versionId}`] = identityData;
 
+        // Phase 7: Register to GMPI (Zero UI Change Overlay)
+        try {
+            // Background sync to GMPI, does not block UI saving
+            GlobalIdentityAPI.registerLocalPatient(this._getBase().replace('clinics/',''), uid, identityData.info).catch(e => console.warn('GMPI Sync Error', e));
+        } catch(e) {}
+
         // Extract records if any
         if (patientData.records) {
             updates[`${base}/patient_records/${uid}`] = patientData.records;
@@ -1650,6 +1656,97 @@ const MigrationCoordinator = {
 const MigrationAPI = MigrationCoordinator;
 
 // ══════════════════════════════════════════
+//  PHASE 7: FEDERATED MULTI-CLINIC (GMPI)
+// ══════════════════════════════════════════
+
+const GMPIEngine = {
+    async generateFingerprint(info) {
+        // Probabilistic matching criteria: Name (normalized) + DOB + Phone (normalized)
+        let name = String(info.name || '').trim().replace(/^(ابو|ام|أبو|أم)\s+/gi, '').substring(0, 15).toLowerCase();
+        let phone = String(info.phone || '').replace(/[^0-9]/g, '');
+        let dob = String(info.dob || '').substring(0, 4); // Just year for broader matching
+        
+        const payload = JSON.stringify({ name, phone, dob });
+        const buffer = await new TextEncoder().encode(payload);
+        const hashBuffer = await crypto.subtle.digest('SHA-1', buffer); // Fast fingerprinting
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return 'gmpi_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 20);
+    }
+};
+
+const GlobalIdentityAPI = {
+    async registerLocalPatient(clinicId, patientId, info) {
+        const fingerprint = await GMPIEngine.generateFingerprint(info);
+        // Add to global index
+        await argonDB.ref(`global_patient_index/${fingerprint}/clinics/${clinicId}`).set(patientId);
+        await argonDB.ref(`global_patient_index/${fingerprint}/demographics`).update({
+            name: info.name || '',
+            phone: info.phone || '',
+            dob: info.dob || '',
+            nationalId: info.nationalId || ''
+        });
+        return fingerprint;
+    },
+
+    async lookupPatient(info) {
+        const fingerprint = await GMPIEngine.generateFingerprint(info);
+        const snap = await argonDB.ref(`global_patient_index/${fingerprint}`).once('value');
+        if (snap.exists()) {
+            return { fingerprint, data: snap.val() };
+        }
+        return null;
+    },
+
+    async getReadonlyRecord(sourceClinicId, targetClinicId, patientId) {
+        // Enforce Consent
+        const hasConsent = await ConsentAPI.verifyConsent(targetClinicId, sourceClinicId, patientId);
+        if (!hasConsent) throw new Error("ACCESS_DENIED: No explicit consent granted for this organization.");
+
+        // Read-only fetch
+        const snap = await argonDB.ref(`clinics/${targetClinicId}/patients/${patientId}`).once('value');
+        if (!snap.exists()) return null;
+        
+        const pat = snap.val();
+        pat._isGlobalReadOnly = true; // Flag for UI to disable saves
+        return pat;
+    }
+};
+
+const ConsentAPI = {
+    async grantAccess(owningClinicId, requestingClinicId, patientId, durationDays = 1) {
+        const expiration = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
+        await argonDB.ref(`clinic_federation/${owningClinicId}/consents/${patientId}/${requestingClinicId}`).set({
+            grantedAt: Date.now(),
+            expiration,
+            status: 'ACTIVE',
+            legalBasis: 'PATIENT_EXPLICIT_CONSENT'
+        });
+        
+        // Audit log
+        ArgonAudit.log(owningClinicId, 'CONSENT_GRANTED', 'SYSTEM', `Granted access to ${requestingClinicId} for ${patientId}`);
+    },
+
+    async revokeAccess(owningClinicId, requestingClinicId, patientId) {
+        await argonDB.ref(`clinic_federation/${owningClinicId}/consents/${patientId}/${requestingClinicId}`).update({
+            status: 'REVOKED',
+            revokedAt: Date.now()
+        });
+        ArgonAudit.log(owningClinicId, 'CONSENT_REVOKED', 'SYSTEM', `Revoked access for ${requestingClinicId} on ${patientId}`);
+    },
+
+    async verifyConsent(owningClinicId, requestingClinicId, patientId) {
+        const snap = await argonDB.ref(`clinic_federation/${owningClinicId}/consents/${patientId}/${requestingClinicId}`).once('value');
+        if (!snap.exists()) return false;
+        
+        const consent = snap.val();
+        if (consent.status !== 'ACTIVE') return false;
+        if (Date.now() > consent.expiration) return false;
+        
+        return true;
+    }
+};
+
+// ══════════════════════════════════════════
 //  EXPORT (attach to window for non-module usage)
 // ══════════════════════════════════════════
 window.ArgonMedical = {
@@ -1676,6 +1773,9 @@ window.ArgonMedical = {
     FHIRMapper,
     MigrationAPI,
     IntegrityEngine,
+    GMPIEngine,
+    GlobalIdentityAPI,
+    ConsentAPI,
     CLINIC_TYPES,
     FEATURES
 };
