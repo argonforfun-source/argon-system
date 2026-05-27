@@ -649,6 +649,148 @@ const ArgonPage = {
 };
 
 // ══════════════════════════════════════════
+//  ENTERPRISE PATIENT API (MIGRATION LAYER)
+// ══════════════════════════════════════════
+const PatientAPI = {
+    _getBase() {
+        const cid = ArgonSession.getClinicId() || new URLSearchParams(window.location.search).get('id') || window.CID;
+        return cid ? `clinics/${cid}` : '';
+    },
+
+    /**
+     * Dual-Read Engine
+     * Tries patient_identity first, falls back to legacy patients/
+     */
+    async getIdentity(uid) {
+        const base = this._getBase();
+        if (!base || !uid) return null;
+
+        try {
+            // Try Enterprise Domain
+            const newSnap = await argonDB.ref(`${base}/patient_identity/${uid}`).once('value');
+            if (newSnap.exists()) {
+                const data = newSnap.val();
+                data._source = 'enterprise';
+                return data;
+            }
+
+            // Fallback to Legacy
+            const legacySnap = await argonDB.ref(`${base}/patients/${uid}`).once('value');
+            if (legacySnap.exists()) {
+                const data = legacySnap.val();
+                data._source = 'legacy';
+                // Trigger auto-migration silently
+                this.triggerSilentMigration(uid, data);
+                return data;
+            }
+            return null;
+        } catch (e) {
+            console.error('[PatientAPI] Read Error:', e);
+            return null;
+        }
+    },
+
+    /**
+     * Dual-Write Engine
+     * Writes to both legacy patients/ and new patient_identity/
+     */
+    async saveIdentity(uid, patientData) {
+        const base = this._getBase();
+        if (!base || !uid) throw new Error("Missing Base/UID");
+
+        const updates = {};
+        
+        // 1. Legacy Write (for backward compatibility)
+        updates[`${base}/patients/${uid}`] = patientData;
+        
+        // 2. Enterprise Write
+        const identityData = {
+            info: patientData.info || {},
+            updatedAt: new Date().toISOString()
+        };
+        updates[`${base}/patient_identity/${uid}`] = identityData;
+
+        // Extract records if any
+        if (patientData.records) {
+            updates[`${base}/patient_records/${uid}`] = patientData.records;
+        }
+
+        await argonDB.ref().update(updates);
+        
+        // Indexing for search (by_phone, by_mrn)
+        if (identityData.info.phone) {
+            const cleanPhone = ArgonSanitize.phone(identityData.info.phone) ? String(identityData.info.phone).replace(/\D/g, '') : null;
+            if (cleanPhone) {
+                argonDB.ref(`${base}/patient_indexes/by_phone/${cleanPhone}/${uid}`).set(true);
+            }
+        }
+        if (identityData.info.mrn) {
+            argonDB.ref(`${base}/patient_indexes/by_mrn/${identityData.info.mrn}/${uid}`).set(true);
+        }
+
+        return true;
+    },
+
+    /**
+     * Event-Sourced Timeline Layer
+     */
+    async pushTimelineEvent(uid, eventType, payload) {
+        const base = this._getBase();
+        if (!base || !uid) return null;
+
+        const eventRef = argonDB.ref(`${base}/patient_timeline/${uid}`).push();
+        const eventData = {
+            eventId: eventRef.key,
+            eventType,
+            timestamp: new Date().toISOString(),
+            payload,
+            author: ArgonSession.getRole() || 'System'
+        };
+
+        await eventRef.set(eventData);
+        return eventData;
+    },
+
+    /**
+     * Background Auto-Migration with Locks
+     */
+    async triggerSilentMigration(uid, legacyData) {
+        const base = this._getBase();
+        const lockRef = argonDB.ref(`${base}/_meta/migrations/identity_v2/${uid}`);
+        
+        try {
+            const lock = await lockRef.once('value');
+            if (lock.exists() && lock.val().status === 'completed') return;
+
+            // Set Lock
+            await lockRef.set({ status: 'running', startedAt: new Date().toISOString() });
+
+            // Save to new domains
+            await this.saveIdentity(uid, legacyData);
+
+            // Migrate old visits to Timeline
+            if (legacyData.visits) {
+                for (const [vk, visit] of Object.entries(legacyData.visits)) {
+                    // Quick deduplication check
+                    const tCheck = await argonDB.ref(`${base}/patient_timeline/${uid}`).orderByChild('payload/originalKey').equalTo(vk).once('value');
+                    if (!tCheck.exists()) {
+                        visit.originalKey = vk;
+                        await this.pushTimelineEvent(uid, 'LEGACY_VISIT_MIGRATED', visit);
+                    }
+                }
+            }
+
+            // Complete Lock
+            await lockRef.update({ status: 'completed', completedAt: new Date().toISOString(), version: '2.0' });
+            console.log(`%c[PatientAPI] Silent Migration Completed for ${uid}`, 'color:#10b981');
+        } catch (e) {
+            console.error(`[PatientAPI] Migration failed for ${uid}:`, e);
+            await lockRef.update({ status: 'failed', error: e.message });
+        }
+    }
+};
+
+// ══════════════════════════════════════════
 //  EXPORT (attach to window for non-module usage)
 // ══════════════════════════════════════════
 window.ArgonMedical = {
@@ -664,6 +806,7 @@ window.ArgonMedical = {
     UI: ArgonUI,
     WhatsApp: ArgonWhatsApp,
     Page: ArgonPage,
+    PatientAPI: PatientAPI,
     CLINIC_TYPES,
     FEATURES
 };
