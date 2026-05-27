@@ -44,7 +44,7 @@
                     </div>
                 </div>
                 <div class="tb-actions">
-                    <button class="btn btn-outline"><i class="fas fa-history"></i> السجل المرضي</button>
+                    <button class="btn btn-outline" onclick="openClinicalStream()"><i class="fas fa-history"></i> السجل المرضي</button>
                     <button class="btn btn-primary" data-feature="lab" onclick="completeVisit('lab')"><i class="fas fa-flask"></i> تحويل للمختبر</button>
                     <button class="btn btn-primary" data-feature="radiology" onclick="completeVisit('radiology')"><i class="fas fa-x-ray"></i> تحويل للأشعة</button>
                     <button class="btn btn-success" onclick="completeVisit('done')"><i class="fas fa-check-double"></i> إنهاء الزيارة وحفظ</button>
@@ -138,6 +138,49 @@
         </div>
 
     </main>
+
+    <!-- ENTERPRISE CLINICAL ACTIVITY STREAM (DRAWER) -->
+    <div id="clinicalStreamDrawer" class="stream-drawer" style="display:none;">
+        <div class="stream-overlay" onclick="closeClinicalStream()"></div>
+        <div class="stream-content">
+            
+            <!-- Persistent Clinical Snapshot Sidebar -->
+            <aside class="stream-sidebar">
+                <div class="cs-avatar" id="csAvatar">ع</div>
+                <h2 id="csName">اسم المريض</h2>
+                <div class="cs-meta">MRN: <span id="csMrn">—</span></div>
+                
+                <div class="cs-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> التنبيهات الحرجة</h3>
+                    <div id="csAlerts" class="cs-alerts"></div>
+                </div>
+
+                <div class="cs-section">
+                    <h3><i class="fas fa-allergies"></i> الحساسية</h3>
+                    <div id="csAllergies" class="cs-tags"></div>
+                </div>
+
+                <div class="cs-section">
+                    <h3><i class="fas fa-pills"></i> الأدوية الفعالة</h3>
+                    <div id="csMeds" class="cs-tags"></div>
+                </div>
+            </aside>
+
+            <!-- Virtualized Timeline Area -->
+            <div class="stream-main">
+                <header class="stream-header">
+                    <h2><i class="fas fa-stream"></i> السجل الطبي الموحد (Clinical Activity Stream)</h2>
+                    <button class="btn btn-outline" onclick="closeClinicalStream()"><i class="fas fa-times"></i> إغلاق</button>
+                </header>
+
+                <div class="stream-timeline" id="streamTimeline" onscroll="handleStreamScroll(event)">
+                    <!-- Timeline Events injected here -->
+                    <div style="text-align:center; padding: 40px; color:var(--muted)">جاري تحميل السجل...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>

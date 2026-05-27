@@ -763,6 +763,66 @@ const PatientAPI = {
     },
 
     /**
+     * Phase 4.5: Enterprise Clinical Activity Stream
+     * Merges events, prioritizes them, and prepares for caching/UI virtualization.
+     */
+    async getClinicalActivityStream(uid, options = {}) {
+        const { limit = 50, cursor = null } = options;
+        const base = this._getBase();
+        if (!base || !uid) return [];
+
+        let timeline = [];
+
+        // 1. Try Cache First (Stale-While-Revalidate)
+        const cached = await ArgonCacheEngine.getStream(uid);
+        if (cached && cached.length > 0) {
+            timeline = cached;
+            // Background revalidate happens below asynchronously, but we can return cache immediately for UI
+            // For now, let's do a sync fetch to ensure absolute accuracy, but cache provides offline safety.
+        }
+
+        // 2. Fetch all events (unified)
+        const events = await this.getUnifiedTimeline(uid);
+
+        // 3. Normalize & Prioritize
+        const stream = events.map(evt => {
+            // Apply priority
+            const clinicalPriority = ClinicalPriorityEngine.calculate(evt);
+            
+            return {
+                eventId: evt.eventId,
+                immutableId: evt.immutableId || btoa(evt.timestamp || Date.now().toString()),
+                eventType: evt.eventType,
+                clinicalPriority,
+                timestamp: evt.timestamp,
+                actor: evt.author || 'System',
+                sourceModule: evt.sourceModule || 'legacy',
+                schemaVersion: evt.schemaVersion || 1,
+                patientUUID: uid,
+                payload: evt.payload || {},
+                attachments: evt.attachments || [],
+                audit: {
+                    createdAt: evt.timestamp,
+                    createdBy: evt.author || 'System',
+                    deviceId: 'unknown',
+                    immutableHash: evt.immutableId || 'legacy-hash'
+                }
+            };
+        });
+
+        // 4. Update Cache
+        ArgonCacheEngine.setStream(uid, stream);
+
+        // 5. Paginate (Virtualization support)
+        let startIndex = 0;
+        if (cursor) {
+            const cIdx = stream.findIndex(e => e.eventId === cursor);
+            if (cIdx !== -1) startIndex = cIdx + 1;
+        }
+        return stream.slice(startIndex, startIndex + limit);
+    },
+
+    /**
      * Fail-Safe Patient Context Resolver
      * Prevents Cross-Linking. NEVER GUESSES.
      */
@@ -1156,6 +1216,112 @@ const AuditAPI = {
 };
 
 // ══════════════════════════════════════════
+//  ENTERPRISE CLINICAL PRIORITY ENGINE
+// ══════════════════════════════════════════
+const ClinicalPriorityEngine = {
+    calculate(event) {
+        if (!event || !event.eventType) return 'INFO';
+        const type = event.eventType;
+        const payload = event.payload || {};
+
+        if (type === 'ALLERGY_WARNING_OVERRIDE' || type === 'CRITICAL_LAB_RESULT') return 'CRITICAL';
+        if (type === 'LAB_RESULT' && payload.isAbnormal) return 'HIGH';
+        if (type === 'RX_ADDED' || type === 'VISIT_CREATED') return 'NORMAL';
+        if (type === 'LAB_ORDERED' || type === 'RADIOLOGY_ORDERED') return 'NORMAL';
+        if (type === 'PATIENT_UPDATED' || type === 'NOTE_ADDED') return 'INFO';
+
+        return 'INFO';
+    }
+};
+
+// ══════════════════════════════════════════
+//  INDEXED-DB CLINICAL CACHE LAYER
+// ══════════════════════════════════════════
+const ArgonCacheEngine = {
+    DB_NAME: 'ArgonClinicalCache',
+    STORE_NAME: 'timelines',
+    VERSION: 1,
+    _db: null,
+
+    async init() {
+        if (this._db) return this._db;
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(this.DB_NAME, this.VERSION);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+                    db.createObjectStore(this.STORE_NAME, { keyPath: 'uid' });
+                }
+            };
+            req.onsuccess = (e) => {
+                this._db = e.target.result;
+                resolve(this._db);
+            };
+            req.onerror = () => reject(req.error);
+        });
+    },
+
+    async getStream(uid) {
+        try {
+            const db = await this.init();
+            return new Promise((resolve) => {
+                const tx = db.transaction(this.STORE_NAME, 'readonly');
+                const store = tx.objectStore(this.STORE_NAME);
+                const req = store.get(uid);
+                req.onsuccess = () => resolve(req.result ? req.result.stream : null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) { return null; }
+    },
+
+    async setStream(uid, stream) {
+        try {
+            const db = await this.init();
+            return new Promise((resolve) => {
+                const tx = db.transaction(this.STORE_NAME, 'readwrite');
+                const store = tx.objectStore(this.STORE_NAME);
+                store.put({ uid, stream, updatedAt: Date.now() });
+                tx.oncomplete = () => resolve(true);
+            });
+        } catch (e) { return false; }
+    }
+};
+
+// ══════════════════════════════════════════
+//  ENTERPRISE FHIR INTEGRATION LAYER
+// ══════════════════════════════════════════
+const FHIRMapper = {
+    toPatientResource(patient) {
+        if (!patient) return null;
+        const info = patient.info || {};
+        return {
+            resourceType: "Patient",
+            id: patient._metadata?.uid || '',
+            identifier: [{ use: "official", value: info.nationalId || info.mrn }],
+            name: [{ text: info.name }],
+            telecom: [{ system: "phone", value: info.phone }],
+            gender: info.gender === 'ذكر' ? 'male' : (info.gender === 'أنثى' ? 'female' : 'unknown'),
+            birthDate: info.dob || null, // Assuming format mapping if available
+            active: patient.status !== 'archived'
+        };
+    },
+
+    toEncounter(event) {
+        if (!event || event.eventType !== 'VISIT_CREATED') return null;
+        return {
+            resourceType: "Encounter",
+            id: event.eventId,
+            status: "finished",
+            class: { code: "AMB", display: "ambulatory" },
+            subject: { reference: `Patient/${event.patientUUID}` },
+            participant: [{ individual: { display: event.actor } }],
+            period: { start: event.timestamp },
+            diagnosis: [{ condition: { display: event.payload.diagnosis } }]
+        };
+    }
+};
+
+// ══════════════════════════════════════════
 //  EXPORT (attach to window for non-module usage)
 // ══════════════════════════════════════════
 window.ArgonMedical = {
@@ -1177,6 +1343,9 @@ window.ArgonMedical = {
     MPIEngine: MPIEngine,
     AttachmentAPI: AttachmentAPI,
     AuditAPI: AuditAPI,
+    ClinicalPriorityEngine,
+    ArgonCacheEngine,
+    FHIRMapper,
     CLINIC_TYPES,
     FEATURES
 };

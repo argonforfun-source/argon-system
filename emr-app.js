@@ -385,7 +385,161 @@ async function completeVisit(sendTo) {
         document.getElementById('activeWs').style.display = 'none';
         document.getElementById('emptyWs').style.display = 'flex';
 
-    } catch (e) {
         ArgonMedical.UI.toast('حدث خطأ أثناء الحفظ', 'err');
     }
+}
+
+// ══════════════════════════════════════════
+//  ENTERPRISE CLINICAL ACTIVITY STREAM UI
+// ══════════════════════════════════════════
+
+let streamCursor = null;
+let streamIsLoading = false;
+let streamHasMore = true;
+let currentStreamPatient = null;
+
+async function openClinicalStream() {
+    if (!currentPatientId) {
+        ArgonMedical.UI.toast('الرجاء اختيار مريض أولاً', 'err');
+        return;
+    }
+    document.getElementById('clinicalStreamDrawer').style.display = 'flex';
+    
+    // Reset State
+    streamCursor = null;
+    streamHasMore = true;
+    document.getElementById('streamTimeline').innerHTML = '<div style="text-align:center; padding: 40px; color:var(--muted)"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجل الطبي الموحد...</div>';
+    
+    currentStreamPatient = await ArgonMedical.PatientAPI.getIdentity(currentPatientId);
+    
+    renderClinicalSnapshot();
+    await loadClinicalStream();
+}
+
+function closeClinicalStream() {
+    document.getElementById('clinicalStreamDrawer').style.display = 'none';
+}
+
+function renderClinicalSnapshot() {
+    if (!currentStreamPatient) return;
+    const p = currentStreamPatient;
+    const info = p.info || {};
+    
+    document.getElementById('csAvatar').innerText = (info.name || 'ع').charAt(0);
+    document.getElementById('csName').innerText = info.name || 'غير معروف';
+    document.getElementById('csMrn').innerText = info.mrn || '—';
+    
+    // Allergies
+    const allergies = p.medical?.allergies || [];
+    const csAllergies = document.getElementById('csAllergies');
+    if (allergies.length) {
+        csAllergies.innerHTML = allergies.map(a => `<span class="cs-tag critical">${a}</span>`).join('');
+    } else {
+        csAllergies.innerHTML = '<span style="color:var(--muted);font-size:12px;">لا توجد حساسية مسجلة</span>';
+    }
+
+    // Chronic
+    const chronic = p.medical?.chronic || [];
+    const csAlerts = document.getElementById('csAlerts');
+    if (chronic.length) {
+        csAlerts.innerHTML = chronic.map(c => `<div class="cs-alert critical">${c}</div>`).join('');
+    } else {
+        csAlerts.innerHTML = '<span style="color:var(--muted);font-size:12px;">لا توجد أمراض مزمنة مسجلة</span>';
+    }
+
+    // Active Meds placeholder (could be derived from stream)
+    document.getElementById('csMeds').innerHTML = '<span style="color:var(--muted);font-size:12px;">قريباً...</span>';
+}
+
+async function loadClinicalStream() {
+    if (streamIsLoading || !streamHasMore) return;
+    streamIsLoading = true;
+    
+    const timelineDiv = document.getElementById('streamTimeline');
+    
+    try {
+        const events = await ArgonMedical.PatientAPI.getClinicalActivityStream(currentPatientId, { limit: 20, cursor: streamCursor });
+        
+        if (events.length === 0) {
+            if (!streamCursor) {
+                timelineDiv.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--muted)"><i class="fas fa-folder-open" style="font-size:32px;margin-bottom:16px;display:block"></i>لا توجد أحداث سابقة في السجل الطبي</div>';
+            }
+            streamHasMore = false;
+            streamIsLoading = false;
+            return;
+        }
+
+        if (!streamCursor) timelineDiv.innerHTML = ''; // Clear initial loader
+
+        // Render Events
+        events.forEach(evt => {
+            timelineDiv.insertAdjacentHTML('beforeend', buildEventCard(evt));
+        });
+
+        // Update Cursor
+        streamCursor = events[events.length - 1].eventId;
+        
+        if (events.length < 20) streamHasMore = false;
+        
+    } catch (e) {
+        console.error(e);
+        ArgonMedical.UI.toast('خطأ في تحميل السجل', 'err');
+    }
+    
+    streamIsLoading = false;
+}
+
+function handleStreamScroll(e) {
+    const el = e.target;
+    // Load more when 100px from bottom
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 100) {
+        loadClinicalStream();
+    }
+}
+
+function buildEventCard(evt) {
+    const timeStr = new Date(evt.timestamp).toLocaleString('ar-EG');
+    let icon = 'fa-file-medical';
+    let title = 'سجل طبي';
+    let payloadHtml = '';
+
+    if (evt.eventType === 'VISIT_CREATED') {
+        icon = 'fa-stethoscope'; title = 'زيارة طبية مبدئية';
+        const p = evt.payload;
+        payloadHtml = `
+            <div class="ev-payload">
+                ${p.diagnosis ? `<strong>التشخيص:</strong> ${p.diagnosis}<br>` : ''}
+                ${p.notes ? `<strong>الملاحظات:</strong> ${p.notes}<br>` : ''}
+                <table class="ev-payload-table">
+                    <tr><th>الحرارة</th><td>${p.vitals?.temp || '-'} °C</td></tr>
+                    <tr><th>الضغط</th><td>${p.vitals?.bp || '-'}</td></tr>
+                    <tr><th>النبض</th><td>${p.vitals?.hr || '-'}</td></tr>
+                </table>
+            </div>
+        `;
+    } else if (evt.eventType === 'RX_ADDED') {
+        icon = 'fa-pills'; title = 'وصفة طبية جديدة';
+    } else if (evt.eventType === 'LAB_ORDERED') {
+        icon = 'fa-flask'; title = 'طلب تحاليل مخبرية';
+    }
+
+    return `
+        <div class="event-card">
+            <div class="ev-indicator ${evt.clinicalPriority}"></div>
+            <div class="ev-icon-col"><i class="fas ${icon}"></i></div>
+            <div class="ev-content">
+                <div class="ev-hdr">
+                    <div class="ev-title">${title} <span class="badge ${evt.clinicalPriority === 'CRITICAL' ? 'bg-danger' : 'bg-secondary'}">${evt.clinicalPriority}</span></div>
+                    <div class="ev-time">${timeStr}</div>
+                </div>
+                <div class="ev-author"><i class="fas fa-user-md"></i> ${evt.actor}</div>
+                ${payloadHtml}
+                
+                <div class="ev-audit">
+                    <div class="ev-hash"><i class="fas fa-shield-alt"></i> IMMUTABLE HASH: ${evt.audit.immutableHash.substring(0, 16)}...</div>
+                    <div style="font-size:11px;color:var(--muted)">v${evt.schemaVersion} • ${evt.sourceModule}</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
