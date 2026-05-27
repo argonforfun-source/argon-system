@@ -658,6 +658,27 @@ const PatientAPI = {
     },
 
     /**
+     * Enterprise Adapters
+     * Guarantees that the UI always receives a consistent object, regardless of the database schema.
+     */
+    buildUICompatiblePatient(uid, identityData, recordsData, legacyData = null) {
+        // Base object that the EMR UI expects
+        const patient = {
+            info: identityData?.info || legacyData?.info || {},
+            visits: legacyData?.visits || {}, // For now, we still map visits from legacy if present
+            invoices: legacyData?.invoices || {},
+            _metadata: {
+                uid: uid,
+                schemaVersion: identityData?.schemaVersion || 1,
+                source: identityData ? 'enterprise' : 'legacy'
+            }
+        };
+        // Inject MRN and default fields if missing
+        if (!patient.info.mrn) patient.info.mrn = ArgonMedical.UI ? ArgonMedical.UI.genMRN?.() : '';
+        return patient;
+    },
+
+    /**
      * Dual-Read Engine
      * Tries patient_identity first, falls back to legacy patients/
      */
@@ -669,19 +690,24 @@ const PatientAPI = {
             // Try Enterprise Domain
             const newSnap = await argonDB.ref(`${base}/patient_identity/${uid}`).once('value');
             if (newSnap.exists()) {
-                const data = newSnap.val();
-                data._source = 'enterprise';
-                return data;
+                const identityData = newSnap.val();
+                
+                // Fetch legacy data just for the `visits` array temporarily until Timeline UI is ready
+                const legacySnap = await argonDB.ref(`${base}/patients/${uid}`).once('value');
+                const legacyData = legacySnap.val() || {};
+                
+                return this.buildUICompatiblePatient(uid, identityData, null, legacyData);
             }
 
             // Fallback to Legacy
             const legacySnap = await argonDB.ref(`${base}/patients/${uid}`).once('value');
             if (legacySnap.exists()) {
-                const data = legacySnap.val();
-                data._source = 'legacy';
+                const legacyData = legacySnap.val();
+                if (legacyData.status === 'archived') return null; // Respect Soft Delete
+                
                 // Trigger auto-migration silently
-                this.triggerSilentMigration(uid, data);
-                return data;
+                this.triggerSilentMigration(uid, legacyData);
+                return this.buildUICompatiblePatient(uid, null, null, legacyData);
             }
             return null;
         } catch (e) {
@@ -706,9 +732,15 @@ const PatientAPI = {
         // 2. Enterprise Write
         const identityData = {
             info: patientData.info || {},
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            schemaVersion: 2,
+            identityVersion: 2
         };
         updates[`${base}/patient_identity/${uid}`] = identityData;
+
+        // Write historical versions for Versioning Engine
+        const versionId = new Date().getTime().toString();
+        updates[`${base}/profile_versions/${uid}/${versionId}`] = identityData;
 
         // Extract records if any
         if (patientData.records) {
@@ -787,7 +819,135 @@ const PatientAPI = {
             console.error(`[PatientAPI] Migration failed for ${uid}:`, e);
             await lockRef.update({ status: 'failed', error: e.message });
         }
+    },
+
+    /**
+     * Enterprise Soft Delete
+     */
+    async archivePatient(uid) {
+        const base = this._getBase();
+        if (!base || !uid) return false;
+        
+        const updates = {};
+        updates[`${base}/patients/${uid}/status`] = 'archived';
+        updates[`${base}/patients/${uid}/deletedAt`] = new Date().toISOString();
+        updates[`${base}/patient_identity/${uid}/status`] = 'archived';
+        
+        await argonDB.ref().update(updates);
+        return true;
     }
+};
+
+// ══════════════════════════════════════════
+//  ENTERPRISE SEARCH API
+// ══════════════════════════════════════════
+const SearchAPI = {
+    async searchPatients(options = {}) {
+        const { query = '', limit = 50, offset = 0 } = options;
+        const base = PatientAPI._getBase();
+        if (!base) return {};
+
+        console.groupCollapsed(`[ARGON Enterprise] Search Execution: "${query}"`);
+        console.log(`Limit: ${limit}, Offset: ${offset}`);
+
+        try {
+            // For now, if no query, we fallback to a limited fetch of legacy patients 
+            // until the full indexer is ready. This replaces the heavy child_added.
+            if (!query.trim()) {
+                const snap = await argonDB.ref(`${base}/patients`).limitToLast(limit).once('value');
+                console.log(`Fetched ${snap.numChildren()} default patients`);
+                console.groupEnd();
+                return snap.val() || {};
+            }
+
+            // Indexed Search Logic (Phone or MRN)
+            const cleanQuery = ArgonSanitize.phone(query) ? query.replace(/\D/g, '') : query.trim();
+            const results = {};
+            
+            // Try Phone Index
+            if (/^\d+$/.test(cleanQuery)) {
+                const phoneSnap = await argonDB.ref(`${base}/patient_indexes/by_phone`).orderByKey().startAt(cleanQuery).endAt(cleanQuery + '\uf8ff').limitToFirst(limit).once('value');
+                if (phoneSnap.exists()) {
+                    for (const [phoneKey, uids] of Object.entries(phoneSnap.val())) {
+                        for (const uid of Object.keys(uids)) {
+                            const p = await PatientAPI.getIdentity(uid);
+                            if (p) results[uid] = p;
+                        }
+                    }
+                }
+            }
+            
+            // Try Legacy Fallback if index missed (temporary during migration)
+            if (Object.keys(results).length === 0) {
+                console.log('Index missed. Using legacy fallback search...');
+                const snap = await argonDB.ref(`${base}/patients`).once('value');
+                const all = snap.val() || {};
+                const q = query.toLowerCase();
+                for (const [uid, pat] of Object.entries(all)) {
+                    if (pat.status === 'archived') continue;
+                    const info = pat.info || {};
+                    if ((info.name && info.name.toLowerCase().includes(q)) || 
+                        (info.phone && info.phone.includes(q)) || 
+                        (info.mrn && info.mrn.toLowerCase().includes(q))) {
+                        results[uid] = PatientAPI.buildUICompatiblePatient(uid, null, null, pat);
+                    }
+                }
+            }
+
+            console.log(`Search returned ${Object.keys(results).length} results`);
+            console.groupEnd();
+            return results;
+        } catch (e) {
+            console.error('[SearchAPI] Error:', e);
+            console.groupEnd();
+            return {};
+        }
+    }
+};
+
+// ══════════════════════════════════════════
+//  ENTERPRISE TIMELINE API
+// ══════════════════════════════════════════
+const TimelineAPI = {
+    async pushEvent(uid, eventType, payload) {
+        return await PatientAPI.pushTimelineEvent(uid, eventType, payload);
+    }
+};
+
+// ══════════════════════════════════════════
+//  ENTERPRISE MPI ENGINE (Master Patient Index)
+// ══════════════════════════════════════════
+const MPIEngine = {
+    calculateMatchProbability(patientA, patientB) {
+        let score = 0;
+        let maxScore = 100;
+        
+        const infoA = patientA?.info || {};
+        const infoB = patientB?.info || {};
+
+        const nameA = (infoA.name || '').trim().toLowerCase();
+        const nameB = (infoB.name || '').trim().toLowerCase();
+        const phoneA = (infoA.phone || '').replace(/\D/g, '');
+        const phoneB = (infoB.phone || '').replace(/\D/g, '');
+
+        if (nameA && nameB) {
+            if (nameA === nameB) score += 60;
+            else if (nameA.includes(nameB) || nameB.includes(nameA)) score += 30;
+        }
+        
+        if (phoneA && phoneB) {
+            if (phoneA === phoneB) score += 40;
+        }
+
+        // Return a percentage
+        return Math.min(100, Math.round((score / maxScore) * 100));
+    }
+};
+
+// Placeholder APIs for Phase 4 & 5
+const AttachmentAPI = {};
+const AuditAPI = {
+    log: ArgonAudit.log // Map to existing audit logger
 };
 
 // ══════════════════════════════════════════
@@ -807,6 +967,11 @@ window.ArgonMedical = {
     WhatsApp: ArgonWhatsApp,
     Page: ArgonPage,
     PatientAPI: PatientAPI,
+    SearchAPI: SearchAPI,
+    TimelineAPI: TimelineAPI,
+    MPIEngine: MPIEngine,
+    AttachmentAPI: AttachmentAPI,
+    AuditAPI: AuditAPI,
     CLINIC_TYPES,
     FEATURES
 };

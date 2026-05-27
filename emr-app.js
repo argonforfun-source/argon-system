@@ -35,14 +35,18 @@ let waitingList = {};
 let patientsData = {};
 
 function loadWaitingRoom() {
-    // Also need patients data for names
-    ArgonMedical.DB.ref(`clinics/${CID}/patients`).on('value', snap => {
-        patientsData = snap.val() || {};
-        renderWaitingRoom();
-    });
-
-    ArgonMedical.DB.ref(`clinics/${CID}/waiting_room`).on('value', snap => {
+    // Use raw DB just for waiting_room list, but do NOT download all patients!
+    ArgonMedical.DB.ref(`clinics/${CID}/waiting_room`).on('value', async snap => {
         waitingList = snap.val() || {};
+        
+        // Fetch only the needed patient identities via Enterprise API
+        for (const apt of Object.values(waitingList)) {
+            if (apt.patientId && !patientsData[apt.patientId]) {
+                const pat = await ArgonMedical.PatientAPI.getIdentity(apt.patientId);
+                if (pat) patientsData[apt.patientId] = pat;
+            }
+        }
+        
         renderWaitingRoom();
     });
 }
@@ -71,7 +75,7 @@ function renderWaitingRoom() {
             <div class="wr-card ${isActive ? 'active' : ''}" onclick="selectPatient('${item.id}', '${item.patientId}')">
                 <span class="wr-badge ${isDoc ? 'indoc' : 'waiting'}">${isDoc ? 'عند الطبيب' : 'بالانتظار'}</span>
                 <div class="wr-num">${item.queueNum || '-'}</div>
-                <div class="wr-name">${p.name || 'غير معروف'}</div>
+                <div class="wr-name">${p.info?.name || 'غير معروف'}</div>
                 <div class="wr-time"><i class="fas fa-clock"></i> موعد: ${item.time || '—'}</div>
             </div>
         `;
@@ -91,11 +95,13 @@ async function selectPatient(aptId, ptId) {
     await ArgonMedical.DB.ref(`clinics/${CID}/waiting_room/${aptId}`).update({ status: 'in_doctor' });
 
     // Load Workspace UI
-    const p = patientsData[ptId];
-    document.getElementById('tbName').textContent = p.name;
-    document.getElementById('tbPhone').textContent = p.phone || '—';
-    document.getElementById('tbId').textContent = p.idNumber || '—';
-    document.getElementById('tbAvatar').textContent = p.name.charAt(0);
+    const p = patientsData[ptId] || await ArgonMedical.PatientAPI.getIdentity(ptId);
+    if (!p) { ArgonMedical.UI.toast('خطأ في تحميل بيانات المريض', 'err'); return; }
+    
+    document.getElementById('tbName').textContent = p.info?.name || 'غير معروف';
+    document.getElementById('tbPhone').textContent = p.info?.phone || '—';
+    document.getElementById('tbId').textContent = p.info?.nationalId || '—';
+    document.getElementById('tbAvatar').textContent = (p.info?.name || '?').charAt(0);
     
     document.getElementById('emptyWs').style.display = 'none';
     document.getElementById('activeWs').style.display = 'flex';
@@ -117,12 +123,13 @@ async function selectPatient(aptId, ptId) {
 
 // ── MEDICAL HISTORY & ALLERGIES ──
 let ptHistory = {};
-function loadMedicalHistory(ptId) {
-    ArgonMedical.DB.ref(`clinics/${CID}/patients/${ptId}/medical_history`).once('value', snap => {
-        ptHistory = snap.val() || { allergies: [], chronic: [] };
-        renderTags('allergyList', ptHistory.allergies, 'allergy');
-        renderTags('chronicList', ptHistory.chronic, 'chronic');
-    });
+async function loadMedicalHistory(ptId) {
+    // Fetch full patient via Enterprise API to extract records (allergies, etc.)
+    const p = await ArgonMedical.PatientAPI.getIdentity(ptId);
+    ptHistory = p?.records?.medical_history || { allergies: [], chronic: [] };
+    
+    renderTags('allergyList', ptHistory.allergies, 'allergy');
+    renderTags('chronicList', ptHistory.chronic, 'chronic');
 }
 
 function addTag(type) {
@@ -141,8 +148,17 @@ function addTag(type) {
     }
     inp.value = '';
     
-    // Save directly to patient profile
-    ArgonMedical.DB.ref(`clinics/${CID}/patients/${currentPatientId}/medical_history`).update(ptHistory);
+    
+    // Save via Enterprise API
+    ArgonMedical.PatientAPI.getIdentity(currentPatientId).then(p => {
+        if (p) {
+            p.records = p.records || {};
+            p.records.medical_history = ptHistory;
+            ArgonMedical.PatientAPI.saveIdentity(currentPatientId, p);
+            // Push audit event silently
+            ArgonMedical.TimelineAPI.pushEvent(currentPatientId, 'PATIENT_EDITED', { action: 'added_medical_history_tag', tag: val });
+        }
+    });
 }
 
 function removeTag(type, idx) {
@@ -150,7 +166,16 @@ function removeTag(type, idx) {
     else ptHistory.chronic.splice(idx, 1);
     
     renderTags(type === 'allergy' ? 'allergyList' : 'chronicList', type === 'allergy' ? ptHistory.allergies : ptHistory.chronic, type);
-    ArgonMedical.DB.ref(`clinics/${CID}/patients/${currentPatientId}/medical_history`).update(ptHistory);
+    
+    // Save via Enterprise API
+    ArgonMedical.PatientAPI.getIdentity(currentPatientId).then(p => {
+        if (p) {
+            p.records = p.records || {};
+            p.records.medical_history = ptHistory;
+            ArgonMedical.PatientAPI.saveIdentity(currentPatientId, p);
+            ArgonMedical.TimelineAPI.pushEvent(currentPatientId, 'PATIENT_EDITED', { action: 'removed_medical_history_tag' });
+        }
+    });
 }
 
 function renderTags(elId, list, type) {
@@ -323,8 +348,17 @@ async function completeVisit(sendTo) {
     };
 
     try {
-        // Save visit to patient history
-        await ArgonMedical.DB.ref(`clinics/${CID}/patients/${currentPatientId}/visits/${currentAptId}`).set(visitData);
+        // Save visit to legacy node (via PatientAPI backwards-compat) AND new Timeline 
+        const p = await ArgonMedical.PatientAPI.getIdentity(currentPatientId);
+        if (p) {
+            // Push Event-Sourced Immutable Record
+            await ArgonMedical.TimelineAPI.pushEvent(currentPatientId, 'VISIT_CREATED', visitData);
+            
+            // For now, still append to legacy visits to not break the UI
+            p.visits = p.visits || {};
+            p.visits[currentAptId] = visitData;
+            await ArgonMedical.PatientAPI.saveIdentity(currentPatientId, p);
+        }
         
         // If complex, route prescriptions to pharmacy
         if (prescriptions.length && ArgonMedical.License.isComplex()) {
