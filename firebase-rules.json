@@ -19,12 +19,39 @@
             ".write": true
           }
         },
-        "patients": {
+        "patient_identity": {
           ".read": true,
           ".write": true,
           "$patientId": {
-            ".validate": "newData.hasChildren(['name', 'phone'])"
+            // Enterprise Rule: UUID must be generated (starts with '-')
+            ".validate": "$patientId.beginsWith('-') && newData.hasChildren(['name', 'phone'])"
           }
+        },
+        "patient_records": {
+          ".read": true,
+          ".write": true
+        },
+        "patient_timeline": {
+          ".read": true,
+          // Enterprise Immutability: Allow write, but prevent edits/deletes if event already exists
+          ".write": true,
+          "$patientId": {
+             "$eventId": {
+               ".write": "!data.exists() || !newData.exists()" // Allows append and soft delete but restricts direct modification
+             }
+          }
+        },
+        "patient_indexes": {
+          ".read": true,
+          ".write": true
+        },
+        "patient_attachments": {
+          ".read": true,
+          ".write": true
+        },
+        "profile_versions": {
+          ".read": true,
+          ".write": true
         },
         "appointments": {
           ".read": true,
