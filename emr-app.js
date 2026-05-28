@@ -8,6 +8,23 @@ let CSETTINGS = null;
 let currentAptId = null;
 let currentPatientId = null;
 
+window.EMRContext = {
+    activePatientId: null,
+    activeBookingId: null,
+    activeDoctorId: null,
+    sessionLock: false,
+    renderToken: null,
+    renderVersion: 0,
+    initialized: false,
+    lastOpenedAt: 0
+};
+
+window.AuditAPI = {
+    log(type, payload={}){
+        console.log('[AUDIT]', type, payload);
+    }
+};
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
     const pageData = await ArgonMedical.Page.init({
@@ -37,6 +54,11 @@ let patientsData = {};
 function loadWaitingRoom() {
     // Use raw DB just for waiting_room list, but do NOT download all patients!
     ArgonMedical.DB.ref(`clinics/${CID}/waiting_room`).on('value', async snap => {
+        if (window.EMRContext && window.EMRContext.sessionLock) {
+            if (window.AuditAPI) window.AuditAPI.log('STALE_RENDER_ABORTED');
+            return;
+        }
+
         waitingList = snap.val() || {};
         
         // Fetch only the needed patient identities via Enterprise API
@@ -64,8 +86,8 @@ function renderWaitingRoom() {
         .filter(item => {
             if (!isComplex || isAdmin) return true; // Show all for Single clinics or Admins
             if (session.role === 'doctor' && loggedInDoctorId) {
-                // If appointment has a specific doctor assigned, only show it to that doctor
-                if (item.doctorId && item.doctorId !== loggedInDoctorId) return false;
+                // Strict Isolation Check: Only show assigned patients
+                return item.doctorId === loggedInDoctorId;
             }
             return true;
         });
@@ -97,21 +119,88 @@ function renderWaitingRoom() {
     }).join('');
 }
 
-async function selectPatient(aptId, ptId) {
-    if (currentAptId) {
+function selectPatient(aptId, ptId) {
+    return safeSelectPatient(ptId, aptId);
+}
+
+async function safeSelectPatient(patientId, bookingId) {
+    if (window.EMRContext && window.EMRContext.sessionLock) return;
+    
+    const token = crypto.randomUUID();
+    window.EMRContext.renderToken = token;
+    
+    const session = ArgonMedical.Session.get() || {};
+    const loggedInDoctorId = session.userId || session.username || null;
+    
+    // Ownership Validation
+    const apt = waitingList[bookingId] || {};
+    if (session.role === 'doctor' && loggedInDoctorId) {
+        if (apt.doctorId && apt.doctorId !== loggedInDoctorId) {
+            if (window.AuditAPI) window.AuditAPI.log('UNAUTHORIZED_PATIENT_ACCESS_ATTEMPT', { patientId, bookingId, loggedInDoctorId });
+            return ArgonMedical.UI.toast('غير مصرح بفتح هذا الملف', 'err');
+        }
+    }
+
+    // Global Soft Lock Check
+    const lockRef = ArgonMedical.DB.ref(`clinics/${CID}/active_sessions/${patientId}`);
+    const lockSnap = await lockRef.once('value');
+    if (lockSnap.exists()) {
+        const lockData = lockSnap.val();
+        if (lockData.doctorId !== loggedInDoctorId) {
+            ArgonMedical.UI.toast(`الملف الطبي مفتوح حالياً لتعديله بواسطة ${lockData.doctorName}`, 'err');
+            if (window.AuditAPI) window.AuditAPI.log('PATIENT_FILE_LOCKED_CONFLICT', { patientId, lockedBy: lockData.doctorId });
+            return;
+        }
+    }
+
+    if (currentAptId && currentAptId !== bookingId) {
         if (!confirm('هل تريد تبديل المريض قبل إنهاء الزيارة الحالية؟ لم يتم الحفظ!')) return;
+        if (window.AuditAPI) window.AuditAPI.log('PATIENT_CONTEXT_SWITCH', { oldPatient: currentPatientId, newPatient: patientId });
     }
     
-    currentAptId = aptId;
-    currentPatientId = ptId;
+    // Lock Context
+    window.EMRContext.sessionLock = true;
+    window.EMRContext.activePatientId = patientId;
+    window.EMRContext.activeBookingId = bookingId;
+    window.EMRContext.activeDoctorId = loggedInDoctorId;
+    window.EMRContext.lastOpenedAt = Date.now();
+    window.EMRContext.renderVersion++;
+    window.EMRContext.initialized = true;
+    
+    // Acquire Global Soft Lock
+    await lockRef.set({
+        doctorId: loggedInDoctorId,
+        doctorName: session.name || session.username || 'طبيب',
+        lockedAt: Date.now()
+    });
+    lockRef.onDisconnect().remove();
+    
+    if (window.AuditAPI) {
+        window.AuditAPI.log('SESSION_LOCK_TRIGGERED', { patientId, bookingId });
+        window.AuditAPI.log('PATIENT_FILE_OPENED', { patientId, bookingId });
+    }
+    
+    currentAptId = bookingId;
+    currentPatientId = patientId;
     
     // Update appointment status to in_doctor
-    await ArgonMedical.DB.ref(`clinics/${CID}/appointments/${aptId}`).update({ status: 'in_doctor' });
-    await ArgonMedical.DB.ref(`clinics/${CID}/waiting_room/${aptId}`).update({ status: 'in_doctor' });
+    await ArgonMedical.DB.ref(`clinics/${CID}/appointments/${bookingId}`).update({ status: 'in_doctor' });
+    await ArgonMedical.DB.ref(`clinics/${CID}/waiting_room/${bookingId}`).update({ status: 'in_doctor' });
 
     // Load Workspace UI
-    const p = patientsData[ptId] || await ArgonMedical.PatientAPI.getIdentity(ptId);
-    if (!p) { ArgonMedical.UI.toast('خطأ في تحميل بيانات المريض', 'err'); return; }
+    const p = patientsData[patientId] || await ArgonMedical.PatientAPI.getIdentity(patientId);
+    
+    // Abort Stale Render
+    if (window.EMRContext.renderToken !== token) {
+        if (window.AuditAPI) window.AuditAPI.log('STALE_RENDER_ABORTED', { token });
+        return;
+    }
+    
+    if (!p) { 
+        ArgonMedical.UI.toast('خطأ في تحميل بيانات المريض', 'err'); 
+        window.EMRContext.sessionLock = false;
+        return; 
+    }
     
     document.getElementById('tbName').textContent = p.info?.name || 'غير معروف';
     document.getElementById('tbPhone').textContent = p.info?.phone || '—';
@@ -133,13 +222,29 @@ async function selectPatient(aptId, ptId) {
     renderPrescriptions();
     
     // Load patient medical history (allergies, etc.)
-    loadMedicalHistory(ptId);
+    await loadMedicalHistory(patientId);
+    
+    // Unlock Safely
+    window.EMRContext.sessionLock = false;
+    if (window.AuditAPI) window.AuditAPI.log('SESSION_UNLOCKED', { patientId, bookingId });
 }
 
 // ── WORKSPACE NAVIGATION ──
 function closeActiveWorkspace() {
+    if (window.EMRContext && window.EMRContext.activePatientId) {
+        ArgonMedical.DB.ref(`clinics/${CID}/active_sessions/${window.EMRContext.activePatientId}`).remove();
+    }
     currentAptId = null;
     currentPatientId = null;
+    if (window.EMRContext) {
+        window.EMRContext.activePatientId = null;
+        window.EMRContext.activeBookingId = null;
+        window.EMRContext.activeDoctorId = null;
+        window.EMRContext.sessionLock = false;
+        window.EMRContext.renderToken = null;
+        window.EMRContext.renderVersion = 0;
+        window.EMRContext.initialized = false;
+    }
     document.getElementById('emptyWs').style.display = 'flex';
     document.getElementById('activeWs').style.display = 'none';
     renderWaitingRoom(); // to remove active highlight
@@ -150,6 +255,10 @@ let ptHistory = {};
 async function loadMedicalHistory(ptId) {
     // Fetch full patient via Enterprise API to extract records (allergies, etc.)
     const p = await ArgonMedical.PatientAPI.getIdentity(ptId);
+    
+    // DOM Render Protection
+    if (window.EMRContext && ptId !== window.EMRContext.activePatientId) return;
+
     ptHistory = p?.records?.medical_history || { allergies: [], chronic: [] };
     
     renderTags('allergyList', ptHistory.allergies, 'allergy');
@@ -255,6 +364,10 @@ function initPrescriptionEngine() {
     if (ArgonMedical.License.isComplex()) {
         // Load real pharmacy inventory
         ArgonMedical.DB.ref(`clinics/${CID}/pharmacy_inventory`).on('value', snap => {
+            if (window.EMRContext && window.EMRContext.sessionLock) {
+                if (window.AuditAPI) window.AuditAPI.log('STALE_RENDER_ABORTED');
+                return;
+            }
             drugInventory = snap.val() || {};
             // Rebuild Trie
             drugEngine.root = new TrieNode();
@@ -404,11 +517,15 @@ async function completeVisit(sendTo) {
         ArgonMedical.UI.toast('تم حفظ الزيارة بنجاح', 'ok');
         
         // Reset UI
+        if (window.EMRContext && window.EMRContext.activePatientId) {
+            ArgonMedical.DB.ref(`clinics/${CID}/active_sessions/${window.EMRContext.activePatientId}`).remove();
+        }
         currentAptId = null;
         currentPatientId = null;
         document.getElementById('activeWs').style.display = 'none';
         document.getElementById('emptyWs').style.display = 'flex';
 
+    } catch(e) {
         ArgonMedical.UI.toast('حدث خطأ أثناء الحفظ', 'err');
     }
 }
@@ -436,6 +553,9 @@ async function openClinicalStream() {
     
     currentStreamPatient = await ArgonMedical.PatientAPI.getIdentity(currentPatientId);
     
+    // DOM Render Protection
+    if (window.EMRContext && currentPatientId !== window.EMRContext.activePatientId) return;
+
     renderClinicalSnapshot();
     await loadClinicalStream();
 }
@@ -484,6 +604,12 @@ async function loadClinicalStream() {
     try {
         const events = await ArgonMedical.PatientAPI.getClinicalActivityStream(currentPatientId, { limit: 20, cursor: streamCursor });
         
+        // DOM Render Protection
+        if (window.EMRContext && currentPatientId !== window.EMRContext.activePatientId) {
+            streamIsLoading = false;
+            return;
+        }
+
         if (events.length === 0) {
             if (!streamCursor) {
                 timelineDiv.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--muted)"><i class="fas fa-folder-open" style="font-size:32px;margin-bottom:16px;display:block"></i>لا توجد أحداث سابقة في السجل الطبي</div>';
@@ -733,3 +859,10 @@ function monitorMigration() {
         }
     }, 2000);
 }
+
+// ── SOFT LOCK CLEANUP ON TAB CLOSE ──
+window.addEventListener('beforeunload', () => {
+    if (window.EMRContext && window.EMRContext.activePatientId && typeof CID !== 'undefined' && CID) {
+        ArgonMedical.DB.ref(`clinics/${CID}/active_sessions/${window.EMRContext.activePatientId}`).remove();
+    }
+});
