@@ -1,257 +1,2128 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARGON Medical OS — لوحة الاستقبال</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="dashboard-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#030b0a">
+  <link rel="manifest" href="/manifest-clinic.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <title>ARGON | لوحة التحكم</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#f8fafc;--panel:#ffffff;--surf:#f1f5f9;--border:#e2e8f0;
+      --text:#0f172a;--muted:#64748b;--teal:#0d9488;--sky:#0ea5e9;
+      --amber:#d97706;--red:#ef4444;--green:#10b981;--purple:#8b5cf6;
+      --radius-lg:16px;--shadow-sm:0 1px 3px rgba(0,0,0,0.1);
+      --void:#030b0a;
+    }
+    [data-theme="dark"]{
+      --bg:#050b14;--panel:#0f172a;--surf:#1e293b;--border:#334155;
+      --text:#f8fafc;--muted:#94a3b8;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;margin:0;direction:rtl;transition:background 0.3s, color 0.3s;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    b, strong { font-weight: 800; color: var(--text); }
+    .sv { font-weight: 900; letter-spacing: -0.5px; color: var(--text); }
+    .bname { color: var(--text); font-weight: 800; }
+    .ni.on{background:rgba(13,148,136,.1);color:var(--teal)}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(13,148,136,0.06),transparent 70%);pointer-events:none;z-index:0}
+
+    /* LTR fixes */
+    [dir="ltr"] .tr{flex-direction:row-reverse}
+    [dir="ltr"] .tbadge{flex-direction:row-reverse}
+
+    /* ── LOGIN ── */
+    #dashLogin{position:fixed;inset:0;background:var(--void);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+    .lcard{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:36px 32px;width:100%;max-width:360px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+    .lcard .ic{font-size:3.5rem;margin-bottom:12px;display:block}
+    .lcard h2{font-size:1.3rem;font-weight:900;margin-bottom:4px}
+    .lcard p{font-size:0.82rem;color:var(--muted);margin-bottom:24px}
+    .linp{width:100%;background:var(--surf);border:1px solid var(--border);border-radius:11px;padding:13px 14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:0.97rem;outline:none;text-align:center;margin-bottom:12px;transition:border-color .2s}
+    .linp:focus{border-color:var(--teal)}
+    .lbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--sky));border:none;border-radius:12px;color:#fff;font-family:'Tajawal',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:opacity .2s}
+    .lbtn:hover{opacity:.88}
+    .lerr{color:var(--red);font-size:0.82rem;margin-top:10px;display:none;padding:8px;background:rgba(239,68,68,.08);border-radius:8px}
+    .linp.shake{animation:shake .3s}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+    /* ── TOPBAR ── */
+    .topbar{height:58px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;flex-shrink:0;position:relative}
+    .tlogo{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:600;letter-spacing:3px;background:linear-gradient(135deg,var(--teal2),var(--sky));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .tr{display:flex;align-items:center;gap:8px}
+    .tbadge{display:flex;align-items:center;gap:5px;font-size:.7rem;padding:5px 11px;border-radius:20px;font-weight:600;border:1px solid}
+    .tb-open{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green)}
+    .tb-closed{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:#fca5a5}
+    .tclk{font-family:'IBM Plex Mono',monospace;font-size:.75rem;background:var(--surf);border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:8px}
+    .tbtn{background:var(--surf);border:1px solid var(--border);color:var(--muted);padding:6px 13px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.79rem;cursor:pointer;transition:.2s}
+    .tbtn:hover{border-color:rgba(13,148,136,.3);color:var(--text)}
+
+    /* ── LAYOUT ── */
+    .layout{display:flex;height:calc(100vh - 58px)}
+    .sidebar{width:214px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:14px 0;flex-shrink:0;overflow-y:auto}
+    .sl{font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:2px;padding:8px 14px 3px;text-transform:uppercase}
+    .ni{display:flex;align-items:center;gap:9px;padding:10px 14px;margin:1px 6px;border-radius:9px;cursor:pointer;color:var(--muted);font-size:.86rem;font-weight:500;transition:.2s;position:relative}
+    .ni i{width:16px;text-align:center;font-size:.83rem}
+    .ni:hover{background:rgba(255,255,255,.02);color:var(--text)}
+    .ni.on{background:rgba(13,148,136,.1);color:#5eead4}
+    .ni.on::before{content:'';position:absolute;right:0;top:18%;bottom:18%;width:3px;background:var(--teal);border-radius:3px 0 0 3px}
+    [dir="ltr"] .ni.on::before{right:auto;left:0;border-radius:0 3px 3px 0}
+    [dir="ltr"] .ni i{margin-right:0;margin-left:8px}
+    .nbdg{margin-right:auto;background:var(--red);color:#fff;font-size:.61rem;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:10px;font-weight:700}
+    .nbdg.z{background:rgba(100,116,139,.2);color:var(--muted)}
+    [dir="ltr"] .nbdg{margin-right:0;margin-left:auto}
+    .main{flex:1;overflow-y:auto;padding:24px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.04) transparent}
+
+    /* ── SECTIONS ── */
+    .sec{display:none}.sec.on{display:block;animation:fu .28s ease}
+    @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .ph{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+    .pt{font-size:1.35rem;font-weight:800}.ps{font-size:.79rem;color:var(--muted);margin-top:3px}
+
+    /* ── STATS ── */
+    .sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+    .scard{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:16px;position:relative;overflow:hidden;transition:.2s}
+    .scard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--bc,transparent)}
+    .scard:hover{border-color:rgba(13,148,136,.2)}
+    .sci{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;margin-bottom:10px}
+    .slb{font-size:.69rem;color:var(--muted);font-weight:500;margin-bottom:2px}
+    .sv{font-size:1.55rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
+    .sh{font-size:.65rem;color:var(--muted);margin-top:1px}
+    
+    /* ── STATS CARDS ENHANCEMENTS ── */
+    .scard-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .scard-trend { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 3px; }
+    .trend-up { background: rgba(16,185,129,0.1); color: var(--green); }
+    .trend-down { background: rgba(239,68,68,0.1); color: var(--red); }
+    .scard-sub { font-size: 0.68rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
+    
+    /* Live Pulse for Activity */
+    .live-pulse-container { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; font-weight: 800; color: var(--green); }
+    .pulse-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; box-shadow: 0 0 0 rgba(16,185,129,0.4); animation: pulseAnim 2s infinite; }
+    @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); } 70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+
+    /* ── BOOKINGS ── */
+    .bg{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:12px}
+    .bc{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:15px;position:relative;overflow:hidden;transition:.22s}
+    .bc::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--teal)}
+    .bc.done::before{background:var(--green)}.bc.cancel::before{background:var(--red)}
+    .bc:hover{border-color:rgba(13,148,136,.2)}
+    .bno{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:#fff;background:var(--teal);border:none;padding:4px 10px;border-radius:8px;font-weight:800;box-shadow:0 2px 8px rgba(13,148,136,0.3)}
+    .bst{font-size:.72rem;font-weight:700}
+    .bname{font-size:.93rem;font-weight:800;margin-bottom:3px}
+    .binfo{font-size:.79rem;color:var(--muted);margin-bottom:3px}
+    .bnote{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:8px 12px;font-size:.74rem;color:#fcd34d;margin:8px 0;word-wrap:break-word;overflow-wrap:anywhere;white-space:pre-wrap;max-height:120px;overflow-y:auto;line-height:1.5}
+    .bfooter{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:6px;flex-wrap:wrap}
+    .bprice{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:800;color:var(--green)}
+    .acts{display:flex;gap:5px;flex-wrap:wrap}
+    .ab{padding:6px 11px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.77rem;font-weight:700;cursor:pointer;transition:.2s;border:1px solid}
+    .a-ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green)}
+    .a-ok:hover{background:rgba(16,185,129,.15)}
+    .a-wait{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber)}
+    .a-done{background:rgba(13,148,136,.08);border-color:rgba(13,148,136,.2);color:var(--teal)}
+    .a-cancel{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.15);color:#fca5a5}
+    .a-wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.2);color:#25d366}
+    .ichip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:3px 8px;border-radius:6px;font-size:.71rem}
+
+    /* ── DOCS SECTION ── */
+    .dgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+    .dc{background:var(--panel);border:1px solid var(--border);border-radius:13px;overflow:hidden;transition:.22s}
+    .dc:hover{border-color:rgba(13,148,136,.25);transform:translateY(-2px)}
+    .dc-top{height:100px;background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden}
+    .dc-top img{width:100%;height:100%;object-fit:cover}
+    .dc-body{padding:12px}
+    .dc-name{font-size:.9rem;font-weight:800;margin-bottom:2px}
+    .dc-spec{font-size:.75rem;color:var(--teal);font-weight:600;margin-bottom:2px}
+    .dc-fee{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal2)}
+    .avl-tog{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.22s;margin-top:8px}
+    .avl-tog:hover{border-color:rgba(13,148,136,.2)}
+    .avl-tog input{width:16px;height:16px;cursor:pointer;accent-color:var(--teal)}
+    .avl-lbl{font-size:.8rem;font-weight:600}
+    .drate{font-size:.72rem;color:var(--amber);margin-top:3px}
+    .bdel{display:block;width:100%;background:rgba(239,68,68,.05);border:none;border-top:1px solid rgba(239,68,68,.1);color:#fca5a5;padding:8px;font-family:'Tajawal',sans-serif;font-size:.75rem;cursor:pointer;transition:.2s}
+    .bdel:hover{background:rgba(239,68,68,.1)}
+
+    /* ── ADD FORM ── */
+    .addpanel{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:20px}
+    .addrow{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end}
+    .addrow2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:8px}
+    .mfl{display:block;font-size:.69rem;color:var(--muted);margin-bottom:4px;font-weight:500}
+    .mfi{width:100%;background:var(--surf);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:.87rem;outline:none;transition:.2s}
+    .mfi:focus{border-color:var(--teal)}
+    .badd{background:linear-gradient(135deg,var(--teal),var(--sky));border:none;border-radius:9px;padding:9px 15px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;white-space:nowrap}
+
+    /* ── SETTINGS ── */
+    .setp{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:24px;max-width:550px}
+    .setg{margin-bottom:14px}
+    .setl{display:block;font-size:.74rem;color:var(--muted);margin-bottom:6px;font-weight:500}
+    .seti,.setsel{width:100%;background:var(--surf);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:11px 13px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;transition:.2s}
+    .seti:focus,.setsel:focus{border-color:var(--teal)}
+    .bsave{width:100%;padding:12px;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.97rem;font-weight:700;cursor:pointer;margin-top:4px;transition:.25s}
+    .bsave:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(16,185,129,.3)}
+
+    /* ── HISTORY TABLE ── */
+    .htw{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:11px 13px;text-align:right;border-bottom:1px solid var(--border);font-size:.84rem}
+    thead{background:var(--surf)}
+    th{color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase}
+    tbody tr:hover{background:rgba(255,255,255,.01)}
+    
+    /* ── PRINTING (Ultra Professional) ── */
+    @media print {
+      @page { size: A4; margin: 15mm; }
+      body { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; font-size: 10pt; }
+      .topbar, .sidebar, #connBar, .acts, .addpanel, .setp, .tbtn, .tbadge, #toast, .ab, #dashLogin { display: none !important; }
+      .layout { display: block !important; height: auto !important; }
+      .main { padding: 0 !important; overflow: visible !important; width: 100% !important; }
+      .sec { display: none !important; opacity: 1 !important; transform: none !important; }
+      .sec.on, .sec.print-all { display: block !important; }
+      
+      /* Report Header */
+      .print-header { display: flex !important; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; }
+      .ph-info { text-align: right; }
+      .ph-title { font-size: 1.8rem; font-weight: 900; color: #000; margin-bottom: 4px; }
+      .ph-sub { font-size: 0.9rem; color: #444; }
+      .ph-logo { width: 80px; height: 80px; object-fit: contain; }
+
+      /* Stats in Print */
+      .sgrid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 20px !important; }
+      .scard { border: none !important; border-right: 1px solid #eee !important; border-radius: 0 !important; padding: 5px !important; box-shadow: none !important; }
+      .scard:last-child { border-right: none !important; }
+      .scard::after { display: none !important; }
+      .slb { font-size: 8pt !important; color: #555 !important; }
+      .sv { font-size: 14pt !important; color: #000 !important; }
+      .sci { display: none !important; }
+
+      /* Table in Print */
+      table { width: 100% !important; border: 1px solid #000 !important; font-size: 9pt !important; }
+      th { background: #f0f0f0 !important; color: #000 !important; border: 1px solid #000 !important; padding: 8px !important; }
+      td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; }
+      
+      /* Section Titles */
+      .ph { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 20px; }
+      .pt { font-size: 1.2rem !important; color: #000 !important; }
+      .ps { display: none !important; }
+
+      .htw { overflow: visible !important; }
+      .bc { page-break-inside: avoid; border: 1px solid #ccc !important; margin-bottom: 10px !important; }
+      
+      .print-footer { display: block !important; position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; border-top: 1px solid #eee; padding-top: 5px; color: #888; }
+    }
+    .print-header, .print-footer { display: none; }
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--surf);border:1px solid rgba(13,148,136,.3);color:var(--teal);padding:10px 20px;border-radius:12px;font-size:.85rem;font-weight:600;opacity:0;transition:.3s;z-index:9999;pointer-events:none;max-width:90vw;text-align:center}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #toast.ok{border-color:rgba(16,185,129,.4);color:var(--green)}
+    #toast.err{border-color:rgba(239,68,68,.4);color:var(--red)}
+
+    /* ── CONN ── */
+    .cbar{position:fixed;top:0;left:0;right:0;z-index:100000;display:none;align-items:center;justify-content:center;gap:8px;padding:9px;font-size:.81rem;font-weight:700}
+    .cok{background:rgba(16,185,129,.9);color:#fff}.coff{background:rgba(239,68,68,.9);color:#fff}
+
+    /* ── PREVIEW ── */
+    #prevModal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:14px}
+    .pfr{width:358px;height:696px;background:#fff;border:10px solid #1e293b;border-radius:46px;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.5)}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1000px){.sgrid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:700px){.sgrid{grid-template-columns:1fr 1fr}.addrow{grid-template-columns:1fr 1fr}.addrow2{grid-template-columns:1fr 1fr}.sidebar{display:none}}
+    .empty-g{grid-column:1/-1;text-align:center;padding:50px;color:var(--muted)}
+    .empty-g i{font-size:2.5rem;display:block;margin-bottom:12px;opacity:.2}
+
+    /* ── BELL RING ── */
+    @keyframes ring{0%{transform:rotate(0)}10%{transform:rotate(15deg)}20%{transform:rotate(-10deg)}30%{transform:rotate(10deg)}40%{transform:rotate(-8deg)}50%{transform:rotate(0)}100%{transform:rotate(0)}}
+    .ringing{animation:ring .6s ease infinite}
+
+    /* ── ROYAL ARGON FOOTER ── */
+    .royal-foot{margin-top:auto;padding:20px 10px;text-align:center;border-top:1px solid var(--border);background:rgba(13,148,136,0.02)}
+    .argon-sig{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:700}
+    .argon-sig span{background:linear-gradient(135deg, var(--teal), var(--sky)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:900; filter:drop-shadow(0 0 8px rgba(13,148,136,0.5)); animation:argonPulse 3s infinite alternate}
+    @keyframes argonPulse{from{opacity:0.8; transform:scale(0.97)} to{opacity:1; transform:scale(1.03)}}
+    .royal-line{width:40px;height:2px;background:linear-gradient(to right, transparent, var(--teal), transparent);margin-bottom:8px}
+
+    /* ── LOCK SCREEN ── */
+    #lockScreen{position:fixed;inset:0;background:#050b14;z-index:999999;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+    #lockScreen.show{display:flex;animation:fadeIn .4s}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .ls-icon{font-size:5.5rem;color:#ef4444;margin-bottom:20px;filter:drop-shadow(0 0 15px rgba(239,68,68,0.4));animation:pulse 1s infinite alternate}
+    @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+    .ls-title{font-size:2.4rem;font-weight:900;color:#fff;margin-bottom:12px;letter-spacing:-1px}
+    .ls-sub{font-size:1.1rem;color:rgba(255,255,255,0.6);margin-bottom:35px;max-width:500px;line-height:1.6}
+    .ls-btn{background:#3b82f6;color:#fff;padding:14px 32px;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:1.15rem;font-weight:800;text-decoration:none;transition:0.3s;box-shadow:0 12px 32px rgba(59,130,246,0.35);display:inline-flex;align-items:center;gap:10px}
+    .ls-btn:hover{background:#2563eb;transform:translateY(-2px);box-shadow:0 15px 40px rgba(59,130,246,0.5)}
+  </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sb-hdr">
-            <div class="sb-logo" id="clinicLogoText">ع</div>
-            <div>
-                <div class="sb-title" id="clinicName">جاري التحميل...</div>
-                <div class="sb-subtitle">ARGON Medical OS</div>
-            </div>
+<!-- LOGIN -->
+<div id="dashLogin">
+  <div class="lcard">
+    <span class="ic">🏥</span>
+    <h2>لوحة تحكم العيادة</h2>
+    <p id="lClinicName">جاري التحقق...</p>
+    <input type="password" id="lPass" class="linp" placeholder="كلمة المرور">
+    <button onclick="doLogin()" class="lbtn">دخول</button>
+    <div class="lerr" id="lErr">كلمة المرور غير صحيحة ❌</div>
+  </div>
+</div>
+
+<div id="connBar" class="cbar"></div>
+
+<!-- LOCK SCREEN -->
+<!-- ═══ SET PASSWORD MODAL ═══ -->
+<div id="setPassModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:9999;justify-content:center;align-items:center;" onclick="if(event.target===this)closeSetPass()">
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:340px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;position:relative">
+    <div style="width:54px;height:54px;background:linear-gradient(135deg,var(--teal),var(--sky));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem">🔑</div>
+    <div id="setPassTitle" style="font-size:1.1rem;font-weight:800;margin-bottom:4px;color:var(--text)">تعيين كلمة المرور</div>
+    <div id="setPassSub" style="font-size:.8rem;color:var(--muted);margin-bottom:20px">البوابة الطبية</div>
+    <input type="password" id="setPassInput" class="mfi" placeholder="اكتب كلمة المرور الجديدة..." style="width:100%;margin-bottom:12px;font-size:1rem;text-align:center;letter-spacing:2px" autocomplete="new-password">
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="confirmSetPass()" style="flex:1;background:linear-gradient(135deg,var(--teal),var(--sky));color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer">✅ حفظ الباسورد</button>
+      <button onclick="closeSetPass()" style="flex:1;background:rgba(239,68,68,.08);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:11px;font-family:'Tajawal',sans-serif;font-size:.9rem;cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="lockScreen">
+  <div class="ls-icon"><i class="fas fa-shield-alt"></i></div>
+  <div class="ls-title">تم إيقاف حساب العيادة</div>
+  <div class="ls-sub">يرجى مراجعة الدعم الفني لشركة أرغون لتفعيل الحساب وإعادة تشغيل الخدمات.</div>
+  <a href="https://argonforfun.com" target="_blank" class="ls-btn">زيارة موقع الشركة: argonforfun.com</a>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="tlogo" class="tlogo">ARGON</span>
+    <span style="width:1px;height:20px;background:var(--border)"></span>
+    <span id="topName" style="font-size:.9rem;font-weight:700">...</span>
+  </div>
+  <div class="tr">
+    <span id="stBadge" class="tbadge tb-open"><i class="fas fa-circle" style="font-size:.38rem"></i> مفتوح</span>
+    <span class="tclk" id="tclk">--:--</span>
+    <button class="tbtn" id="themeTog" onclick="togTheme()"><i class="fas fa-moon"></i></button>
+    <button class="tbtn" onclick="openPreview()"><i class="fas fa-eye" style="margin-left:5px"></i>معاينة</button>
+    <button class="tbtn" onclick="printReport()"><i class="fas fa-print" style="margin-left:5px"></i>طباعة التقرير</button>
+    <button class="tbtn" onclick="doLogout()" style="color:#fca5a5"><i class="fas fa-sign-out-alt"></i></button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div id="printArea">
+  <div class="print-header">
+    <div id="phLogoCont" class="ph-logo"></div>
+    <div class="ph-info">
+      <div id="phName" class="ph-title">اسم العيادة</div>
+      <div id="phMeta" class="ph-sub">تقرير دوري للحجوزات والعمليات</div>
+    </div>
+  </div>
+  <div class="print-footer">تقرير صادر عن نظام أرغون لإدارة العيادات - تاريخ الطباعة: <span id="printDate"></span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div style="padding:0 8px">
+      <div class="sl">الإدارة</div>
+      <div class="ni on" onclick="sw('stats',this)"><i class="fas fa-chart-line"></i>الإحصائيات</div>
+      <div class="ni" id="liveNI" onclick="sw('live',this)">
+        <i class="fas fa-bell" id="bellI"></i>الحجوزات الحية
+        <span class="nbdg z" id="liveC">0</span>
+      </div>
+      <div class="ni" onclick="sw('hist',this)"><i class="fas fa-clock-rotate-left"></i>سجل الحجوزات</div>
+      <div class="ni" onclick="window.open('emr.html?id='+CID,'_blank')" style="border-right:2px dashed var(--teal);background:rgba(13,148,136,.03)"><i class="fas fa-file-medical" style="color:var(--teal)"></i>السجلات الطبية EMR <span style="margin-right:auto;font-size:0.6rem;background:var(--teal);color:#000;padding:2px 6px;border-radius:4px;font-weight:900">PRO</span></div>
+      
+      <!-- COMPLEX MODE MODULES (Hidden by default) -->
+      <div id="complexNav" style="display:none; margin: 4px 0; border-right: 2px solid rgba(255,255,255,0.05); padding-right: 4px;">
+        <div class="ni" onclick="window.open('pharmacy.html?id='+CID,'_blank')"><i class="fas fa-capsules" style="color:var(--sky)"></i>الصيدلية المركزية</div>
+        <div class="ni" onclick="window.open('lab.html?id='+CID,'_blank')"><i class="fas fa-vial" style="color:var(--amber)"></i>المختبرات</div>
+        <div class="ni" onclick="window.open('radiology.html?id='+CID,'_blank')"><i class="fas fa-x-ray" style="color:var(--purple)"></i>قسم الأشعة</div>
+      </div>
+
+      <div class="ni" onclick="sw('docs',this)"><i class="fas fa-user-md"></i>إدارة الأطباء</div>
+      <div class="ni" id="mStaff" onclick="sw('staff',this)"><i class="fas fa-users-cog"></i><span>إدارة طاقم العمل</span></div>
+      <div class="ni" onclick="sw('settings',this)"><i class="fas fa-gear"></i>الإعدادات</div>
+    </div>
+    <div class="royal-foot">
+      <div class="argon-sig">
+        <div class="royal-line"></div>
+        POWERED BY
+        <span>ARGON SYSTEM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- STATS -->
+    <div id="stats" class="sec on">
+      <div class="ph">
+        <div><div class="pt">📊 الإحصائيات</div><div class="ps">نظرة شاملة على أداء العيادة</div></div>
+        <button class="tbtn" onclick="window.ArgonEnterprise.Excel.exportComprehensiveReport(CID)" style="background:var(--green);color:#fff;border:none;padding:8px 16px;font-weight:bold;display:flex;align-items:center;gap:8px;border-radius:10px;"><i class="fas fa-file-excel" style="font-size:1.2rem;"></i> تقرير احترافي (Excel)</button>
+      </div>
+      <div class="sgrid" style="grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));">
+        <!-- Success Rate Card -->
+        <div class="scard" style="--bc:var(--green)">
+          <div class="scard-top">
+            <div class="sci" style="background:rgba(16,185,129,.1);color:var(--green)"><i class="fas fa-check-double"></i></div>
+            <div class="scard-trend trend-up" id="stSuccessTrend">100%</div>
+          </div>
+          <div class="slb">معدل نجاح المواعيد</div>
+          <div class="sv" id="stSuccess" style="color:var(--green)">0%</div>
+          <div class="scard-sub">من إجمالي الحجوزات</div>
         </div>
-        
-        <div class="sb-nav">
-            <div class="sb-section">الاستقبال والعمليات</div>
-            <div class="sb-item active" onclick="switchTab('reception')"><i class="fas fa-home"></i><span class="sb-lbl">لوحة الاستقبال</span></div>
-            <div class="sb-item" onclick="switchTab('patients')"><i class="fas fa-users"></i><span class="sb-lbl">المرضى والملفات</span></div>
-            <div class="sb-item" onclick="switchTab('appointments')"><i class="fas fa-calendar-check"></i><span class="sb-lbl">المواعيد والحجوزات</span></div>
-            
-            <!-- Hidden by default, shown based on license -->
-            <div class="sb-section" data-feature="whatsapp_auto">التواصل الآلي</div>
-            <div class="sb-item" data-feature="whatsapp_auto" onclick="switchTab('whatsapp')"><i class="fab fa-whatsapp"></i><span class="sb-lbl">إشعارات الواتساب</span></div>
-            
-            <div class="sb-section" data-feature="invoices_advanced">المالية (قريباً)</div>
-            <div class="sb-item" data-feature="invoices_advanced"><i class="fas fa-file-invoice-dollar"></i><span class="sb-lbl">الفواتير</span></div>
 
-            <div class="sb-section">إدارة النظام</div>
-            <div class="sb-item" onclick="switchTab('settings')"><i class="fas fa-cog"></i><span class="sb-lbl">إعدادات العيادة</span></div>
+        <!-- Revenue Card -->
+        <div class="scard" style="--bc:var(--teal)">
+          <div class="scard-top">
+            <div class="sci" style="background:rgba(13,148,136,.1);color:var(--teal)"><i class="fas fa-wallet"></i></div>
+          </div>
+          <div class="slb">العائد الإجمالي المنجز</div>
+          <div class="sv" id="stRev" style="color:var(--teal)">0.00</div>
+          <div class="scard-sub">دينار أردني</div>
         </div>
-        
-        <div class="sb-foot">
-            <div class="user-info">
-                <div class="ui-avatar"><i class="fas fa-user-shield"></i></div>
-                <div class="ui-details">
-                    <div class="ui-name">مدير النظام</div>
-                    <div class="ui-role">Reception Admin</div>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+
+        <!-- Monthly Growth Card -->
+        <div class="scard" style="--bc:var(--sky)">
+          <div class="scard-top">
+            <div class="sci" style="background:rgba(14,165,233,.1);color:var(--sky)"><i class="fas fa-chart-line"></i></div>
+            <div class="scard-trend trend-up" id="stGrowthTrend">+0%</div>
+          </div>
+          <div class="slb">نمو الشهر الحالي</div>
+          <div class="sv" id="stMonth" style="color:var(--sky)">0</div>
+          <div class="scard-sub">حجز جديد هذا الشهر</div>
         </div>
-    </aside>
 
-    <!-- MAIN APP -->
-    <main class="main-wrapper">
-        <header class="topbar">
-            <div class="page-title"><i class="fas fa-clinic-medical" style="color:var(--teal)"></i> <span id="topbarTitle">لوحة الاستقبال</span></div>
-            <div class="tb-actions">
-                <button class="btn btn-outline"><i class="fas fa-bell"></i></button>
-                <button class="btn btn-primary" onclick="openAddPatient()"><i class="fas fa-user-plus"></i> مريض جديد</button>
-                <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="openAddAppointment()"><i class="fas fa-calendar-plus"></i> حجز موعد</button>
-            </div>
-        </header>
-
-        <div class="content-area">
-
-            <!-- 1. RECEPTION VIEW -->
-            <section id="view-reception" class="view-section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--blue-l);color:var(--blue)"><i class="fas fa-calendar-day"></i></div>
-                        <div><div class="stat-num" id="stat-today">0</div><div class="stat-lbl">مواعيد اليوم</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--orange-l);color:var(--orange)"><i class="fas fa-clock"></i></div>
-                        <div><div class="stat-num" id="stat-waiting">0</div><div class="stat-lbl">في غرفة الانتظار</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--teal-l);color:var(--teal)"><i class="fas fa-users"></i></div>
-                        <div><div class="stat-num" id="stat-patients">0</div><div class="stat-lbl">إجمالي المرضى</div></div>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <!-- Live Queue -->
-                    <div class="panel">
-                        <div class="panel-hdr"><div class="panel-title"><i class="fas fa-desktop"></i> غرفة الانتظار المباشرة (Live Queue)</div></div>
-                        <div class="panel-body">
-                            <div class="queue-list" id="receptionQueue">
-                                <div style="text-align:center;padding:20px;color:var(--muted)">جاري التحميل...</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Quick Actions -->
-                    <div class="panel">
-                        <div class="panel-hdr"><div class="panel-title"><i class="fas fa-bolt"></i> روابط سريعة للعيادة</div></div>
-                        <div class="panel-body">
-                            <div style="display:flex;flex-direction:column;gap:10px">
-                                <button class="btn btn-outline" style="justify-content:flex-start" onclick="window.open(getBase()+'booking.html?id='+CID, '_blank')"><i class="fas fa-link"></i> رابط الحجز المباشر للمرضى (بوابة الحجز)</button>
-                                <button class="btn btn-outline" style="justify-content:flex-start" onclick="window.open(getBase()+'patient-portal.html?id='+CID, '_blank')"><i class="fas fa-mobile-alt"></i> بوابة تتبع المرضى</button>
-                                <button class="btn btn-outline" style="justify-content:flex-start" data-feature="invoices_advanced" onclick="generateDemoInvoice()"><i class="fas fa-file-invoice-dollar"></i> توليد فاتورة (PDF تجريبي)</button>
-                                <button class="btn btn-primary" style="justify-content:flex-start" data-feature="emr" onclick="window.open(getBase()+'emr.html?id='+CID, '_blank')"><i class="fas fa-stethoscope"></i> فتح شاشة الطبيب (EMR)</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 2. PATIENTS VIEW -->
-            <section id="view-patients" class="view-section">
-                <div class="panel">
-                    <div class="panel-hdr">
-                        <div class="panel-title"><i class="fas fa-users"></i> سجل المرضى والملفات الطبية</div>
-                        <div style="display:flex;gap:10px">
-                            <button class="btn btn-outline" style="color:var(--green);border-color:var(--green)" onclick="exportPatientsExcel()"><i class="fas fa-file-excel"></i> تصدير (Excel)</button>
-                            <input type="text" class="fi" style="width:250px;padding:8px" placeholder="🔍 بحث بالاسم أو الهاتف...">
-                            <button class="btn btn-primary" onclick="openAddPatient()"><i class="fas fa-plus"></i></button>
-                        </div>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th>اسم المريض</th><th>رقم الهاتف</th><th>الرقم الوطني / الهوية</th><th>إجراءات</th></tr></thead>
-                            <tbody id="patientsTbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 3. APPOINTMENTS VIEW -->
-            <section id="view-appointments" class="view-section">
-                <div class="panel">
-                    <div class="panel-hdr">
-                        <div class="panel-title"><i class="fas fa-calendar-alt"></i> المواعيد والحجوزات</div>
-                        <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="openAddAppointment()"><i class="fas fa-plus"></i> حجز جديد</button>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th># الدور</th><th>المريض</th><th>التاريخ والوقت</th><th>الحالة</th><th>تحديث الحالة</th></tr></thead>
-                            <tbody id="aptsTbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. WHATSAPP CENTER -->
-            <section id="view-whatsapp" class="view-section">
-                <div class="panel">
-                    <div class="panel-hdr"><div class="panel-title"><i class="fab fa-whatsapp" style="color:#25D366"></i> إعدادات الأتمتة وإشعارات الواتساب</div></div>
-                    <div class="panel-body">
-                        <div class="form-grid">
-                            <div class="fg">
-                                <label>رقم هاتف العيادة المرسل</label>
-                                <input type="text" class="fi" id="waNumber" placeholder="962790000000" dir="ltr" oninput="autoSaveSettings()">
-                                <small style="color:var(--muted)">تأكد من إدخال رمز الدولة</small>
-                            </div>
-                            <div class="fg">
-                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-                                    <input type="checkbox" id="waEnabled" style="width:20px;height:20px" onchange="autoSaveSettings()">
-                                    تفعيل إرسال إشعارات الواتساب تلقائياً للـ (Booking, Reminders)
-                                </label>
-                            </div>
-                        </div>
-                        <hr style="border:0;border-top:1px solid var(--border);margin:24px 0">
-                        <h4 style="margin-bottom:16px;color:var(--teal)">نماذج الرسائل (Templates)</h4>
-                        <div class="form-grid">
-                            <div class="fg">
-                                <label>رسالة تأكيد الحجز (Booking Confirm)</label>
-                                <textarea class="fi fi-area" id="tmplBooking" oninput="autoSaveSettings()"></textarea>
-                                <small style="color:var(--muted)">المتغيرات المتاحة: {patientName}, {clinicName}, {date}, {time}, {queueNum}, {trackingUrl}</small>
-                            </div>
-                            <div class="fg">
-                                <label>تذكير بالموعد (Reminder 30m)</label>
-                                <textarea class="fi fi-area" id="tmplRemind" oninput="autoSaveSettings()"></textarea>
-                                <small style="color:var(--muted)">المتغيرات المتاحة: {patientName}, {clinicName}, {time}</small>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" style="margin-top:20px" onclick="saveWhatsAppConfig()">حفظ إعدادات الواتساب</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 5. SETTINGS -->
-            <section id="view-settings" class="view-section">
-                <div class="panel">
-                    <div class="panel-hdr"><div class="panel-title"><i class="fas fa-cog"></i> إعدادات العيادة العامة</div></div>
-                    <div class="panel-body">
-                        <div class="form-grid">
-                            <div class="fg"><label>رقم الهاتف</label><input type="text" class="fi" id="setPhone" dir="ltr" oninput="autoSaveSettings()"></div>
-                            <div class="fg"><label>العنوان</label><input type="text" class="fi" id="setAddr" oninput="autoSaveSettings()"></div>
-                            <div class="fg"><label>وقت الفتح</label><input type="time" class="fi" id="setOpen" oninput="autoSaveSettings()"></div>
-                            <div class="fg"><label>وقت الإغلاق</label><input type="time" class="fi" id="setClose" oninput="autoSaveSettings()"></div>
-                        </div>
-                        <div style="margin-top:16px;font-size:12px;color:var(--muted)"><i class="fas fa-save"></i> يتم حفظ الإعدادات تلقائياً عند التعديل</div>
-                    </div>
-                </div>
-            </section>
-
+        <!-- Satisfaction Index Card -->
+        <div class="scard" style="--bc:var(--amber)">
+          <div class="scard-top">
+            <div class="sci" style="background:rgba(245,158,11,.1);color:var(--amber)"><i class="fas fa-award"></i></div>
+          </div>
+          <div class="slb">مؤشر رضا المرضى</div>
+          <div class="sv" id="stSatIndex" style="color:var(--amber)">0%</div>
+          <div class="scard-sub" id="stRate">-- من 5 نجوم</div>
         </div>
-    </main>
 
-    <!-- MODAL: ADD/EDIT PATIENT -->
-    <div class="modal-bg" id="ptModal">
-        <div class="modal">
-            <div class="modal-hdr">
-                <div class="modal-title"><i class="fas fa-user-edit"></i> إضافة / تعديل مريض</div>
-                <button class="modal-close" onclick="closeModal('ptModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="ptId">
-                <div class="fg" style="margin-bottom:12px"><label>اسم المريض *</label><input type="text" class="fi" id="ptName"></div>
-                <div class="fg" style="margin-bottom:12px"><label>رقم الهاتف *</label><input type="tel" class="fi" id="ptPhone" dir="ltr"></div>
-                <div class="fg"><label>الرقم الوطني / رقم الهوية</label><input type="text" class="fi" id="ptIdNum" dir="ltr"></div>
-            </div>
-            <div class="modal-foot">
-                <button class="btn btn-outline" onclick="closeModal('ptModal')">إلغاء</button>
-                <button class="btn btn-primary" onclick="savePatient()"><i class="fas fa-save"></i> حفظ المريض</button>
-            </div>
+        <!-- Live Activity Card -->
+        <div class="scard" style="--bc:var(--purple)">
+          <div class="scard-top">
+            <div class="sci" style="background:rgba(139,92,246,.1);color:var(--purple)"><i class="fas fa-users-viewfinder"></i></div>
+            <div class="live-pulse-container"><div class="pulse-dot"></div> LIVE</div>
+          </div>
+          <div class="slb">النشاط المباشر الآن <small id="stCID" style="opacity:0.5;font-size:0.5rem"></small></div>
+          <div class="sv" id="stLive" style="color:var(--purple)">0</div>
+          <div class="scard-sub">زائر يتصفح النظام حالياً</div>
         </div>
+      </div>
+      <div class="ph" style="margin-bottom:12px"><div class="pt" style="font-size:1rem">👨‍⚕️ أداء الأطباء</div></div>
+      <div id="docPerf" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
     </div>
 
-    <!-- MODAL: ADD APPOINTMENT -->
-    <div class="modal-bg" id="aptModal">
-        <div class="modal">
-            <div class="modal-hdr">
-                <div class="modal-title"><i class="fas fa-calendar-plus"></i> حجز موعد جديد</div>
-                <button class="modal-close" onclick="closeModal('aptModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="fg" style="margin-bottom:12px">
-                    <label>اختر المريض *</label>
-                    <select class="fi" id="aptPatient"></select>
-                </div>
-                <div class="form-grid">
-                    <div class="fg"><label>التاريخ *</label><input type="date" class="fi" id="aptDate"></div>
-                    <div class="fg"><label>الوقت المتوقع *</label><input type="time" class="fi" id="aptTime"></div>
-                </div>
-                <div class="fg" style="margin-top:12px">
-                    <label>نوع الحجز</label>
-                    <select class="fi" id="aptType">
-                        <option value="consultation">كشفية (Consultation)</option>
-                        <option value="followup">مراجعة (Follow-up)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-foot">
-                <button class="btn btn-outline" onclick="closeModal('aptModal')">إلغاء</button>
-                <button class="btn btn-primary" style="background:var(--gold);color:#000" onclick="saveAppointment()"><i class="fas fa-check"></i> تأكيد الحجز</button>
-            </div>
-        </div>
+    <!-- LIVE BOOKINGS -->
+    <div id="live" class="sec">
+      <div class="ph"><div><div class="pt">🔔 الحجوزات الحية</div><div class="ps">يتحدث تلقائياً</div></div></div>
+      <div id="dashDeptFilterWrap" style="display:none;gap:8px;overflow-x:auto;padding:0 0 14px 0;margin:0 14px 14px 14px;border-bottom:1px solid var(--border)">
+        <!-- Dynamic department filter chips -->
+      </div>
+      <div class="bg" id="liveGrid"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="argon-medical-core.js"></script>
-    <script src="argon-enterprise.js"></script>
-    <script src="dashboard-app.js"></script>
+    <!-- HISTORY -->
+    <div id="hist" class="sec">
+      <div class="ph" style="flex-wrap:wrap;gap:10px">
+        <div><div class="pt">📜 السجل</div><div class="ps">جميع الحجوزات المنجزة</div></div>
+        <div style="flex:1;min-width:200px;display:flex;align-items:center;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:0 12px;height:40px;box-shadow:0 4px 10px rgba(0,0,0,0.05)">
+          <i class="fas fa-search" style="color:var(--muted);margin-right:8px"></i>
+          <input type="text" id="histSearch" oninput="renderHist()" placeholder="بحث فوري برقم الهاتف، الاسم، أو الحجز..." style="border:none;background:transparent;color:var(--text);width:100%;font-size:0.85rem;outline:none" autocomplete="off">
+        </div>
+        <button onclick="clrHist()" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);color:#fca5a5;padding:7px 13px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.79rem;cursor:pointer;height:40px"><i class="fas fa-trash" style="margin-left:5px"></i>مسح</button>
+      </div>
+      <div id="histGrid"></div>
+    </div>
+
+    <!-- DOCTORS -->
+    <div id="docs" class="sec">
+      <div class="ph"><div><div class="pt">👨‍⚕️ إدارة الأطباء</div></div></div>
+      <div class="addpanel">
+        <div class="addrow">
+          <div><label class="mfl">اسم الطبيب *</label><input type="text" id="dN" class="mfi" placeholder="د. أحمد محمد"></div>
+          <div><label class="mfl">التخصص *</label><input type="text" id="dS" class="mfi" placeholder="طب عام"></div>
+          <div><label class="mfl">رسوم الكشف</label><input type="number" id="dF" class="mfi" placeholder="15"></div>
+          <div><label class="mfl">مدة الكشف (د)</label><input type="number" id="dSlot" class="mfi" value="30"></div>
+          <button class="badd" onclick="addDoc()"><i class="fas fa-plus" style="margin-left:4px"></i>إضافة</button>
+        </div>
+        <div class="addrow2">
+          <div><label class="mfl">من الساعة</label><input type="time" id="dWs" class="mfi" value="09:00"></div>
+          <div><label class="mfl">حتى الساعة</label><input type="time" id="dWe" class="mfi" value="17:00"></div>
+          <div><label class="mfl">صورة (رابط أو رفع)</label>
+            <div style="display:flex;gap:5px">
+              <input type="text" id="dImg" class="mfi" placeholder="رابط أو ملف" style="flex:1">
+              <label style="background:var(--teal);color:#fff;padding:9px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="fas fa-upload"></i><input type="file" accept="image/*" style="display:none" onchange="handleImageUpload(event)"></label>
+            </div>
+          </div>
+          <div><label class="mfl">إيموجي</label><input type="text" id="dEm" class="mfi" value="👨‍⚕️"></div>
+          <div id="docDeptWrapper" style="display:none;min-width:140px"><label class="mfl">القسم التابع له</label>
+            <select id="dDept" class="mfi" style="background:var(--surf);color:var(--text);border:1px solid var(--border);height:38px;padding:0 8px;border-radius:9px;width:100%">
+              <option value="">— عام —</option>
+            </select>
+          </div>
+          <div><label class="mfl" style="color:var(--teal)">كلمة مرور البوابة 🔒</label><input type="password" id="dPass" class="mfi" placeholder="اكتب لتعيين باسورد جديد"></div>
+          <button class="badd" id="btnCancelEdit" onclick="cancelDocEdit()" style="display:none;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)"><i class="fas fa-times" style="margin-left:4px"></i>تراجع</button>
+        </div>
+        
+        <!-- Scoped Doctor Workdays Selection -->
+        <style>
+          .day-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.72rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--muted);
+            transition: 0.25s;
+          }
+          .day-btn.active {
+            background: var(--teal);
+            color: #000;
+            font-weight: 800;
+            border-color: var(--teal);
+            box-shadow: 0 0 10px rgba(13, 148, 136, 0.3);
+          }
+        </style>
+        <div style="margin-top: 12px; display:flex; flex-direction:column; gap:6px; border-top: 1px dashed var(--border); padding-top: 12px">
+          <label class="mfl" style="font-weight: 800; color:var(--teal)">📅 أيام عمل الطبيب المتاحة للمرضى (اضغط لتحديد أيام الدوام):</label>
+          <div style="display:flex; gap:6px; flex-wrap:wrap">
+            <button type="button" class="day-btn active" data-day="6" onclick="this.classList.toggle('active')">السبت</button>
+            <button type="button" class="day-btn active" data-day="0" onclick="this.classList.toggle('active')">الأحد</button>
+            <button type="button" class="day-btn active" data-day="1" onclick="this.classList.toggle('active')">الاثنين</button>
+            <button type="button" class="day-btn active" data-day="2" onclick="this.classList.toggle('active')">الثلاثاء</button>
+            <button type="button" class="day-btn active" data-day="3" onclick="this.classList.toggle('active')">الأربعاء</button>
+            <button type="button" class="day-btn active" data-day="4" onclick="this.classList.toggle('active')">الخميس</button>
+            <button type="button" class="day-btn" data-day="5" onclick="this.classList.toggle('active')">الجمعة</button>
+          </div>
+        </div>
+      </div>
+      <div class="dgrid2" id="docGrid"></div>
+    </div>
+
+    <!-- STAFF -->
+    <div id="staff" class="sec">
+      <div class="ph"><div><div class="pt">👥 إدارة طاقم العمل</div><div class="ps">إضافة وتعديل بيانات الموظفين والصلاحيات</div></div></div>
+      <div class="addpanel">
+        <div class="addrow2">
+          <div><label class="mfl">اسم الموظف *</label><input type="text" id="sftN" class="mfi" placeholder="الاسم الكامل"></div>
+          <div><label class="mfl">الدور / الوظيفة</label>
+            <select id="sftR" class="mfi">
+              <option value="reception">موظف استقبال</option>
+              <option value="pharmacist">صيدلي</option>
+              <option value="lab">فني مختبر</option>
+              <option value="radiology">فني أشعة</option>
+              <option value="admin">إدارة</option>
+            </select>
+          </div>
+          <div><label class="mfl">رقم الهاتف</label><input type="text" id="sftP" class="mfi" placeholder="اختياري"></div>
+          <div><label class="mfl">إيموجي</label><input type="text" id="sftE" class="mfi" value="👤"></div>
+        </div>
+        <div class="addrow2" style="margin-top:8px; align-items:flex-end;">
+          <div><label class="mfl">الرقم الوطني</label><input type="text" id="sftNatId" class="mfi" placeholder="اختياري"></div>
+          <!-- Password removed -->
+          <button class="badd" id="btnStaffAdd" onclick="addStaff()"><i class="fas fa-plus" style="margin-left:4px"></i>إضافة موظف</button>
+          <button class="badd" id="btnCancelStaffEdit" onclick="cancelStaffEdit()" style="display:none;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)"><i class="fas fa-times" style="margin-left:4px"></i>تراجع</button>
+        </div>
+      </div>
+      <div class="dgrid2" id="staffGrid"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="settings" class="sec">
+      <div class="ph"><div><div class="pt">⚙️ الإعدادات</div></div></div>
+      <div class="setp">
+        <div class="setg"><label class="setl">اسم العيادة</label><input type="text" id="sN" class="seti"></div>
+        <div class="setg"><label class="setl">رقم الواتساب</label><input type="text" id="sP" class="seti" placeholder="+962..."></div>
+        <div class="setg" style="display:grid;grid-template-columns:1fr;gap:12px">
+          <div style="display:none;">
+            <label class="setl">نظام التشغيل (Operational Mode) *</label>
+            <select id="sMode" class="setsel" disabled style="opacity: 0.7; cursor: not-allowed; background: rgba(0,0,0,0.15);">
+              <option value="single_clinic">عيادة منفردة (Single Clinic) 🏥</option>
+              <option value="medical_complex">مجمع طبي متكامل (Medical Complex) 🏢</option>
+            </select>
+            <span style="font-size:0.75rem;color:var(--muted);margin-top:4px;display:block;"><i class="fas fa-lock" style="color:var(--teal)"></i> يتم التحكم بنوع رخصة التشغيل حصرياً من شاشة السوبر أدمن.</span>
+          </div>
+          <div>
+            <label class="setl">لغة لوحة التحكم (Language)</label>
+            <select id="sLang" class="setsel" onchange="setDashLang(this.value)">
+              <option value="ar">العربية (Arabic)</option>
+              <option value="en">English (الإنجليزية)</option>
+              <option value="fr">Français (الفرنسية)</option>
+            </select>
+          </div>
+        </div>
+        <div class="setg" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label class="setl">الحالة</label>
+            <select id="sSt" class="setsel">
+              <option value="open">مفتوحة للعمل ✅</option>
+              <option value="closed">إيقاف استقبال الحجوزات ⏸️</option>
+            </select>
+          </div>
+          <div>
+            <label class="setl" style="display:flex;justify-content:space-between;align-items:center">
+              <span>أوقات الدوام</span>
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--teal);font-weight:700">
+                <input type="checkbox" id="s24h" onchange="document.getElementById('timeInputs').style.opacity=this.checked?'0.3':'1';document.getElementById('timeInputs').style.pointerEvents=this.checked?'none':'auto'">
+                24 ساعة
+              </label>
+            </label>
+            <div id="timeInputs" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;transition:.3s">
+              <input type="time" id="sWs" class="seti" value="09:00" title="ساعة البدء">
+              <input type="time" id="sWe" class="seti" value="22:00" title="ساعة الانتهاء">
+            </div>
+          </div>
+        </div>
+        <div class="setg"><label class="setl">التخصص العام</label><input type="text" id="sSpec" class="seti" placeholder="عيادة متعددة التخصصات"></div>
+        <div class="setg" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div><label class="setl">حجز نفس اليوم</label>
+            <select id="sSameDay" class="setsel">
+              <option value="true">مسموح ✅</option>
+              <option value="false">ممنوع ❌</option>
+            </select>
+          </div>
+          <div><label class="setl">أيام المواعيد المرئية</label><input type="number" id="sBookingDays" class="seti" value="10" min="1" max="30"></div>
+        </div>
+        <div class="setg">
+          <label class="setl">لون العيادة</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="color" id="sC" style="width:42px;height:42px;border-radius:9px;border:2px solid var(--border);cursor:pointer" onchange="onColor(this.value)">
+            <span id="colorHex" style="font-size:.88rem;font-weight:600">#0d9488</span>
+          </div>
+        </div>
+        <div class="setg">
+          <label class="setl">شعار العيادة (لوغو)</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="logoPrev" style="width:50px;height:50px;border-radius:10px;background:var(--surf);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:1.5rem">🏥</div>
+            <label class="tbtn" style="background:var(--teal);color:#fff;border:none">
+              <i class="fas fa-upload"></i> رفع لوغو
+              <input type="file" id="logoInp" hidden accept="image/*" onchange="upLogo(this)">
+            </label>
+            <button class="tbtn" onclick="delLogo()" style="color:var(--red);background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2)">حذف</button>
+          </div>
+        </div>
+        <div class="setg"><label class="setl">إيموجي العيادة (بديل اللوغو)</label><input type="text" id="sEm" class="seti" placeholder="🏥"></div>
+        <div class="setg">
+          <label class="setl">كلمة المرور الحالية (مطلوبة للتغيير)</label>
+          <input type="password" id="sPwCurrent" class="seti" placeholder="أدخل كلمة المرور الحالية">
+        </div>
+        <div class="setg"><label class="setl">كلمة المرور الجديدة</label><input type="password" id="sPw" class="seti" placeholder="اتركها فارغة للإبقاء على الحالية"></div>
+        
+        <!-- PATIENT PORTAL LINK COPIER -->
+        <div class="setg" style="margin-top:14px;border-top:1px dashed var(--border);padding-top:14px">
+          <label class="setl" style="color:var(--teal);font-weight:800"><i class="fas fa-link"></i> رابط بوابة المريض الرقمية (Patient Portal)</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="patPortalLinkUrl" class="seti" readonly style="text-align:left;direction:ltr" value="...">
+            <button class="tbtn" onclick="copyPatPortalUrl()" type="button" style="background:var(--teal);color:#fff;border:none"><i class="fas fa-copy"></i> نسخ الرابط</button>
+          </div>
+        </div>
+        
+        <!-- DEPARTMENTS PANEL -->
+        <div id="deptsPanel" style="display:none;margin:20px 0 14px 0;border-top:1px dashed var(--border);padding-top:16px">
+          <label class="setl" style="color:var(--teal);font-weight:800"><i class="fas fa-network-wired"></i> إدارة أقسام المجمع الطبي</label>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:12px;align-items:end">
+            <div><label class="mfl">اسم القسم *</label><input type="text" id="depN" class="mfi" placeholder="مثال: قسم الأسنان"></div>
+            <div><label class="mfl">إيموجي القسم *</label><input type="text" id="depI" class="mfi" placeholder="🦷"></div>
+            <div><label class="mfl">لون القسم</label><input type="color" id="depC" style="width:100%;height:38px;border-radius:9px;border:1px solid var(--border);cursor:pointer;padding:0;background:none" value="#0d9488"></div>
+            <button class="badd" type="button" onclick="addDept()" style="padding:9px 12px"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="deptsGrid" style="display:grid;grid-template-columns:1fr;gap:6px;max-height:220px;overflow-y:auto;background:rgba(255,255,255,0.01);border:1px solid var(--border);border-radius:10px;padding:8px">
+            <!-- Rendered Dynamically -->
+          </div>
+        </div>
+        
+        <!-- RBAC PASSWORDS PANEL -->
+        <div style="margin:20px 0 14px 0;border-top:1px dashed var(--border);padding-top:16px">
+          <label class="setl" style="color:var(--sky);font-weight:800"><i class="fas fa-user-shield"></i> كلمات مرور الطاقم الطبي وصلاحيات الوصول (RBAC)</label>
+          <div style="margin-top:10px; background: rgba(15,23,42,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 15px; position: relative;">
+            <div id="rbacLockOverlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); border-radius: 12px; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                <button onclick="unlockRbacPasswords()" class="btn btn-teal" style="padding: 10px 20px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;"><i class="fas fa-unlock"></i> إظهار وتعديل كلمات مرور الأقسام</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label class="mfl">كلمة مرور الأطباء (EMR)</label>
+                <input type="password" id="sPassDoc" class="mfi" placeholder="الافتراضية: نفس كلمة مرور العيادة">
+              </div>
+              <!-- Complex Only Passwords -->
+              <div id="complexPasscodes" style="display:none; grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label class="mfl">بوابة الصيدلية (Pharmacy)</label>
+                  <input type="password" id="sPassPhar" class="mfi" placeholder="تم التشفير. أدخل جديد للتغيير" disabled>
+                </div>
+                <div>
+                  <label class="mfl">بوابة المختبر (Lab)</label>
+                  <input type="password" id="sPassLab" class="mfi" placeholder="تم التشفير. أدخل جديد للتغيير" disabled>
+                </div>
+                <div>
+                  <label class="mfl">بوابة الأشعة (Radiology)</label>
+                  <input type="password" id="sPassRad" class="mfi" placeholder="تم التشفير. أدخل جديد للتغيير" disabled>
+                </div>
+                <div>
+                  <label class="mfl">بوابة الاستقبال (Reception)</label>
+                  <input type="password" id="sPassRec" class="mfi" placeholder="تم التشفير. أدخل جديد للتغيير" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WHATSAPP AUTOMATION PANEL -->
+        <div style="margin:20px 0 14px 0;border-top:1px dashed var(--border);padding-top:16px">
+          <label class="setl" style="color:#25D366;font-weight:800"><i class="fab fa-whatsapp"></i> مركز أتمتة الواتساب (WhatsApp Automation)</label>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px;background:rgba(37,211,102,0.03);border:1px solid rgba(37,211,102,0.2);padding:15px;border-radius:12px">
+            
+            <div style="text-align:center; padding: 20px 10px;">
+                <div style="font-size: 1.8rem; margin-bottom: 12px;">🚧</div>
+                <div style="color:#25D366; font-weight: 700; font-size: 1.1rem; margin-bottom: 8px;">خدمة الواتساب التلقائي غير مفعلة في هذه النسخة</div>
+                <div style="color:var(--muted); font-size: 0.85rem; line-height: 1.6;">سيتم توفيرها في إصدار مؤسسي مستقبلي من ARGON Medical OS.</div>
+            </div>
+
+            <!-- HIDDEN FIELDS FOR BACKWARD COMPATIBILITY -->
+            <div style="display:none">
+              <input type="checkbox" id="waEnabled">
+              <input type="text" id="waSignature">
+              <input type="checkbox" id="waRemind30">
+              <input type="checkbox" id="waRemind10">
+              <input type="checkbox" id="waPhar">
+              <input type="checkbox" id="waLab">
+              <input type="checkbox" id="waRad">
+              <input type="checkbox" id="waBill">
+            </div>
+            
+          </div>
+        </div>
+
+        <button class="bsave" onclick="saveSettings()"><i class="fas fa-floppy-disk" style="margin-left:8px"></i>حفظ جميع التغييرات</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="prevModal" onclick="if(event.target===this)closePrev()">
+  <button onclick="closePrev()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:9px 22px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer"><i class="fas fa-xmark" style="margin-left:6px"></i>إغلاق</button>
+  <div class="pfr"><iframe id="prevFrame" style="width:100%;height:100%;border:none"></iframe></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+<script src="argon-core.js"></script>
+<script src="argon-enterprise.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   ARGON SYSTEM — Dashboard v2.0
+   Security: Firebase Auth (email/password per clinic)
+   ═══════════════════════════════════════════════════ */
+
+const FB = {
+  apiKey: "AIzaSyCDT_H-1klxbtuVR5n5GOVHKlxcmvY_2GA",
+  authDomain: "clinica-system-e71b9.firebaseapp.com",
+  databaseURL: "https://clinica-system-e71b9-default-rtdb.firebaseio.com",
+  projectId: "clinica-system-e71b9",
+  storageBucket: "clinica-system-e71b9.firebasestorage.app",
+  messagingSenderId: "833103541884",
+  appId: "1:833103541884:web:f8ee6ca4b3d8400cf0fbf9"
+};
+if (!firebase.apps.length) {
+  firebase.initializeApp(FB);
+}
+const db = firebase.database();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+const uP = new URLSearchParams(window.location.search);
+let CID = uP.get('id') || localStorage.getItem('argon_id') || '1';
+if (uP.get('id')) localStorage.setItem('argon_id', CID);
+const BASE = 'clinics/' + CID;
+
+let _pass = '1122', _logins = 0, _lockUntil = 0;
+let _bks = {}, _cmp = {}, _docs = {}, _sets = {}, _referrals = {}, isConn = true;
+let prevCount = 0, firstLoad = true, audioCtx = null, _anonUid = null;
+
+// ── DASHBOARD MULTI-LANGUAGE (i18n) ENGINE ──
+const dash_i18n = {
+  ar: {
+    menuLive: "الحجوزات الحية", menuHist: "السجل", menuDocs: "الأطباء", menuStaff: "طاقم العمل", menuSets: "الإعدادات",
+    statLive: "النشاط المباشر", statLiveSub: "زائر يتصفح النظام", statToday: "حجوزات اليوم", statRev: "الإيرادات اليومية", statTotal: "إجمالي الحجوزات",
+    badgeOpen: "مفتوح", badgeClosed: "مغلق",
+    docPerf: "أداء الأطباء", bookingsTitle: "الحجوزات الحية",
+    histTitle: "السجل", clearHist: "مسح السجل",
+    docTitle: "إدارة الأطباء", staffTitle: "إدارة طاقم العمل", btnAdd: "إضافة",
+    setsTitle: "الإعدادات", btnSave: "حفظ التغييرات",
+    loginTitle: "تسجيل الدخول", loginSub: "لوحة تحكم الطبيب", btnLogin: "دخول",
+    toastConn: "تم الاتصال", toastNoConn: "لا يوجد اتصال",
+    connOk: "متصل", connOff: "لا يوجد اتصال..."
+  },
+  en: {
+    menuLive: "Live Bookings", menuHist: "History", menuDocs: "Doctors", menuStaff: "Staff", menuSets: "Settings",
+    statLive: "Live Activity", statLiveSub: "Active Visitors", statToday: "Today's Bookings", statRev: "Daily Revenue", statTotal: "Total Bookings",
+    badgeOpen: "Open", badgeClosed: "Closed",
+    docPerf: "Doctors Performance", bookingsTitle: "Live Bookings",
+    histTitle: "History", clearHist: "Clear History",
+    docTitle: "Manage Doctors", staffTitle: "Manage Staff", btnAdd: "Add",
+    setsTitle: "Settings", btnSave: "Save Changes",
+    loginTitle: "Login", loginSub: "Admin Dashboard", btnLogin: "Login",
+    toastConn: "Connected", toastNoConn: "No Connection",
+    connOk: "Connected", connOff: "No connection..."
+  },
+  fr: {
+    menuLive: "Réservations en direct", menuHist: "Historique", menuDocs: "Médecins", menuStaff: "Personnel", menuSets: "Paramètres",
+    statLive: "Activité en direct", statLiveSub: "Visiteurs actifs", statToday: "Réservations du jour", statRev: "Revenus", statTotal: "Total",
+    badgeOpen: "Ouvert", badgeClosed: "Fermé",
+    docPerf: "Performance", bookingsTitle: "Réservations en direct",
+    histTitle: "Historique", clearHist: "Effacer",
+    docTitle: "Gérer les Médecins", staffTitle: "Gérer le Personnel", btnAdd: "Ajouter",
+    setsTitle: "Paramètres", btnSave: "Enregistrer",
+    loginTitle: "Connexion", loginSub: "Tableau de Bord", btnLogin: "Entrer",
+    toastConn: "Connecté", toastNoConn: "Pas de connexion",
+    connOk: "Connecté", connOff: "Pas de connexion..."
+  }
+};
+
+let curLang = localStorage.getItem('argon_dash_lang_' + CID) || 'ar';
+function DT(key) { return (dash_i18n[curLang] && dash_i18n[curLang][key]) || dash_i18n['ar'][key] || key; }
+
+function setDashLang(lang) {
+  curLang = lang;
+  localStorage.setItem('argon_dash_lang_' + CID, lang);
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  document.getElementById('sLang').value = lang;
+  
+  // Update Static Texts
+  const q = (sel, txt) => { const el = document.querySelector(sel); if(el) el.innerHTML = txt; };
+  q('#m1 span', DT('menuLive')); q('#m2 span', DT('menuHist')); q('#m3 span', DT('menuDocs')); q('#mStaff span', DT('menuStaff')); q('#m4 span', DT('menuSets'));
+  q('#live .pt', '🔔 ' + DT('bookingsTitle'));
+  q('#hist .pt', '📜 ' + DT('histTitle')); q('#hist button', '<i class="fas fa-trash" style="margin-left:5px"></i>' + DT('clearHist'));
+  q('#docs .pt', '👨‍⚕️ ' + DT('docTitle')); q('#staff .pt', '👥 ' + DT('staffTitle')); q('.badd', '<i class="fas fa-plus" style="margin-left:4px"></i>' + DT('btnAdd'));
+  q('#settings .pt', '⚙️ ' + DT('setsTitle')); q('.bsave', '<i class="fas fa-floppy-disk" style="margin-left:8px"></i>' + DT('btnSave'));
+  q('.lcard h2', '🏥 ' + DT('loginTitle')); q('.lcard p', DT('loginSub')); q('#btnLog', DT('btnLogin'));
+  
+  const lbls = document.querySelectorAll('.slb');
+  if(lbls[0]) lbls[0].innerHTML = DT('statToday');
+  if(lbls[1]) lbls[1].innerHTML = DT('statRev');
+  if(lbls[2]) lbls[2].innerHTML = DT('statTotal');
+  if(lbls[3]) lbls[3].innerHTML = DT('statLive');
+  const subs = document.querySelectorAll('.scard-sub');
+  if(subs[2]) subs[2].innerHTML = DT('statLiveSub');
+  
+  // Refresh UI
+  renderLive();
+  renderHist();
+  renderDocs();
+}
+
+// Init Dashboard Language
+document.addEventListener('DOMContentLoaded', () => setDashLang(curLang));
+
+// ── AUTH & PRESENCE ──
+auth.signInAnonymously().then(r => {
+  _anonUid = r.user.uid;
+  console.log("Firebase Auth Success:", _anonUid);
+  registerPresence();
+}).catch(e => console.error("Firebase Auth Error:", e));
+
+function registerPresence() {
+  if(!isConn || !_anonUid) return;
+  const dPres = db.ref(BASE+'/presence/admin_'+_anonUid.substr(0,5));
+  dPres.set(true).catch(e => console.error("Presence Set Error:", e));
+  dPres.onDisconnect().remove();
+}
+
+// ── CLOCK ──
+setInterval(() => {
+  document.getElementById('tclk').textContent = new Date().toLocaleTimeString('ar-JO',{hour:'2-digit',minute:'2-digit',hour12:true,timeZoneName:'short'});
+}, 1000);
+
+// ── CONNECTION & PRESENCE ──
+db.ref('.info/connected').on('value', snap => {
+  const was = !isConn; isConn = snap.val()===true;
+  const bar = document.getElementById('connBar');
+  if (isConn) {
+    bar.className='cbar cok'; bar.innerHTML=`<i class="fas fa-wifi"></i> ${DT('connOk')}`; bar.style.display='flex';
+    setTimeout(()=>{if(isConn)bar.style.display='none';},2000);
+    if (was) toast('✅ ' + DT('toastConn'), 'ok');
+    
+    // Register Dashboard Presence (Doctor)
+    const dPres = db.ref(BASE+'/presence/admin_'+(Math.random().toString(36).substr(2,5)));
+    dPres.set({ type: 'admin', ts: firebase.database.ServerValue.TIMESTAMP });
+    dPres.onDisconnect().remove();
+  } else { bar.style.display='flex'; bar.className='cbar coff'; bar.innerHTML=`<i class="fas fa-exclamation-triangle"></i> ${DT('connOff')}`; }
+});
+window.addEventListener('offline',()=>{isConn=false;db.goOffline();});
+window.addEventListener('online',()=>setTimeout(()=>db.goOnline(),1000));
+
+// ── LOGIN — Brute force protection ──
+document.getElementById('lPass').addEventListener('keyup', e => { if(e.key==='Enter') doLogin(); });
+function doLogin() {
+  if (Date.now() < _lockUntil) { toast(`⛔ محاولات كثيرة، انتظر ${Math.ceil((_lockUntil-Date.now())/1000)} ثانية`, 'err'); return; }
+  const val = document.getElementById('lPass').value;
+  const MASTER = 'argon_master_2026';
+  if (val === _pass || val === MASTER) {
+    _logins = 0;
+    sessionStorage.setItem('clinica_auth_'+CID, '1');
+    const el = document.getElementById('dashLogin');
+    el.style.opacity='0'; el.style.transition='opacity .35s';
+    setTimeout(()=>{ el.style.display='none'; toast('✅ أهلاً بك!', 'ok'); },360);
+    // Auto-Auth for Storage Access
+    auth.signInAnonymously().catch(()=>{});
+  } else {
+    _logins++;
+    const inp = document.getElementById('lPass');
+    inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),300);
+    if (_logins >= 5) { _lockUntil = Date.now()+60000; toast('⛔ تم قفل الدخول لمدة 60 ثانية', 'err'); return; }
+    document.getElementById('lErr').style.display='block';
+    setTimeout(()=>document.getElementById('lErr').style.display='none',3000);
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('clinica_auth_'+CID);
+  window.location.reload();
+}
+
+// ── SOUND ──
+function beep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    [880,1108,1318].forEach((f,i)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(audioCtx.destination);o.type='triangle';o.frequency.value=f;
+      const t=audioCtx.currentTime+(i*.25);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.4,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+.28);
+      o.start(t);o.stop(t+.3);
+    });
+  }catch(e){}
+}
+document.addEventListener('click',()=>{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();},{once:true});
+
+// ── COLOR ──
+function onColor(c) {
+  document.documentElement.style.setProperty('--teal',c);
+  document.getElementById('colorHex').textContent=c;
+}
+
+// ── DEPARTMENTS AND COMPLEX MODE ENGINE ──
+let _depts = {};
+let activeDashboardDeptFilter = 'all';
+
+function toggleComplexView(mode) {
+  const isComplex = mode === 'medical_complex';
+  const dp = document.getElementById('deptsPanel');
+  if (dp) dp.style.display = isComplex ? 'block' : 'none';
+  const dw = document.getElementById('docDeptWrapper');
+  if (dw) dw.style.display = isComplex ? 'block' : 'none';
+  const cn = document.getElementById('complexNav');
+  if (cn) cn.style.display = isComplex ? 'block' : 'none';
+  const cp = document.getElementById('complexPasscodes');
+  if (cp) cp.style.display = isComplex ? 'grid' : 'none';
+  
+  // Render live views
+  renderDashboardDeptFilters();
+  if (typeof renderLive === 'function') {
+    const actKeys = Object.keys(_bks).filter(k=>{
+      const s=_bks[k].status;
+      return s!=='done'&&s!=='completed'&&s!=='cancelled';
+    });
+    renderLive(actKeys);
+  }
+}
+
+function renderDashboardDeptFilters() {
+  const wrap = document.getElementById('dashDeptFilterWrap');
+  if (!wrap) return;
+  if (!_sets || _sets.mode !== 'medical_complex') {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'flex';
+  const keys = Object.keys(_depts);
+  
+  let html = `
+    <button class="spec-chip ${activeDashboardDeptFilter === 'all' ? 'act' : ''}" onclick="setDashboardDeptFilter('all')" style="padding:6px 14px;border-radius:20px;font-family:inherit;font-weight:700;font-size:0.75rem;cursor:pointer;border:1.5px solid var(--border);background:var(--card)">
+      🩺 الكل
+    </button>
+  `;
+  keys.forEach(k => {
+    const d = _depts[k];
+    const actClass = activeDashboardDeptFilter === k ? 'act' : '';
+    html += `
+      <button class="spec-chip ${actClass}" onclick="setDashboardDeptFilter('${k}')" style="padding:6px 14px;border-radius:20px;font-family:inherit;font-weight:700;font-size:0.75rem;cursor:pointer;color:${d.color || 'var(--teal)'};border-color:${d.color || 'var(--teal)'};background:var(--card)">
+        <span>${d.emoji || '🏢'}</span> ${sanitize(d.name)}
+      </button>
+    `;
+  });
+  wrap.innerHTML = html;
+}
+
+function setDashboardDeptFilter(deptId) {
+  activeDashboardDeptFilter = deptId;
+  renderDashboardDeptFilters();
+  const actKeys = Object.keys(_bks).filter(k=>{
+    const s=_bks[k].status;
+    return s!=='done'&&s!=='completed'&&s!=='cancelled';
+  });
+  renderLive(actKeys);
+}
+
+db.ref(BASE+'/departments').on('value', snap => {
+  _depts = snap.val() || {};
+  renderDepts();
+  updateDocDeptDropdown();
+  renderDashboardDeptFilters();
+  if (typeof renderDocs === 'function') renderDocs();
+});
+
+function renderDepts() {
+  const dg = document.getElementById('deptsGrid');
+  if (!dg) return;
+  const keys = Object.keys(_depts);
+  if (!keys.length) {
+    dg.innerHTML = '<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:12px">لا توجد أقسام مضافة بعد</div>';
+    return;
+  }
+  dg.innerHTML = keys.map(k => {
+    const d = _depts[k];
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px">
+        <span style="font-size:1.1rem">${d.emoji || '🏥'}</span>
+        <div style="flex:1;margin-right:8px">
+          <span style="font-weight:700;font-size:.85rem;color:var(--text)">${sanitize(d.name)}</span>
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${d.color || '#0d9488'};vertical-align:middle;margin-right:6px"></span>
+        </div>
+        <button type="button" onclick="deleteDept('${k}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.88rem;padding:4px"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateDocDeptDropdown() {
+  const select = document.getElementById('dDept');
+  if (!select) return;
+  const keys = Object.keys(_depts);
+  let html = '<option value="">— عام —</option>';
+  keys.forEach(k => {
+    const d = _depts[k];
+    html += `<option value="${k}">${d.emoji || '🏥'} ${sanitize(d.name)}</option>`;
+  });
+  select.innerHTML = html;
+}
+
+function addDept() {
+  const name = document.getElementById('depN').value.trim();
+  const emoji = document.getElementById('depI').value.trim() || '🏥';
+  const color = document.getElementById('depC').value || '#0d9488';
+  if (!name) { toast('⚠️ الرجاء إدخال اسم القسم', 'err'); return; }
+  
+  const deptObj = { name: sanitize(name), emoji: sanitize(emoji), color: color };
+  db.ref(BASE + '/departments').push(deptObj).then(() => {
+    toast('✅ تم إضافة القسم بنجاح', 'ok');
+    document.getElementById('depN').value = '';
+    document.getElementById('depI').value = '';
+  }).catch(() => toast('❌ فشل إضافة القسم', 'err'));
+}
+
+function deleteDept(key) {
+  if (!confirm('هل أنت متأكد من حذف هذا القسم؟ لن يتم حذف الأطباء، لكن سيتم إلغاء ربطهم بالقسم.')) return;
+  db.ref(BASE + '/departments/' + key).remove().then(() => {
+    toast('✅ تم حذف القسم', 'ok');
+  });
+}
+
+// ── SETTINGS LISTENER ──
+db.ref(BASE+'/settings').on('value', snap => {
+  const s = snap.val();
+  
+  // If clinic does not exist in DB (e.g. failed creation)
+  if (!s) {
+    document.getElementById('topName').textContent = '⚠️ عيادة غير موجودة';
+    document.getElementById('lClinicName').textContent = 'هذه العيادة غير موجودة أو تم حذفها';
+    document.getElementById('lPass').disabled = true;
+    document.getElementById('lPass').placeholder = 'العيادة غير متوفرة';
+    const lbtn = document.querySelector('.lbtn');
+    if (lbtn) { lbtn.disabled = true; lbtn.innerHTML = '❌ غير متوفرة'; lbtn.style.background = 'var(--red)'; }
+    return;
+  }
+  
+  _sets = s;
+  _sets.mode = (s.type === 'complex' || s.mode === 'medical_complex') ? 'medical_complex' : 'single_clinic';
+  checkAndSeedDefaultDepartments();
+  
+  // Only 'suspended' locks the dashboard (Super Admin only)
+  if (s.status === 'suspended') {
+    document.getElementById('lockScreen').classList.add('show');
+  } else {
+    document.getElementById('lockScreen').classList.remove('show');
+  }
+
+  // Load WhatsApp Config
+  const wa = s.whatsapp || {};
+  document.getElementById('waEnabled').checked = !!wa.enabled;
+  document.getElementById('waSignature').value = wa.signature || '';
+  document.getElementById('waRemind30').checked = wa.remind30 !== false;
+  document.getElementById('waRemind10').checked = wa.remind10 !== false;
+  document.getElementById('waPhar').checked = wa.phar !== false;
+  document.getElementById('waLab').checked = wa.lab !== false;
+  document.getElementById('waRad').checked = wa.rad !== false;
+  document.getElementById('waBill').checked = wa.bill !== false;
+
+  document.getElementById('topName').textContent = s.name||'العيادة';
+  document.getElementById('lClinicName').textContent = s.name||'العيادة';
+  document.title = 'ARGON | '+(s.name||'العيادة');
+  _pass = s.password||'1122';
+  if (sessionStorage.getItem('clinica_auth_'+CID) === '1') {
+    const el = document.getElementById('dashLogin');
+    if (el) el.style.display = 'none';
+  }
+  const b = document.getElementById('stBadge');
+  if (s.status === 'suspended') {
+    b.className='tbadge tb-closed'; b.innerHTML=`<i class="fas fa-shield-alt" style="font-size:.38rem"></i> Suspended`;
+  } else if (s.status === 'closed') {
+    b.className='tbadge tb-closed'; b.innerHTML=`<i class="fas fa-pause-circle" style="font-size:.38rem"></i> ${DT('badgeClosed')}`;
+  } else {
+    b.className='tbadge tb-open'; b.innerHTML=`<i class="fas fa-circle" style="font-size:.38rem"></i> ${DT('badgeOpen')}`;
+  }
+  document.getElementById('sSpec').value = s.specialty||'';
+  document.getElementById('sSameDay').value = s.sameDayBooking!==false ? 'true' : 'false';
+  document.getElementById('sBookingDays').value = s.bookingDays||10;
+  
+  const sMode = document.getElementById('sMode');
+  if (sMode) {
+    const actualMode = (s.type === 'complex' || s.mode === 'medical_complex') ? 'medical_complex' : 'single_clinic';
+    sMode.value = actualMode;
+    toggleComplexView(actualMode);
+  }
+  
+  const is24h = !!s.is24Hours;
+  document.getElementById('s24h').checked = is24h;
+  document.getElementById('timeInputs').style.opacity = is24h ? '0.3' : '1';
+  document.getElementById('timeInputs').style.pointerEvents = is24h ? 'none' : 'auto';
+
+  document.getElementById('tlogo').textContent = s.name || 'ARGON CLINIC';
+  if(s.logoUrl) {
+    document.getElementById('logoPrev').innerHTML = `<img src="${s.logoUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    document.getElementById('logoPrev').textContent = s.emoji || '🏥';
+  }
+  if(s.color){onColor(s.color);const cp=document.getElementById('sC');if(cp)cp.value=s.color;}
+  const passcodes = s.passcodes || {};
+  document.getElementById('sPassDoc').value = passcodes.doctor || '';
+  document.getElementById('sPassPhar').value = passcodes.pharmacist || '';
+  document.getElementById('sPassLab').value = passcodes.lab || '';
+  document.getElementById('sPassRad').value = passcodes.radiology || '';
+
+  const portalUrl = window.location.origin + window.location.pathname.replace('dashboard.html', 'patient.html') + '?id=' + CID;
+  const pLinkInput = document.getElementById('patPortalLinkUrl');
+  if (pLinkInput) pLinkInput.value = portalUrl;
+
+  const F={sN:'name',sP:'phone',sSpec:'specialty',sEm:'emoji',sBookingDays:'bookingDays',sWs:'clinicStart',sWe:'clinicEnd'};
+  for(let id in F){const el=document.getElementById(id);if(el&&!el.matches(':focus'))el.value=s[F[id]]||'';}
+  const st=document.getElementById('sSt');if(st&&s.status!=='suspended')st.value=s.status||'open';
+  const ssd=document.getElementById('sSameDay');if(ssd)ssd.value=(s.sameDayBooking!==false)?'true':'false';
+  if(!s.bookingDays) document.getElementById('sBookingDays').value = '10';
+  if(!s.clinicStart) document.getElementById('sWs').value = '09:00';
+  if(!s.clinicEnd) document.getElementById('sWe').value = '22:00';
+});
+
+// ── CONNECTION MONITOR ──
+db.ref('.info/connected').on('value', snap => {
+  const was = !isConn; isConn = snap.val()===true;
+  const bar = document.getElementById('connBar');
+  if (isConn) {
+    bar.className='cbar cok'; bar.innerHTML='<i class="fas fa-wifi"></i> متصل'; bar.style.display='flex';
+    setTimeout(()=>{if(isConn)bar.style.display='none';},2000);
+    if (was) toast('✅ تم الاتصال');
+    registerPresence();
+  } else { bar.style.display='flex'; bar.className='cbar coff'; bar.innerHTML='<i class="fas fa-exclamation-triangle"></i> لا يوجد اتصال...'; }
+});
+document.getElementById('stCID').textContent = '(ID: '+CID+')';
+
+// ── LIVE PRESENCE LISTENER ──
+db.ref(BASE+'/presence').on('value', snap => {
+  const count = snap.numChildren() || 0;
+  document.getElementById('stLive').textContent = count;
+});
+
+// ── LIVE BOOKINGS LISTENER ──
+// ── REFERRALS LISTENER (for department filtering & referral card rendering) ──
+db.ref(BASE+'/referrals').on('value', snap => {
+  _referrals = snap.val()||{};
+});
+
+// ── Enterprise Event-Driven Bookings (Incremental) ──
+let _bksRenderTimer = null;
+function recalcBookings() {
+  clearTimeout(_bksRenderTimer);
+  _bksRenderTimer = setTimeout(() => {
+    const actKeys = Object.keys(_bks).filter(k=>{const s=_bks[k].status;return s!=='done'&&s!=='completed'&&s!=='cancelled';});
+    
+    const lc = document.getElementById('liveC');
+    lc.textContent = actKeys.length; lc.className='nbdg'+(actKeys.length===0?' z':'');
+    if (!firstLoad && actKeys.length > prevCount) { beep(); ring(); }
+    prevCount = actKeys.length;
+
+    const now = new Date();
+    const curMonth = now.toISOString().substring(0, 7);
+    const prevMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const prevMonth = prevMonthDate.toISOString().substring(0, 7);
+
+    const bksArr = Object.values(_bks);
+    const curMonthBks = bksArr.filter(b => (b.date||'').startsWith(curMonth)).length;
+    const prevMonthBks = bksArr.filter(b => (b.date||'').startsWith(prevMonth)).length;
+    
+    document.getElementById('stMonth').textContent = curMonthBks;
+    const growth = prevMonthBks ? Math.round(((curMonthBks - prevMonthBks) / prevMonthBks) * 100) : 100;
+    const gt = document.getElementById('stGrowthTrend');
+    gt.textContent = (growth >= 0 ? '+' : '') + growth + '%';
+    gt.className = 'scard-trend ' + (growth >= 0 ? 'trend-up' : 'trend-down');
+
+    renderLive(actKeys);
+    firstLoad = false;
+  }, 80);
+}
+db.ref(BASE+'/bookings').on('child_added', snap => { _bks[snap.key] = snap.val(); recalcBookings(); });
+db.ref(BASE+'/bookings').on('child_changed', snap => { _bks[snap.key] = snap.val(); recalcBookings(); });
+db.ref(BASE+'/bookings').on('child_removed', snap => { delete _bks[snap.key]; recalcBookings(); });
+
+function ring() {
+  const b=document.getElementById('bellI'); b.classList.add('ringing');
+  setTimeout(()=>b.classList.remove('ringing'),2500);
+}
+
+function renderLive(keys) {
+  let filteredKeys = keys || [];
+  if (_sets.mode === 'medical_complex' && activeDashboardDeptFilter !== 'all') {
+    filteredKeys = keys.filter(k => {
+      const b = _bks[k];
+      // Referral bookings: match by target department from referral data
+      if (b.docKey === 'referral' && b.referralId) {
+        const ref = _referrals && _referrals[b.referralId];
+        return ref && ref.toDept === activeDashboardDeptFilter;
+      }
+      const doc = b.docKey && _docs[b.docKey] ? _docs[b.docKey] : null;
+      return doc && doc.departmentId === activeDashboardDeptFilter;
+    });
+  }
+
+  const g = document.getElementById('liveGrid');
+  if (!filteredKeys.length) {
+    g.innerHTML = `<div class="empty-g"><i class="fas fa-calendar-check"></i><p>لا توجد حجوزات نشطة حالياً</p></div>`;
+    return;
+  }
+
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const DAY_AR = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+  const stMap   = { new:'جديد',      confirmed:'مؤكد ✅',   waiting:'بالانتظار ⏳' };
+  const stColor = { new:'var(--amber)', confirmed:'var(--green)', waiting:'var(--sky)' };
+  const stBg    = { new:'rgba(245,158,11,.12)', confirmed:'rgba(16,185,129,.12)', waiting:'rgba(14,165,233,.12)' };
+
+  // ── Group bookings by date ──
+  const groups = {};
+  filteredKeys.forEach(k => {
+    const b = _bks[k];
+    const d = b.date || 'unknown';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(k);
+  });
+
+  // ── Sort: today first, then ascending by date ──
+  const sortedDates = Object.keys(groups).sort((a, b) => {
+    if (a === todayStr) return -1;
+    if (b === todayStr) return 1;
+    return a < b ? -1 : 1;
+  });
+
+  let html = '';
+
+  sortedDates.forEach(date => {
+    const isToday = date === todayStr;
+    const dateKeys = groups[date].sort((a, b) => {
+      // Sort within day: by time ascending
+      return (_bks[a].time || '') < (_bks[b].time || '') ? -1 : 1;
+    });
+
+    // ── Date header ──
+    let dateLabel = '';
+    const thDay = curLang === 'ar' ? 'حجوزات اليوم' : (curLang === 'fr' ? "Réservations d'Aujourd'hui" : "Today's Bookings");
+    const thBook = curLang === 'ar' ? 'حجز' : (curLang === 'fr' ? 'RDV' : 'Bk');
+    if (isToday) {
+      dateLabel = `<div style="
+        display:flex;align-items:center;gap:10px;
+        margin:0 0 14px 0;padding:10px 16px;
+        background:linear-gradient(135deg,rgba(13,148,136,.15),rgba(14,165,233,.08));
+        border:1px solid rgba(13,148,136,.3);
+        border-radius:12px;
+        ">
+        <div style="width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:pulseAnim 1.5s infinite"></div>
+        <span style="font-weight:900;font-size:1rem;color:var(--green)">${thDay}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-right:auto">${date}</span>
+        <span style="background:var(--green);color:#fff;font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:20px">${dateKeys.length} ${thBook}</span>
+      </div>`;
+    } else {
+      let DAY_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+      if(curLang === 'en') DAY_AR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      if(curLang === 'fr') DAY_AR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+      const d = new Date(date + 'T12:00:00');
+      const dayName = DAY_AR[d.getDay()];
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const isNext = date === tomorrow.toLocaleDateString('en-CA');
+      const tmrwLbl = isNext ? (curLang === 'ar' ? 'غداً — ' : (curLang === 'fr' ? 'Demain — ' : 'Tmrw — ')) : '';
+      dateLabel = `<div style="
+        display:flex;align-items:center;gap:10px;
+        margin:24px 0 14px 0;padding:10px 16px;
+        background:var(--surf);
+        border:1px solid var(--border);
+        border-radius:12px;
+        ">
+        <i class="fas fa-calendar-day" style="color:var(--sky);font-size:.85rem"></i>
+        <span style="font-weight:800;font-size:.95rem;color:var(--text)">${tmrwLbl}${dayName}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-right:auto">${date}</span>
+        <span style="background:var(--surf);border:1px solid var(--border);color:var(--muted);font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px">${dateKeys.length} ${thBook}</span>
+      </div>`;
+    }
+
+    html += `<div style="margin-bottom:8px">${dateLabel}</div>`;
+    html += `<div class="bg" style="margin-bottom:4px">`;
+
+    dateKeys.forEach(k => {
+      const b = _bks[k];
+      const st = b.status || 'new';
+      const isRef = b.docKey === 'referral';
+      const borderLeft = isRef
+        ? '#a855f7'
+        : isToday
+          ? (st === 'new' ? 'var(--amber)' : st === 'confirmed' ? 'var(--green)' : 'var(--sky)')
+          : 'var(--border)';
+
+      // Unique visual ID: date-scoped booking number
+      const dateTag = isToday ? `<span style="
+          font-size:.6rem;font-weight:700;color:var(--green);
+          background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);
+          padding:1px 6px;border-radius:6px;margin-right:5px
+        ">اليوم</span>` : `<span style="
+          font-size:.6rem;font-weight:700;color:var(--muted);
+          background:var(--surf);border:1px solid var(--border);
+          padding:1px 6px;border-radius:6px;margin-right:5px;
+          font-family:'IBM Plex Mono',monospace
+        ">${date.slice(5)}</span>`;
+
+      // ── Referral-specific visual elements ──
+      const refBadge = isRef ? `<span style="
+          font-size:.68rem;font-weight:800;color:#a855f7;
+          background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);
+          padding:2px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px
+        "><i class='fas fa-exchange-alt' style='font-size:.6rem'></i> تحويل داخلي</span>` : '';
+
+      const refBanner = isRef ? `<div style="
+          margin:6px 0 8px;padding:7px 12px;border-radius:8px;
+          background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04));
+          border:1px solid rgba(168,85,247,.18);
+          display:flex;align-items:center;gap:8px;font-size:.78rem
+        ">
+          <span style="font-size:1.1rem">${sanitize(b.docName).replace('تحويل إلى ','')?.split(' ')[0] || '🏢'}</span>
+          <div>
+            <div style="font-weight:800;color:#a855f7">${sanitize(b.docName)}</div>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:1px">محال من الطبيب المعالج · رسوم الكشف: مجاني</div>
+          </div>
+        </div>` : '';
+
+      const cardBg = isRef
+        ? 'background:linear-gradient(135deg,rgba(168,85,247,.03),rgba(124,58,237,.01));border:1px solid rgba(168,85,247,.15);'
+        : '';
+
+      html += `<div class="bc${st === 'cancelled' ? ' cancel' : ''}" style="border-right-color:${borderLeft};${cardBg}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:6px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+            ${dateTag}
+            <span class="bno" dir="ltr">${b.bookNo || '#----'}</span>
+            ${refBadge}
+          </div>
+          <span style="font-size:.72rem;font-weight:800;color:${stColor[st]};background:${stBg[st]};padding:3px 10px;border-radius:20px">${stMap[st] || st}</span>
+        </div>
+        <div class="bname">${sanitize(b.patName)}</div>
+        <div class="binfo">📞 ${sanitize(b.patPhone)}</div>
+        ${isRef ? refBanner : `<div class="binfo">👨‍⚕️ د. ${sanitize(b.docName)} · <span style="color:var(--teal)">${sanitize(b.docSpec || '')}</span></div>`}
+        <div class="binfo" style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'IBM Plex Mono',monospace;background:var(--surf);border:1px solid var(--border);padding:2px 8px;border-radius:7px;font-size:.78rem">${isRef ? '🔀 تحويل داخلي' : '🕐 ' + (b.time || '—')}</span>
+          ${b.patAge ? `<span style="font-size:.75rem;color:var(--muted)">${b.patAge} سنة · ${b.patGender || '—'}</span>` : ''}
+        </div>
+        ${b.notes ? `<div class="bnote">${isRef ? '🔖' : '📝'} ${sanitize(b.notes)}</div>` : ''}
+        <div class="bfooter">
+          <span class="bprice">${isRef ? '<span style="color:#a855f7;font-weight:700">مجاني</span>' : (b.fee || '0.00') + ' <small>د.أ</small>'}</span>
+          <div class="acts">
+            ${(b.patientId || b.patPhone) ? `<button class="ab" onclick="openPatientEMR('${k}')" style="background:rgba(13,148,136,.1);color:var(--teal);border-color:rgba(13,148,136,.25)"><i class="fas fa-folder-open"></i> الملف</button>` : ''}
+            ${st === 'new' ? `<button class="ab a-ok" onclick="updSt('${k}','confirmed')"><i class="fas fa-check"></i> تأكيد</button>` : ''}
+            ${st === 'confirmed' ? `<button class="ab a-wait" onclick="updSt('${k}','waiting')"><i class="fas fa-clock"></i> انتظار</button>` : ''}
+            ${st === 'waiting' ? `<button class="ab a-wait" style="background:rgba(59, 130, 246, 0.1);color:#3b82f6;border-color:rgba(59, 130, 246, 0.3)" onclick="updSt('${k}','with_doctor')"><i class="fas fa-user-md"></i> للعيادة</button>` : ''}
+            ${st === 'with_doctor' ? `<button class="ab a-done" onclick="cmpBook('${k}')"><i class="fas fa-flag-checkered"></i> إنهاء</button>` : ''}
+            ${st !== 'cancelled' && st !== 'completed' ? `<button class="ab a-cancel" onclick="updSt('${k}','cancelled')"><i class="fas fa-times"></i> إلغاء</button>` : ''}
+            ${b.patPhone ? `<button class="ab a-wa" onclick="sendWA('${sanitize(b.patPhone)}','${st}','${b.bookNo}','${sanitize(b.patName)}')"><i class="fab fa-whatsapp"></i></button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  g.innerHTML = html;
+}
+
+// ── COMPLETED LISTENER (Enterprise Incremental) ──
+let _cmpTimer = null;
+function recalcCmp() {
+  clearTimeout(_cmpTimer);
+  _cmpTimer = setTimeout(() => {
+    const keys = Object.keys(_cmp);
+    let rev=0, rSum=0, rCnt=0;
+    const docSt = {};
+    keys.forEach(k=>{
+      const b=_cmp[k];
+      if(!b) return;
+      rev+=parseFloat(b.fee||0);
+      if(b.rating){rSum+=b.rating;rCnt++;}
+      const dn=b.docName||'—';
+      if(!docSt[dn])docSt[dn]={cnt:0,rev:0,ratings:[]};
+      docSt[dn].cnt++;docSt[dn].rev+=parseFloat(b.fee||0);
+      if(b.rating)docSt[dn].ratings.push(b.rating);
+    });
+    document.getElementById('stRev').textContent=rev.toFixed(2);
+    const cancelledCount = Object.values(_bks).filter(b => b.status === 'cancelled').length;
+    const totalClosed = keys.length + cancelledCount;
+    const successRate = totalClosed ? Math.round((keys.length / totalClosed) * 100) : 100;
+    document.getElementById('stSuccess').textContent = successRate + '%';
+    document.getElementById('stSuccessTrend').textContent = successRate + '%';
+    const avgRating = rCnt ? (rSum / rCnt) : 0;
+    const satIndex = Math.round((avgRating / 5) * 100);
+    document.getElementById('stSatIndex').textContent = satIndex + '%';
+    document.getElementById('stRate').textContent = (avgRating ? avgRating.toFixed(1) : '--') + ' من 5 نجوم';
+    const dp=document.getElementById('docPerf');
+    const sorted=Object.entries(docSt).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,6);
+    dp.innerHTML=sorted.length?sorted.map(([name,st])=>{
+      const avg=st.ratings.length?'★'+(st.ratings.reduce((a,b)=>a+b,0)/st.ratings.length).toFixed(1):'';
+      return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:15px">
+        <div style="font-size:.9rem;font-weight:800;margin-bottom:6px">د. ${sanitize(name)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">${st.cnt} حجز</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.77rem;color:var(--green)">${st.rev.toFixed(2)} د.أ</div>
+        ${avg?`<div style="font-size:.75rem;color:var(--amber)">${avg}</div>`:''}
+      </div>`;
+    }).join(''):`<div style="color:var(--muted);font-size:.84rem">لا توجد بيانات بعد</div>`;
+    window.renderHist();
+  }, 100);
+}
+window.renderHist = function() {
+  const hg=document.getElementById('histGrid');
+  if(!hg) return;
+  const sq = (document.getElementById('histSearch') ? document.getElementById('histSearch').value : '').toLowerCase().trim();
+  let filteredKeys = Object.keys(_cmp);
+  if(sq) {
+    filteredKeys = filteredKeys.filter(k => {
+      const b = _cmp[k]; if(!b) return false;
+      return (b.patName && b.patName.toLowerCase().includes(sq)) ||
+             (b.patPhone && b.patPhone.includes(sq)) ||
+             (b.bookNo && b.bookNo.toLowerCase().includes(sq)) ||
+             (b.docName && b.docName.toLowerCase().includes(sq));
+    });
+  }
+  const noHistMsg = curLang === 'ar' ? 'لا يوجد سجل يطابق البحث' : (curLang === 'fr' ? 'Aucun historique' : 'No History');
+  if(!filteredKeys.length){hg.innerHTML=`<div style="text-align:center;padding:50px;color:var(--muted)">${noHistMsg}</div>`;return;}
+  const th1=curLang==='ar'?'التاريخ':(curLang==='fr'?'Date':'Date');
+  const th2=curLang==='ar'?'المريض':(curLang==='fr'?'Patient':'Patient');
+  const th3=curLang==='ar'?'الطبيب':(curLang==='fr'?'Médecin':'Doctor');
+  const th4=curLang==='ar'?'الوقت':(curLang==='fr'?'Heure':'Time');
+  const th5=curLang==='ar'?'الرسوم':(curLang==='fr'?'Frais':'Fee');
+  const th6=curLang==='ar'?'التقييم':(curLang==='fr'?'Évaluation':'Rating');
+  hg.innerHTML=`<div class="htw"><table><thead><tr><th>${th1}</th><th>${th2}</th><th>${th3}</th><th>${th4}</th><th>${th5}</th><th>${th6}</th></tr></thead>
+    <tbody>${filteredKeys.slice().reverse().slice(0,60).map(k=>{const b=_cmp[k];if(!b)return'';
+      return`<tr><td><div style="font-weight:700">${b.date||'—'}</div></td>
+        <td><b>${sanitize(b.patName||'—')}</b><br><small>${sanitize(b.patPhone||'')}</small></td>
+        <td>د. ${sanitize(b.docName||'—')}<br><small style="color:var(--teal)">${sanitize(b.docSpec||'')}</small></td>
+        <td style="font-family:'IBM Plex Mono',monospace">${b.time||'—'}</td>
+        <td style="color:var(--green);font-weight:800">${b.fee||'0.00'}</td>
+        <td style="color:var(--amber)">${b.rating?'★'.repeat(b.rating):'—'}</td>
+      </tr>`;}).join('')}</tbody></table></div>`;
+};
+db.ref(BASE+'/completedBookings').orderByKey().limitToLast(200).on('child_added', snap => { _cmp[snap.key]=snap.val(); recalcCmp(); });
+db.ref(BASE+'/completedBookings').on('child_changed', snap => { _cmp[snap.key]=snap.val(); recalcCmp(); });
+db.ref(BASE+'/completedBookings').on('child_removed', snap => { delete _cmp[snap.key]; recalcCmp(); });
+
+// ── DOCTORS LISTENER ──
+db.ref(BASE+'/doctors').on('value', snap => {
+  _docs = snap.val()||{};
+  const dg=document.getElementById('docGrid');
+  const keys=Object.keys(_docs);
+  if(!keys.length){dg.innerHTML='<div style="color:var(--muted);font-size:.84rem;grid-column:1/-1">لا يوجد أطباء بعد</div>';return;}
+  dg.innerHTML=keys.map(k=>{
+    const d=_docs[k];
+    const avail=d.available!==false;
+    const avg=d.avgRating?`★${d.avgRating.toFixed(1)} (${d.ratingCount||0})`:'';
+    const dept = d.departmentId && _depts[d.departmentId] ? _depts[d.departmentId] : null;
+    const deptTag = dept && (_sets.mode === 'medical_complex') ? `<div style="font-size:0.75rem;margin:3px 0;font-weight:700;color:${dept.color || 'var(--teal)'}"><span style="font-size:0.85rem">${dept.emoji || '🏢'}</span> ${sanitize(dept.name)}</div>` : '';
+    
+    // Map workdays list to Arabic string
+    const dayNamesAr = { 6:'السبت', 0:'الأحد', 1:'الاثنين', 2:'الثلاثاء', 3:'الأربعاء', 4:'الخميس', 5:'الجمعة' };
+    const wDays = d.workDays || [0, 1, 2, 3, 4, 6];
+    const wDaysLabels = wDays.map(day => dayNamesAr[day] || '').filter(Boolean).join(' · ');
+
+    return `<div class="dc">
+      <div class="dc-top">${d.img?`<img src="${d.img}" alt="${d.name}">`:d.emoji||'👨‍⚕️'}</div>
+      <div class="dc-body">
+        <div class="dc-name">د. ${sanitize(d.name)}</div>
+        <div class="dc-spec">${sanitize(d.specialty||'')}</div>
+        ${deptTag}
+        <div class="dc-fee">${parseFloat(d.fee||0).toFixed(2)} د.أ · ${d.slotDuration||30}د</div>
+        <div class="dc-fee" style="font-size:.71rem;color:var(--muted)">${d.workStart||'09:00'} — ${d.workEnd||'17:00'}</div>
+        <div style="font-size:0.68rem;color:var(--teal);margin-top:2px;font-weight:700">🗓️ الدوام: ${wDaysLabels}</div>
+        <div style="font-size:0.75rem;margin-top:8px;font-weight:700;color:${d.enterpriseAuth && d.enterpriseAuth.passwordHash ? 'var(--green)' : 'var(--red)'}">
+          <i class="fas ${d.enterpriseAuth && d.enterpriseAuth.passwordHash ? 'fa-lock' : 'fa-lock-open'}"></i> ${d.enterpriseAuth && d.enterpriseAuth.passwordHash ? 'تم تعيين كلمة مرور' : 'كلمة المرور مفقودة'}
+        </div>
+        ${avg?`<div class="drate">${avg}</div>`:''}
+        <div class="avl-tog" onclick="togAvail('${k}',${avail})">
+          <input type="checkbox" ${avail?'checked':''} onclick="event.stopPropagation()">
+          <span class="avl-lbl" style="color:${avail?'var(--green)':'var(--red)'}">${avail?'متاح الآن':'غير متاح'}</span>
+        </div>
+      </div>
+      <div style="display:flex;border-top:1px solid rgba(13,148,136,.1)">
+        <button onclick="editDoc('${k}')" style="flex:1;background:none;border:none;border-left:1px solid rgba(13,148,136,.1);color:var(--sky);padding:8px;font-family:'Tajawal',sans-serif;font-size:.75rem;cursor:pointer;transition:.2s"><i class="fas fa-edit"></i> تعديل</button>
+        <button onclick="openSetPass('${k}',true)" style="flex:1;background:none;border:none;border-left:1px solid rgba(13,148,136,.1);color:var(--teal);padding:8px;font-family:'Tajawal',sans-serif;font-size:.75rem;cursor:pointer;transition:.2s" title="تعيين كلمة مرور"><i class="fas fa-key"></i> باسورد</button>
+        <button class="bdel" style="flex:1;border:none" onclick="db.ref(BASE+'/doctors/${k}').remove();toast('تم الحذف','ok')"><i class="fas fa-trash"></i> حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+});
+
+// ── STAFF LISTENER ──
+let _staff = {};
+db.ref(BASE+'/staff').on('value', snap => {
+  _staff = snap.val()||{};
+  const sg=document.getElementById('staffGrid');
+  if(!sg) return;
+  const keys=Object.keys(_staff);
+  if(!keys.length){sg.innerHTML='<div style="color:var(--muted);font-size:.84rem;grid-column:1/-1">لا يوجد موظفين بعد</div>';return;}
+  sg.innerHTML=keys.map(k=>{
+    const s=_staff[k];
+    const roleMap = { 'pharmacist': 'صيدلي', 'lab': 'فني مختبر', 'radiology': 'فني أشعة', 'reception': 'موظف استقبال', 'admin': 'إدارة' };
+    return `<div class="dc">
+      <div class="dc-top" style="height:70px; font-size: 2rem;">${s.emoji||'👤'}</div>
+      <div class="dc-body">
+        <div class="dc-name">${sanitize(s.name)}</div>
+        <div class="dc-spec" style="color:var(--sky)">${roleMap[s.role] || s.role}</div>
+      </div>
+      <div style="display:flex;border-top:1px solid rgba(13,148,136,.1)">
+        <button onclick="editStaff('${k}')" style="flex:1;background:none;border:none;border-left:1px solid rgba(13,148,136,.1);color:var(--sky);padding:8px;font-family:'Tajawal',sans-serif;font-size:.75rem;cursor:pointer;transition:.2s"><i class="fas fa-edit"></i> تعديل</button>
+        <button class="bdel" style="flex:1;border:none" onclick="db.ref(BASE+'/staff/${k}').remove();toast('تم الحذف','ok')"><i class="fas fa-trash"></i> حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+});
+
+// ── ACTIONS ──
+function updSt(k, s) {
+  const b = _bks[k];
+
+  // When moving to confirmed, waiting room or clinic, auto-register EMR and link patientId
+  if ((s === 'confirmed' || s === 'waiting' || s === 'with_doctor') && b && b.patPhone && !b.patientId) {
+    _ensurePatientAndLink(k, b, () => {
+      db.ref(`${BASE}/bookings/${k}/status`).set(s);
+      toast('✅ تم التحديث وربط ملف المريض', 'ok');
+    });
+    return;
+  }
+
+  db.ref(`${BASE}/bookings/${k}/status`).set(s);
+
+  // Release slot lock when booking is cancelled
+  if (s === 'cancelled' && b && b.slotKey) {
+    db.ref(`${BASE}/slotLocks/${b.slotKey}`).remove().catch(() => {});
+  }
+  toast('✅ تم التحديث', 'ok');
+}
+
+// Auto-register patient in EMR and store patientId back into the booking
+function _ensurePatientAndLink(bookingKey, b, callback) {
+  let cleanPhone = (b.patPhone || '').replace(/\D/g, '');
+  if (cleanPhone.startsWith('962')) cleanPhone = cleanPhone.substring(3);
+  if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+
+  db.ref(`${BASE}/patients`).once('value', snap => {
+    const pats = snap.val() || {};
+    const bookingName = (b.patName || '').trim().toLowerCase();
+    
+    // Check if patient already exists by phone AND name
+    const found = Object.entries(pats).find(([uid, p]) => {
+      const pPhone = (p.info && p.info.phone || '').replace(/\D/g, '');
+      const phoneMatch = (pPhone === cleanPhone || pPhone.endsWith(cleanPhone));
+      if (!phoneMatch) return false;
+      
+      const patName = (p.info && p.info.name || '').trim().toLowerCase();
+      // Only link if names are somewhat similar to prevent family member crossover
+      if (bookingName && patName) {
+        if (bookingName !== patName && !patName.includes(bookingName) && !bookingName.includes(patName)) {
+           return false; // Name mismatch, do NOT link
+        }
+      }
+      return true; // Phone matched and name is similar or one is empty
+    });
+
+    if (found) {
+      // Link existing patient
+      db.ref(`${BASE}/bookings/${bookingKey}/patientId`).set(found[0]).then(callback);
+    } else {
+      // Create new patient record (either completely new phone, or same phone but different name)
+      const newRef = db.ref(`${BASE}/patients`).push();
+      newRef.set({
+        info: {
+          name: b.patName || 'مريض',
+          phone: cleanPhone,
+          age: b.patAge ? parseInt(b.patAge) : null,
+          gender: b.patGender || '',
+          mrn: 'MRN-' + Math.floor(100000 + Math.random() * 900000),
+          createdAt: new Date().toISOString()
+        }
+      }).then(() => {
+        db.ref(`${BASE}/bookings/${bookingKey}/patientId`).set(newRef.key).then(callback);
+      });
+    }
+  });
+}
+
+// Open patient file in EMR portal — uses patientId if available, otherwise phone
+function openPatientEMR(bookingKey) {
+  const b = _bks[bookingKey];
+  if (!b) return;
+  if (b.patientId) {
+    window.open(`emr.html?id=${CID}&pid=${encodeURIComponent(b.patientId)}`, '_blank');
+  } else if (b.patPhone) {
+    window.open(`emr.html?id=${CID}&phone=${encodeURIComponent(b.patPhone)}`, '_blank');
+  }
+}
+
+function cmpBook(k) {
+  const b = _bks[k]; if (!b) return;
+
+  // Auto-create basic EMR profile under a unique Push Key if not exists (EMR Collision Prevention)
+  if (b.patPhone) {
+    let patPhone = b.patPhone.replace(/\D/g,'');
+    if (patPhone.startsWith('962')) patPhone = patPhone.substring(3);
+    if (patPhone.startsWith('0')) patPhone = patPhone.substring(1);
+    
+    db.ref(`${BASE}/patients`).once('value', snap => {
+      const pats = snap.val() || {};
+      const bookingName = (b.patName || '').trim().toLowerCase();
+      const exists = Object.values(pats).some(p => {
+        const pPhone = (p.info && p.info.phone || '').replace(/\D/g, '');
+        const isPhoneMatch = (pPhone === patPhone || pPhone.endsWith(patPhone));
+        if (!isPhoneMatch) return false;
+        
+        const patName = (p.info && p.info.name || '').trim().toLowerCase();
+        if (bookingName && patName) {
+           if (bookingName !== patName && !patName.includes(bookingName) && !bookingName.includes(patName)) {
+              return false; // Name mismatch, they are different patients
+           }
+        }
+        return true;
+      });
+      
+      if (!exists) {
+        const newRef = db.ref(`${BASE}/patients`).push();
+        newRef.set({
+          info: {
+            name: b.patName,
+            phone: patPhone,
+            age: b.patAge ? parseInt(b.patAge) : null,
+            gender: b.patGender || '',
+            mrn: 'MRN-' + Math.floor(100000 + Math.random() * 900000),
+            createdAt: new Date().toISOString()
+          }
+        }).catch(err => console.error("Auto EMR registration failed: ", err));
+      }
+    });
+  }
+
+  db.ref(`${BASE}/completedBookings/${k}`)
+    .set({ ...b, status: 'done', completedAt: new Date().toISOString() })
+    .then(() => db.ref(`${BASE}/bookings/${k}`).remove()
+      .then(() => toast('✅ تم إنهاء الحجز', 'ok')));
+}
+
+function clrHist(){if(!confirm('مسح سجل الحجوزات المكتملة؟'))return;db.ref(`${BASE}/completedBookings`).remove().then(()=>toast('تم المسح','ok'));}
+
+let editingDocKey = null;
+function addDoc() {
+  const name=document.getElementById('dN').value.trim();
+  const spec=document.getElementById('dS').value.trim();
+  const fee=document.getElementById('dF').value.trim();
+  if(!name||!spec||!fee){toast('⚠️ أدخل الاسم والتخصص والرسوم','err');return;}
+  
+  // Extract selected doctor workdays
+  const workDays = [];
+  document.querySelectorAll('.day-btn.active').forEach(btn => {
+    workDays.push(parseInt(btn.getAttribute('data-day')));
+  });
+
+  const docObj = {
+    name,specialty:spec,fee:parseFloat(fee),
+    slotDuration:parseInt(document.getElementById('dSlot').value)||30,
+    workStart:document.getElementById('dWs').value||'09:00',
+    workEnd:document.getElementById('dWe').value||'17:00',
+    img:document.getElementById('dImg').value.trim()||'',
+    emoji:document.getElementById('dEm').value.trim()||'👨‍⚕️',
+    departmentId:document.getElementById('dDept').value||'',
+    workDays: workDays.length ? workDays : [0, 1, 2, 3, 4, 6] // Default Sat-Thu if none selected
+  };
+  
+  if (editingDocKey) {
+    db.ref(`${BASE}/doctors/${editingDocKey}`).update(docObj).then(() => {
+      const dPass = document.getElementById('dPass');
+      if(dPass && dPass.value) ArgonEnterpriseAuth.setStaffCredentials(editingDocKey, dPass.value, true);
+      toast('✅ تم تحديث الطبيب', 'ok');
+      cancelDocEdit();
+    });
+  } else {
+    docObj.available = true; docObj.avgRating = 0; docObj.ratingCount = 0;
+    const docRef = db.ref(`${BASE}/doctors`).push();
+    docRef.set(docObj).then(() => {
+      const dPass = document.getElementById('dPass');
+      if(dPass && dPass.value) ArgonEnterpriseAuth.setStaffCredentials(docRef.key, dPass.value, true);
+      cancelDocEdit();
+      toast('✅ تم إضافة الطبيب', 'ok');
+    });
+  }
+}
+
+function editDoc(k) {
+  editingDocKey = k;
+  const d = _docs[k];
+  document.getElementById('dN').value = d.name;
+  document.getElementById('dS').value = d.specialty;
+  document.getElementById('dF').value = d.fee;
+  document.getElementById('dSlot').value = d.slotDuration || 30;
+  document.getElementById('dWs').value = d.workStart || '09:00';
+  document.getElementById('dWe').value = d.workEnd || '17:00';
+  document.getElementById('dImg').value = d.img || '';
+  document.getElementById('dEm').value = d.emoji || '👨‍⚕️';
+  document.getElementById('dDept').value = d.departmentId || '';
+  
+  // Set workday buttons based on doctor's schedule
+  const wDays = d.workDays || [0, 1, 2, 3, 4, 6];
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    const day = parseInt(btn.getAttribute('data-day'));
+    if (wDays.includes(day)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const b = document.querySelector('.badd');
+  b.innerHTML = '<i class="fas fa-save" style="margin-left:4px"></i>تحديث معلومات الطبيب';
+  b.style.background = 'linear-gradient(135deg, var(--amber), #d97706)';
+  document.getElementById('btnCancelEdit').style.display = 'block';
+  document.getElementById('dN').focus();
+}
+
+function cancelDocEdit() {
+  editingDocKey = null;
+  ['dN','dS','dF','dImg'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('dSlot').value = 30;
+  document.getElementById('dWs').value = '09:00';
+  document.getElementById('dWe').value = '17:00';
+  document.getElementById('dEm').value = '👨‍⚕️';
+  const dpEl = document.getElementById('dPass'); if(dpEl) dpEl.value = '';
+  document.getElementById('dDept').value = '';
+  
+  // Reset workday buttons (default to Sat-Thu active)
+  const defaultDays = [0, 1, 2, 3, 4, 6];
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    const day = parseInt(btn.getAttribute('data-day'));
+    if (defaultDays.includes(day)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const b = document.querySelector('.badd');
+  b.innerHTML = '<i class="fas fa-plus" style="margin-left:4px"></i>إضافة';
+  b.style.background = 'linear-gradient(135deg,var(--teal),var(--sky))';
+  document.getElementById('btnCancelEdit').style.display = 'none';
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 150;
+      canvas.width = size; canvas.height = size;
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min)/2, sy = (img.height - min)/2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      document.getElementById('dImg').value = canvas.toDataURL('image/jpeg', 0.55);
+      toast('✅ تم رفع الصورة بنجاح','ok');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function togAvail(k,cur){
+  db.ref(`${BASE}/doctors/${k}/available`).set(!cur);
+  toast(cur?'تم تعيين الطبيب كغير متاح':'الطبيب متاح الآن','ok');
+}
+
+async function saveSettings() {
+  const sN = document.getElementById('sN').value.trim();
+  const sP = document.getElementById('sP').value.trim();
+  if(!sN) { toast('⚠️ يجب إدخال اسم العيادة', 'err'); return; }
+
+  const color=document.getElementById('sC').value||'#0d9488';
+  const newPass=document.getElementById('sPw').value.trim();
+  
+  const whatsappConf = {
+    enabled: document.getElementById('waEnabled').checked,
+    signature: document.getElementById('waSignature').value.trim(),
+    remind30: document.getElementById('waRemind30').checked,
+    remind10: document.getElementById('waRemind10').checked,
+    phar: document.getElementById('waPhar').checked,
+    lab: document.getElementById('waLab').checked,
+    rad: document.getElementById('waRad').checked,
+    bill: document.getElementById('waBill').checked
+  };
+
+  const update={
+    name:sanitize(sN),
+    phone:sanitize(sP),
+    status:document.getElementById('sSt').value,
+    is24Hours:document.getElementById('s24h').checked,
+    clinicStart:document.getElementById('sWs').value,
+    clinicEnd:document.getElementById('sWe').value,
+    specialty:sanitize(document.getElementById('sSpec').value),
+    emoji:sanitize(document.getElementById('sEm').value),
+    sameDayBooking: document.getElementById('sSameDay').value === 'true',
+    bookingDays: parseInt(document.getElementById('sBookingDays').value) || 10,
+    mode: document.getElementById('sMode').value || 'single_clinic',
+    passcodes: {
+      doctor: document.getElementById('sPassDoc').value.trim()
+    },
+    whatsapp: whatsappConf,
+    color
+  };
+  
+  const currentPassInput = document.getElementById('sPwCurrent');
+  const currentPass = currentPassInput ? currentPassInput.value.trim() : '';
+
+  if (newPass.length > 0) {
+      const storedPassword = String(_pass || _sets.password || '');
+      if (!currentPass) {
+          toast('❌ أدخل كلمة المرور الحالية', 'err');
+          return;
+      }
+      if (String(currentPass) !== storedPassword) {
+          toast('❌ كلمة المرور الحالية غير صحيحة', 'err');
+          return;
+      }
+      update.password = newPass;
+  }
+
+  const pharPass = document.getElementById('sPassPhar');
+  if (pharPass && !pharPass.disabled) {
+      if (document.getElementById('sPassPhar').value.trim().length >= 4) {
+          update['portalPasswords/pharmacy'] = await ArgonEnterpriseAuth.hashPassword(document.getElementById('sPassPhar').value.trim());
+      }
+      if (document.getElementById('sPassLab').value.trim().length >= 4) {
+          update['portalPasswords/lab'] = await ArgonEnterpriseAuth.hashPassword(document.getElementById('sPassLab').value.trim());
+      }
+      if (document.getElementById('sPassRad').value.trim().length >= 4) {
+          update['portalPasswords/radiology'] = await ArgonEnterpriseAuth.hashPassword(document.getElementById('sPassRad').value.trim());
+      }
+      if (document.getElementById('sPassRec').value.trim().length >= 4) {
+          update['portalPasswords/reception'] = await ArgonEnterpriseAuth.hashPassword(document.getElementById('sPassRec').value.trim());
+      }
+  }
+
+  db.ref(`${BASE}/settings`).update(update).then(()=>{
+    toast('✅ تم حفظ الإعدادات بنجاح','ok');
+    const p1 = document.getElementById('sPw');
+    const p2 = document.getElementById('sPwCurrent');
+    if (p1) p1.value = '';
+    if (p2) p2.value = '';
+  }).catch(e => toast('❌ فشل الحفظ','err'));
+}
+
+async function unlockRbacPasswords() {
+    const adminPass = prompt('الرجاء إدخال كلمة مرور الإدارة العليا للعيادة (Admin Password) لفتح قفل الأقسام:');
+    if (!adminPass) return;
+    
+    const snap = await db.ref(`${BASE}/settings/password`).once('value');
+    if (snap.val() === adminPass) {
+        document.getElementById('rbacLockOverlay').style.display = 'none';
+        ['sPassPhar', 'sPassLab', 'sPassRad', 'sPassRec'].forEach(id => {
+            document.getElementById(id).disabled = false;
+        });
+        toast('🔓 تم فتح قفل التعديل', 'ok');
+        if(window.ArgonCore) ArgonCore.logAudit('RBAC_UNLOCK', 'Admin unlocked department passwords', 'SECURITY');
+    } else {
+        toast('❌ كلمة المرور غير صحيحة', 'err');
+        if(window.ArgonCore) ArgonCore.logAudit('RBAC_UNLOCK_FAIL', 'Failed to unlock department passwords', 'SECURITY');
+    }
+}
+
+function copyPatPortalUrl() {
+  const el = document.getElementById('patPortalLinkUrl');
+  if (el) {
+    el.select();
+    el.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(el.value).then(() => {
+      toast('📋 تم نسخ رابط بوابة المريض الرقمية بنجاح!');
+    });
+  }
+}
+
+function sendWA(phone,status,no,name) {
+  const msgs={confirmed:`مرحباً ${name}، تم تأكيد موعدك رقم ${no} ✅`,waiting:`مرحباً ${name}، موعدك رقم ${no} حان وقته 🕐`,default:`مرحباً ${name}، بخصوص موعدك رقم ${no}`};
+  window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msgs[status]||msgs.default)}`,'_blank');
+}
+
+const sanitize = s => String(s||'').replace(/[<>"']/g,'').trim().substring(0,150);
+
+function togTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('argon_theme', next);
+  document.getElementById('themeTog').innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+// Init theme
+const savedTheme = localStorage.getItem('argon_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+window.addEventListener('DOMContentLoaded', () => {
+  if(document.getElementById('themeTog'))
+    document.getElementById('themeTog').innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+});
+
+function sw(id,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  if(el)el.classList.add('on');
+}
+function openPreview(){document.getElementById('prevFrame').src=`index.html?id=${CID}`;document.getElementById('prevModal').style.display='flex';}
+function closePrev(){document.getElementById('prevModal').style.display='none';document.getElementById('prevFrame').src='';}
+function printReport() {
+  const s = _sets || {};
+  document.getElementById('phName').textContent = s.name || 'العيادة';
+  if(s.logoUrl) {
+    document.getElementById('phLogoCont').innerHTML = `<img src="${s.logoUrl}" style="width:100%;height:100%;object-fit:contain">`;
+  } else {
+    document.getElementById('phLogoCont').innerHTML = `<span style="font-size:3rem">${s.emoji || '🏥'}</span>`;
+  }
+  document.getElementById('printDate').textContent = new Date().toLocaleString('ar-JO');
+  
+  // Show stats and history for printing
+  document.getElementById('stats').classList.add('print-all');
+  document.getElementById('hist').classList.add('print-all');
+  
+  window.print();
+  
+  document.getElementById('stats').classList.remove('print-all');
+  document.getElementById('hist').classList.remove('print-all');
+}
+
+function upLogo(inp) {
+  const file = inp.files[0];
+  if(!file) return;
+  toast('⏳ جاري معالجة الصورة...', 'ok');
+  
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // Create a canvas to resize and compress the image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const maxW = 200, maxH = 200;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } }
+      else { if (h > maxH) { w *= maxH / h; h = maxH; } }
+      canvas.width = w; canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      db.ref(BASE + '/settings/logoUrl').set(compressedBase64)
+        .then(() => toast('✅ تم تحديث الشعار بنجاح', 'ok'))
+        .catch(() => toast('❌ فشل الحفظ', 'err'));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── STAFF ACTIONS ──
+let editingStaffKey = null;
+function addStaff() {
+  const sftN = document.getElementById('sftN');
+  const sftR = document.getElementById('sftR');
+  const sftP = document.getElementById('sftP');
+  const sftNatId = document.getElementById('sftNatId');
+  const sftE = document.getElementById('sftE');
+  if (!sftN || !sftR) return;
+
+  const name = sftN.value.trim();
+  const role = sftR.value;
+  if(!name){toast('⚠️ أدخل الاسم','err');return;}
+  
+  const staffObj = {
+    name, role,
+    phone: sftP ? sftP.value.trim() : '',
+    nationalId: sftNatId ? sftNatId.value.trim() : '',
+    emoji: sftE ? (sftE.value.trim() || '👤') : '👤'
+  };
+  
+  if (editingStaffKey) {
+    db.ref(`${BASE}/staff/${editingStaffKey}`).update(staffObj).then(() => {
+      toast('✅ تم تحديث الموظف', 'ok');
+      cancelStaffEdit();
+    });
+  } else {
+    const staffRef = db.ref(`${BASE}/staff`).push();
+    staffRef.set(staffObj).then(() => {
+      cancelStaffEdit();
+      toast('✅ تم إضافة الموظف', 'ok');
+    });
+  }
+}
+
+function editStaff(k) {
+  const sftN = document.getElementById('sftN');
+  const sftR = document.getElementById('sftR');
+  const sftP = document.getElementById('sftP');
+  const sftNatId = document.getElementById('sftNatId');
+  const sftE = document.getElementById('sftE');
+  if (!sftN || !sftR) return;
+
+  editingStaffKey = k;
+  const s = _staff[k];
+  sftN.value = s.name || '';
+  sftR.value = s.role || 'reception';
+  if (sftP) sftP.value = s.phone || '';
+  if (sftNatId) sftNatId.value = s.nationalId || '';
+  if (sftE) sftE.value = s.emoji || '👤';
+  
+  const b = document.getElementById('btnStaffAdd');
+  if(b) {
+    b.innerHTML = '<i class="fas fa-save" style="margin-left:4px"></i>تحديث معلومات الموظف';
+    b.style.background = 'linear-gradient(135deg, var(--amber), #d97706)';
+  }
+  const btnC = document.getElementById('btnCancelStaffEdit');
+  if(btnC) btnC.style.display = 'block';
+  sftN.focus();
+}
+
+function cancelStaffEdit() {
+  editingStaffKey = null;
+  const sftN = document.getElementById('sftN');
+  const sftR = document.getElementById('sftR');
+  const sftP = document.getElementById('sftP');
+  const sftNatId = document.getElementById('sftNatId');
+  const sftE = document.getElementById('sftE');
+  
+  if(sftN) sftN.value = '';
+  if(sftR) sftR.value = 'reception';
+  if(sftP) sftP.value = '';
+  if(sftNatId) sftNatId.value = '';
+  if(sftE) sftE.value = '👤';
+  
+  const b = document.getElementById('btnStaffAdd');
+  if(b) {
+    b.innerHTML = '<i class="fas fa-plus" style="margin-left:4px"></i>إضافة موظف';
+    b.style.background = 'linear-gradient(135deg,var(--teal),var(--sky))';
+  }
+  const btnC = document.getElementById('btnCancelStaffEdit');
+  if(btnC) btnC.style.display = 'none';
+}
+
+// ── SET PASSWORD MODAL ──
+let _setPassUid = null, _setPassIsDoc = false;
+function openSetPass(uid, isDoctor) {
+  _setPassUid = uid;
+  _setPassIsDoc = isDoctor;
+  const person = isDoctor ? (_docs[uid] || {}) : (_staff[uid] || {});
+  const name = person.name || uid;
+  document.getElementById('setPassTitle').textContent = 'تعيين كلمة مرور: ' + name;
+  document.getElementById('setPassSub').textContent = isDoctor ? '🩺 بوابة السجلات الطبية' : '🔐 بوابة الطاقم الإداري';
+  document.getElementById('setPassInput').value = '';
+  const m = document.getElementById('setPassModal');
+  m.style.display = 'flex';
+  setTimeout(() => document.getElementById('setPassInput').focus(), 100);
+}
+function closeSetPass() {
+  document.getElementById('setPassModal').style.display = 'none';
+  _setPassUid = null;
+}
+function confirmSetPass() {
+  const pass = document.getElementById('setPassInput').value.trim();
+  if(!pass || pass.length < 4) { toast('⚠️ كلمة المرور يجب أن تكون 4 أحرف على الأقل', 'err'); return; }
+  ArgonEnterpriseAuth.setStaffCredentials(_setPassUid, pass, _setPassIsDoc).then(() => {
+    toast('✅ تم تعيين كلمة المرور بنجاح 🔒', 'ok');
+    closeSetPass();
+  }).catch(e => { toast('❌ فشل الحفظ: ' + e.message, 'err'); });
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSetPass(); if(e.key === 'Enter' && _setPassUid) confirmSetPass(); });
+
+// updateStaffPass removed
+
+
+function delLogo() {
+  if(!confirm('هل أنت متأكد من حذف الشعار؟')) return;
+  db.ref(BASE + '/settings/logoUrl').remove().then(() => {
+    toast('✅ تم حذف الشعار', 'ok');
+  });
+}
+
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=type?'show '+type:'show';setTimeout(()=>t.className='',3000);}
+
+// Seeding default departments automatically for Medical Complex tier
+function checkAndSeedDefaultDepartments() {
+  if (_sets && _sets.mode === 'medical_complex') {
+    db.ref(BASE + '/departments').once('value', snap => {
+      if (!snap.exists() || !snap.val()) {
+        const defaultDepts = {
+          general: { name: 'الطب العام', emoji: '🩺', color: '#0d9488' },
+          dental: { name: 'طب الأسنان', emoji: '🦷', color: '#8b5cf6' },
+          pediatrics: { name: 'طب الأطفال', emoji: '👶', color: '#10b981' },
+          cardio: { name: 'أمراض القلب', emoji: '🫀', color: '#ef4444' },
+          ortho: { name: 'جراحة العظام', emoji: '🦴', color: '#f59e0b' }
+        };
+        db.ref(BASE + '/departments').set(defaultDepts);
+      }
+    });
+  }
+}
+
+// Redeploy trigger: 2026-05-18T21:08:12
+
+// PWA
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
 </body>
 </html>
