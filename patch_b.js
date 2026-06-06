@@ -1,143 +1,233 @@
-const fs = require('fs');
-let code = fs.readFileSync('./clinica-repo/emr-app.js', 'utf8');
+import os
 
-// --- B1 PATCH ---
-const b1OldGuard = `  // --- NID SECURITY GUARD ---
-  if (typeof window.ArgonNID !== 'undefined' && _patients[uid]) {
-    const pInfo = _patients[uid].info || {};
-    if (!window.ArgonNID.isValidNID(pInfo.nationalId)) {
-      window.ArgonNID.showCollectorDialog(pInfo.name || 'المريض', uid, db, typeof BASE !== 'undefined' ? BASE : '', (savedUid, savedNid) => {
-        safeViewPatientFile(savedUid);
-      });
-      return; 
-    }
-  }`;
+def patch_emr():
+    file_path = 'clinica-repo/emr-app.js'
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
 
-const b1NewGuard = `
-  // ── B1: NID Gate — يتحقق قبل فتح أي ملف ──
-  const patData = _patients[uid];
-  const hasNID  = ArgonNID.isValidNID(patData?.info?.nationalId || '');
+    # 1. Timeline Logic Replacement
+    old_timeline_logic = """      // ── VISIT LOCK & ARCHIVE STATUS ──
+      const session       = ArgonSession.get() || {};
+      const isVisitOwner  = v.docKey === session.staffId;
+      const isExpired     = v.timestamp && (Date.now() - v.timestamp) > 86400000;
+      const isArchived    = v.status === 'archived';
+      const isLocked      = !isVisitOwner || isExpired || v.signedOff;
 
-  if (!hasNID) {
-    // المريض بدون رقم وطني — أطلب من الطبيب إدخاله أولاً
-    // أفرج عن القفل مؤقتاً ريثما يُدخل الرقم
-    window.EMRContext.sessionLock = false;
-    if (typeof BASE !== 'undefined') {
-      db.ref(\`\${BASE}/active_sessions/\${uid}\`).remove();
-    }
+      const lockBadge = isLocked
+        ? `<span style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;margin-right:6px">🔒 قراءة فقط</span>`
+        : `<span style="background:rgba(13,148,136,0.1);color:var(--teal);border:1px solid rgba(13,148,136,0.25);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;margin-right:6px">✏️ قابل للتعديل</span>`;
 
-    ArgonNID.showCollectorDialog(
-      patData?.info?.name || 'المريض',
-      uid,
-      db,
-      BASE,
-      (patientId, nid) => {
-        // بعد الحفظ: حدّث الكاش المحلي فوراً
-        if (_patients[patientId] && _patients[patientId].info) {
-          _patients[patientId].info.nationalId = nid;
-        }
-        // أعد فتح الملف — الآن عنده رقم وطني
-        safeViewPatientFile(patientId);
+      const archiveBadge = isArchived
+        ? `<span style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;text-decoration:line-through;margin-right:6px">🗃️ مؤرشفة</span>`
+        : '';
+      // ── END VISIT LOCK ──"""
+
+    new_timeline_logic = """      // ── VISIT LOCK & ARCHIVE STATUS ──
+      const session       = ArgonSession.get() || {};
+      const canEdit       = window.ArgonPermissions ? window.ArgonPermissions.canEditVisit(v, session.staffId) : false;
+      const isArchived    = v.status === 'archived';
+      const isSigned      = v.status === 'signed' || v.signedOff;
+
+      const lockBadge = !canEdit
+        ? `<span style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;margin-right:6px">🔒 قراءة فقط</span>`
+        : `<span style="background:rgba(13,148,136,0.1);color:var(--teal);border:1px solid rgba(13,148,136,0.25);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;margin-right:6px">✏️ قابل للتعديل</span>`;
+
+      let stateBadge = '';
+      if (isArchived) {
+        stateBadge = `<span style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;text-decoration:line-through;margin-right:6px">🗃️ مؤرشفة</span>`;
+      } else if (isSigned) {
+        stateBadge = `<span style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:2px 8px;font-size:0.7rem;font-weight:700;margin-right:6px">✍️ موقعة إلكترونياً</span>`;
       }
-    );
-    return; // أوقف التنفيذ الحالي
+      // ── END VISIT LOCK ──"""
+
+    if old_timeline_logic in content:
+        content = content.replace(old_timeline_logic, new_timeline_logic)
+
+    # Replace archive button logic and add sign off button
+    old_btn_logic = """      // زر الأرشفة يظهر فقط للمالك وإذا ليست مؤرشفة بالفعل
+      const archiveBtn = (!isArchived && isVisitOwner && !isExpired)
+        ? `<button class="btn-secondary btn-sm" onclick="event.stopPropagation();archiveVisit('${uid}','${vk}')" style="color:var(--muted);border-color:rgba(239,68,68,0.3)"><i class="fas fa-archive"></i> أرشفة</button>`
+        : '';"""
+        
+    new_btn_logic = """      // أزرار التحكم تظهر إذا كان يملك الصلاحية
+      const archiveBtn = (!isArchived && canEdit)
+        ? `<button class="btn-secondary btn-sm" onclick="event.stopPropagation();archiveVisit('${uid}','${vk}')" style="color:var(--muted);border-color:rgba(239,68,68,0.3)"><i class="fas fa-archive"></i> أرشفة</button>`
+        : '';
+        
+      const signOffBtn = (!isArchived && !isSigned && canEdit)
+        ? `<button class="btn-secondary btn-sm" onclick="event.stopPropagation();signOffVisit('${uid}','${vk}')" style="color:var(--teal);border-color:rgba(13,148,136,0.3)"><i class="fas fa-file-signature"></i> توقيع وإقفال</button>`
+        : '';"""
+
+    if old_btn_logic in content:
+        content = content.replace(old_btn_logic, new_btn_logic)
+
+    old_tl_actions = """              <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+                ${archiveBtn}"""
+    
+    new_tl_actions = """              <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+                ${archiveBtn}
+                ${signOffBtn}"""
+    if old_tl_actions in content:
+        content = content.replace(old_tl_actions, new_tl_actions)
+
+    old_lock_badge_var = "${lockBadge}${archiveBadge}"
+    new_lock_badge_var = "${lockBadge}${stateBadge}"
+    if old_lock_badge_var in content:
+        content = content.replace(old_lock_badge_var, new_lock_badge_var)
+
+    # 2. Update Visit Creation (_writeVisitUpdates)
+    # The actual object creation is in completeWorkspaceVisit around line 3289:
+    # updates[`${BASE}/patients/${newUid}/visits/${timelineKey}`] = visitObj;
+    # But visitObj is created slightly earlier.
+    # Let's just find where visitObj is assigned
+    old_visit_obj = """    const visitObj = {
+      docKey: (window.ArgonSession ? ArgonSession.get()?.staffId : null) || 'doctor',
+      docName: (window.ArgonSession ? ArgonSession.get()?.displayName : null) || 'طبيب',
+      date: new Date().toLocaleDateString('en-CA'),
+      time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now(),
+      diagnosis: diag,
+      complaint: activeVisit.complaint || '',
+      vitals: activeVisit.vitals || {},
+      notes: notes,
+      rx: activeVisit.rx || [],
+      prescriptions: rxList,
+      attachments: uploadAttachments,
+      labOrders: labTestsList,
+      radOrders: radScansList
+    };"""
+    
+    new_visit_obj = """    const visitObj = {
+      schemaVersion: 1,
+      status: 'draft',
+      docKey: (window.ArgonSession ? ArgonSession.get()?.staffId : null) || 'doctor',
+      docName: (window.ArgonSession ? ArgonSession.get()?.displayName : null) || 'طبيب',
+      date: new Date().toLocaleDateString('en-CA'),
+      time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now(),
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      diagnosis: diag,
+      complaint: activeVisit.complaint || '',
+      vitals: activeVisit.vitals || {},
+      notes: notes,
+      rx: activeVisit.rx || [],
+      prescriptions: rxList,
+      attachments: uploadAttachments,
+      labOrders: labTestsList,
+      radOrders: radScansList
+    };"""
+    
+    if old_visit_obj in content:
+        content = content.replace(old_visit_obj, new_visit_obj)
+
+    # 3. Add signOffVisit function & update archiveVisit
+    old_archive_visit = """// ── CLINICAL INTEGRITY: SOFT DELETE / ARCHIVE ──
+window.archiveVisit = function(patientId, visitKey) {
+  const session = ArgonSession.get() || {};
+  if (!confirm('⚠️ هل أنت متأكد من أرشفة (حذف) هذا السجل الطبي؟ لا يمكن التراجع عن هذه العملية.')) return;
+
+  const updates = {};
+  // بدلاً من الحذف النهائي .remove() نغير الحالة إلى مؤرشفة
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/status`] = 'archived';
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/archivedBy`] = session.staffId;
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/archivedAt`] = new Date().toISOString();
+
+  // Audit Log Entry
+  const auditId = db.ref().child('audit').push().key;
+  updates[`${BASE}/patients/${patientId}/audit/visits/${auditId}`] = {
+    action: 'ARCHIVE_VISIT',
+    visitId: visitKey,
+    archivedBy: session.staffId,
+    timestamp: new Date().toISOString()
+  };
+
+  db.ref().update(updates).then(() => {
+    toast('✅ تم أرشفة السجل الطبي بنجاح', 'ok');
+    viewPatientFile(patientId); // Refresh timeline
+  }).catch(err => {
+    toast('❌ حدث خطأ أثناء الأرشفة: ' + err.message, 'err');
+  });
+};"""
+
+    new_archive_and_signoff = """// ── CLINICAL INTEGRITY: SOFT DELETE / ARCHIVE ──
+window.archiveVisit = function(patientId, visitKey) {
+  const session = ArgonSession.get() || {};
+  if (!confirm('⚠️ هل أنت متأكد من أرشفة (حذف) هذا السجل الطبي؟ لا يمكن التراجع عن هذه العملية.')) return;
+
+  const updates = {};
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/status`] = 'archived';
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/archivedBy`] = session.staffId;
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/archivedAt`] = firebase.database.ServerValue.TIMESTAMP;
+
+  if (window.ArgonAuditLog) {
+    window.ArgonAuditLog.log('VISIT', visitKey, 'ARCHIVE', null, { status: 'archived' }, 'Manual Archival');
   }
-  // ── نهاية B1 ──
-`;
 
-if (code.includes(b1OldGuard)) {
-  code = code.replace(b1OldGuard, '');
-}
+  db.ref().update(updates).then(() => {
+    toast('✅ تم أرشفة السجل الطبي بنجاح', 'ok');
+    viewPatientFile(patientId); // Refresh timeline
+  }).catch(err => {
+    toast('❌ حدث خطأ أثناء الأرشفة: ' + err.message, 'err');
+  });
+};
 
-code = code.replace('  activePatientId = uid;', b1NewGuard + '\n  activePatientId = uid;');
+window.signOffVisit = function(patientId, visitKey) {
+  const session = ArgonSession.get() || {};
+  if (!confirm('⚠️ بالتوقيع الإلكتروني، سيتم إقفال هذا السجل تماماً ولن تتمكن من تعديله أو أرشفته. هل توافق؟')) return;
 
-// --- B2 PATCH ---
-const b2Old = `  const cleanNid = ArgonNID.cleanNID(nationalId);
-  if (!name || !phone || !ArgonNID.isValidNID(cleanNid)) {
-    toast('⚠️ يرجى إدخال الاسم، رقم الهاتف، والرقم الوطني (9 أرقام كحد أدنى)', 'err');
-    return;
-  }`;
+  const updates = {};
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/status`] = 'signed';
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/signedOff`] = true;
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/signedBy`] = session.staffId;
+  updates[`${BASE}/patients/${patientId}/visits/${visitKey}/signedAt`] = firebase.database.ServerValue.TIMESTAMP;
 
-const b2New = `
-// ── B2: NID إجباري عند إنشاء مريض جديد ──
-const nationalId_B2 = document.getElementById('npNationalId').value.trim();
-
-if (!name || !phone) {
-  toast('⚠️ يرجى إدخال الاسم ورقم الهاتف', 'err');
-  return;
-}
-if (!ArgonNID.isValidNID(nationalId_B2)) {
-  toast('🚫 الرقم الوطني إجباري — لا يمكن إنشاء ملف بدونه', 'err');
-  const nidField = document.getElementById('npNationalId');
-  if (nidField) {
-    nidField.style.borderColor = '#ef4444';
-    nidField.focus();
-    setTimeout(() => { nidField.style.borderColor = ''; }, 3000);
+  if (window.ArgonAuditLog) {
+    window.ArgonAuditLog.log('VISIT', visitKey, 'SIGN_OFF', null, { status: 'signed' }, 'Doctor Sign Off');
   }
-  return;
-}
 
-// تحقق: هل الرقم الوطني مسجل مسبقاً؟
-const nidClean_B2 = ArgonNID.cleanNID(nationalId_B2);
-const nidExistingLocal = ArgonNID.findByNIDLocal(nidClean_B2, _patients);
-
-if (nidExistingLocal) {
-  // الرقم الوطني موجود — افتح الملف القديم مباشرة
-  toast(\`ℹ️ هذا المريض مسجل مسبقاً (\${nidExistingLocal.info.mrn || 'ملف موجود'}) — جاري فتح ملفه\`, 'ok');
-  closeModal('newPatModal');
-  viewPatientFile(nidExistingLocal.uid);
-  return;
-}
-// ── نهاية B2 ──`;
-
-code = code.replace(b2Old, b2New);
-
-// --- B3 PATCH ---
-const b3Old = `    if (!q) return true;
-    return (info.phone || '').includes(q) ||
-      (info.name || '').toLowerCase().includes(q) ||
-      (info.mrn || '').toLowerCase().includes(q) ||
-      (info.nationalId || '').toLowerCase().includes(q) ||
-      uid.includes(q);`;
-
-const b3New = `    // ── B3: إضافة البحث بالرقم الوطني ──
-    if (!q) return true;
-    return (info.phone || '').includes(q)
-      || (info.name || '').toLowerCase().includes(q)
-      || (info.mrn || '').toLowerCase().includes(q)
-      || ArgonNID.cleanNID(info.nationalId || '').includes(ArgonNID.cleanNID(q))
-      || uid.includes(q);
-    // ── نهاية B3 ──`;
-
-code = code.replace(b3Old, b3New);
-
-// --- B4 PATCH ---
-const b4Old = `  const bookingName = (booking.patName || '').trim();`;
-const b4New = `  const bookingName = (booking.patName || '').trim();
-
-// ── B4: استخراج NID من الحجز وتمريره للمحرك ──
-const bookingNID = ArgonNID.cleanNID(booking.patNationalId || booking.nationalId || '');
-
-// إذا الحجز يحتوي رقم وطني، ابحث به أولاً (أسرع وأدق)
-if (ArgonNID.isValidNID(bookingNID)) {
-  const nidMatch = ArgonNID.findByNIDLocal(bookingNID, _patients);
-  if (nidMatch) {
-    // ✅ وجدنا المريض برقمه الوطني — فتح مباشر بدون أي سؤال
-    if (typeof window.ArgonMedical?.ShadowLog?.log === 'function') {
-      window.ArgonMedical.ShadowLog.log(CID, {
-        result: 'EXACT', confidence: 1.0,
-        matchedId: nidMatch.uid, matchedName: nidMatch.info.name,
-        reason: '🔒 NID direct match from booking — instant open'
-      }, { source: 'doctor_waiting_room_nid', userId: (ArgonSession.get()||{}).staffId||'' }, db);
+  db.ref().update(updates).then(() => {
+    toast('✅ تم توقيع السجل الطبي وإقفاله بنجاح', 'ok');
+    viewPatientFile(patientId); // Refresh timeline
+  }).catch(err => {
+    toast('❌ حدث خطأ أثناء التوقيع: ' + err.message, 'err');
+  });
+};"""
+    if old_archive_visit in content:
+        content = content.replace(old_archive_visit, new_archive_and_signoff)
+        
+    # 4. Integrate ArgonAuditLog into Identity Audit in saveEditPatient
+    old_identity_audit = """  if (Object.keys(changes).length > 0) {
+    const session = ArgonSession.get() || {};
+    const auditId = db.ref().child('audit').push().key;
+    db.ref(`${BASE}/patients/${uid}/audit/identity/${auditId}`).set({
+      changedBy:    session.staffId     || 'unknown',
+      changedName:  session.displayName || 'unknown',
+      timestamp:    new Date().toISOString(),
+      changes
+    }).catch(err => console.error('Identity audit failed:', err));
+  }"""
+  
+    new_identity_audit = """  if (Object.keys(changes).length > 0) {
+    if (window.ArgonAuditLog) {
+      window.ArgonAuditLog.log('PATIENT_IDENTITY', uid, 'UPDATE', oldInfo, updates, 'Profile Edit');
     }
-    if (startVisit) { sw('newVisit'); loadVisitForm(nidMatch.uid, bookingKey); }
-    else             { viewPatientFile(nidMatch.uid); sw('patFile'); }
-    return;
-  }
-}
-// ── نهاية B4 ──`;
+  }"""
+    
+    if old_identity_audit in content:
+        content = content.replace(old_identity_audit, new_identity_audit)
 
-code = code.replace(b4Old, b4New);
+    # 5. Correlation ID trigger on viewPatientFile
+    target_view_patient = """function viewPatientFile(uid) {"""
+    new_view_patient = """function viewPatientFile(uid) {
+  if (window.ArgonAuditLog) window.ArgonAuditLog.startTransaction(); // Begin new logical transaction for correlation
+"""
+    if 'window.ArgonAuditLog.startTransaction();' not in content:
+        content = content.replace(target_view_patient, new_view_patient)
 
-fs.writeFileSync('./clinica-repo/emr-app.js', code);
-console.log('PATCH B APPLIED');
+
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print("Done patching emr-app.js")
+
+if __name__ == '__main__':
+    patch_emr()

@@ -1,125 +1,103 @@
-const fs = require('fs');
-let code = fs.readFileSync('./clinica-repo/argon-enterprise.js', 'utf8');
+import os
 
-const userFindMatch = `  async function findMatch(clinicId, incoming, db) {
-    if (!ARGON_FLAGS.enableSmartMatch) {
-      return { result: MatchResult.NEW, confidence: 0, reason: "SmartMatch disabled" };
+def append_to_enterprise():
+    file_path = 'clinica-repo/argon-enterprise.js'
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    new_code = """
+// ═══════════════════════════════════════════════════════════════════
+// 🛡️ ARGON CLINICAL INTEGRITY - WAVE 1
+// ═══════════════════════════════════════════════════════════════════
+
+window.ARGON_FEATURES = {
+  ENABLE_VISIT_OWNERSHIP: true,
+  ENABLE_SIGNOFF_LOCK: true,
+  ENABLE_AUDIT_LOG: true,
+  ENABLE_BREAK_GLASS: true
+};
+
+// ── 1. Argon Permissions ──
+window.ArgonPermissions = {
+  getVisitOwner: function(visit) {
+    if (!visit) return null;
+    // Layer of backward compatibility to resolve ownership
+    return visit.docKey || visit.doctorId || visit.uid || visit.staffId || null;
+  },
+
+  canEditVisit: function(visit, currentStaffId) {
+    if (!window.ARGON_FEATURES.ENABLE_VISIT_OWNERSHIP) return true;
+    if (!visit || !currentStaffId) return false;
+
+    const owner = this.getVisitOwner(visit);
+    if (!owner) return false; // legacyReadOnly fallback
+
+    const isCreator = (owner === currentStaffId);
+    
+    // Check lock status
+    if (visit.status === 'locked' || visit.signedOff) return false;
+    if (visit.lockedAt) return false;
+
+    // Check server timestamp-based 24h auto-lock
+    // Assuming server timestamp is populated in visit.signedAt or visit.createdAt
+    // Note: Firebase ServerValue.TIMESTAMP gives epoch MS.
+    if (visit.createdAt && typeof visit.createdAt === 'number') {
+      const now = Date.now();
+      if ((now - visit.createdAt) > 86400000) return false;
     }
 
-    const inNID   = ArgonNID.cleanNID(incoming.nationalId || '');
-    const inPhone = (incoming.phone || '').replace(/\\D/g,'');
-    const inName  = incoming.name || '';
-
-    // ══════════════════════════════════════════════════════════
-    // 🔒 ABSOLUTE RULE #1 — رقم وطني موجود = EXACT فوري
-    // ══════════════════════════════════════════════════════════
-    if (ArgonNID.isValidNID(inNID)) {
-      try {
-        const nidSnap = await db
-          .ref(\`clinics/\${clinicId}/patients\`)
-          .orderByChild('info/nationalId')
-          .equalTo(inNID)
-          .once('value');
-
-        let matchedByNID = null;
-        nidSnap.forEach(child => {
-          if (!matchedByNID) {
-            matchedByNID = { id: child.key, ...child.val().info };
-          }
-        });
-
-        if (matchedByNID) {
-          return {
-            result:      MatchResult.EXACT,
-            confidence:  1.0,
-            matchedId:   matchedByNID.id,
-            matchedName: matchedByNID.name,
-            reason:      '🔒 National ID exact match — ملف موجود مسجل بهذا الرقم الوطني',
-            nidMatch:    true
-          };
-        }
-      } catch (err) {
-        console.error('[ARGON:Match] NID query error:', err);
-      }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // 🔒 ABSOLUTE RULE #2 — لا رقم وطني = لا ملف جديد
-    // ══════════════════════════════════════════════════════════
-    if (!ArgonNID.isValidNID(inNID)) {
-      return {
-        result:      'NEEDS_NID',
-        confidence:  0,
-        reason:      '🚫 الرقم الوطني غير موجود — يجب إدخاله قبل المتابعة',
-        needsNID:    true
-      };
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // البحث بالهاتف
-    // ══════════════════════════════════════════════════════════
-    let candidates = [];
-    try {
-      const snap = await db
-        .ref(\`clinics/\${clinicId}/patients\`)
-        .orderByChild('info/phone')
-        .equalTo(incoming.phone)
-        .once('value');
-      snap.forEach(child => {
-        candidates.push({ id: child.key, ...child.val().info });
-      });
-    } catch (err) {
-      console.error('[ARGON:Match] Phone query error:', err);
-      return { result: MatchResult.NEW, confidence: 0, reason: 'DB error' };
-    }
-
-    if (!candidates.length) {
-      return { result: MatchResult.NEW, confidence: 0, reason: 'No phone match' };
-    }
-
-    let best = null, bestScore = 0;
-    for (const c of candidates) {
-      const score = nameSimilarity(inName, c.name);
-      if (score > bestScore) { bestScore = score; best = c; }
-    }
-
-    if (bestScore >= 0.85) {
-      return {
-        result:      MatchResult.STRONG,
-        confidence:  bestScore,
-        matchedId:   best.id,
-        matchedName: best.name,
-        reason:      \`Phone + name similarity \${(bestScore*100).toFixed(1)}%\`
-      };
-    }
-    if (bestScore >= 0.5) {
-      return {
-        result:      MatchResult.POSSIBLE,
-        confidence:  bestScore,
-        matchedId:   best.id,
-        matchedName: best.name,
-        reason:      \`Phone match, name similarity \${(bestScore*100).toFixed(1)}% — needs confirmation\`
-      };
-    }
-
-    return {
-      result:      MatchResult.POSSIBLE,
-      confidence:  0.3,
-      matchedId:   candidates[0].id,
-      matchedName: candidates[0].name,
-      reason:      'Same phone, different name — possible family member'
-    };
+    return isCreator;
   }
-`;
+};
 
-const startIdx = code.indexOf('async function findMatch(');
-const endStr = 'return { findMatch, normalizeArabic, normalizePhone, nameSimilarity, MatchResult };';
-const endIdx = code.indexOf(endStr, startIdx);
+// ── 2. Argon Audit Log ──
+window.ArgonAuditLog = {
+  _currentCorrelationId: null,
 
-if (startIdx !== -1 && endIdx !== -1) {
-  code = code.substring(0, startIdx) + userFindMatch + '  ' + endStr + code.substring(endIdx + endStr.length);
-  fs.writeFileSync('./clinica-repo/argon-enterprise.js', code);
-  console.log('PATCH A APPLIED');
-} else {
-  console.log('FAILED TO FIND BOUNDARIES');
-}
+  startTransaction: function() {
+    this._currentCorrelationId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    return this._currentCorrelationId;
+  },
+
+  getCorrelationId: function() {
+    if (!this._currentCorrelationId) this.startTransaction();
+    return this._currentCorrelationId;
+  },
+
+  log: function(entityType, entityId, action, oldValue, newValue, reason = '') {
+    if (!window.ARGON_FEATURES.ENABLE_AUDIT_LOG) return;
+    if (!window.firebase || !window.ArgonSession) return;
+
+    const session = window.ArgonSession.get() || {};
+    const db = window.firebase.database();
+    
+    const auditRecord = {
+      correlationId: this.getCorrelationId(),
+      entityType: entityType,
+      entityId: entityId,
+      action: action,
+      oldValue: oldValue || null,
+      newValue: newValue || null,
+      performedBy: session.staffId || 'unknown',
+      timestamp: new Date().toISOString(), // Use client ISO for UI sorting
+      serverTime: window.firebase.database.ServerValue.TIMESTAMP, // Use server time for rigid timeline
+      reason: reason
+    };
+
+    // Push to a centralized, append-only audit path
+    const auditRef = db.ref('audit_logs').push();
+    auditRef.set(auditRecord).catch(err => console.error('Audit Log failed:', err));
+  }
+};
+"""
+    if 'window.ArgonPermissions =' not in content:
+        content += new_code
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print("ArgonPermissions & Audit Log added.")
+    else:
+        print("Already present.")
+
+if __name__ == '__main__':
+    append_to_enterprise()
