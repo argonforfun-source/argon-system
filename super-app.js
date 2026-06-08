@@ -114,6 +114,15 @@ db.ref('.info/connected').on('value',s=>{
 function loadData(){
     try{db.ref('clinics').off()}catch(e){}_dataMap={};data=[];
     document.getElementById('resGrid').innerHTML='<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div>';
+    
+    // فحص ما إذا كانت العيادات فارغة أصلاً
+    db.ref('clinics').once('value', snap => {
+        if (!snap.exists() || !snap.hasChildren()) {
+            document.getElementById('resGrid').innerHTML='<div class="empty-state"><i class="fas fa-clinic-medical"></i><p>لا توجد عيادات</p><small>أضف عيادة جديدة من الأعلى</small></div>';
+            updateStats();
+        }
+    });
+
     db.ref('clinics').on('child_added',snap=>{
         const val=snap.val();
         if(val&&typeof val==='object'){_dataMap[snap.key]={id:snap.key,...val};scheduleRender()}
